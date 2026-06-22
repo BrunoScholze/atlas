@@ -1,0 +1,6 @@
+server/node_modules/
+temp/*.pdf
+app-minha-producao/
+server/.env
+.env
+*.env

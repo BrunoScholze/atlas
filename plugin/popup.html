@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agente de Chamados</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <span class="header-title">Agente de Chamados</span>
+    <span class="status-indicator" id="statusIndicator" title="Verificando servidor...">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Verificando...</span>
+    </span>
+  </header>
+
+  <!-- Tela principal (formulário) -->
+  <div id="telaFormulario">
+
+    <section class="section">
+      <label class="section-label">Ticket</label>
+      <div class="ticket-info" id="ticketInfo">
+        <span class="ticket-id" id="ticketId">—</span>
+        <span class="ticket-titulo" id="ticketTitulo">Carregando dados do Jira...</span>
+      </div>
+      <div class="jira-status" id="jiraStatus"></div>
+    </section>
+
+    <section class="section">
+      <label class="section-label">Funções afetadas <span class="required">*</span></label>
+      <div class="tags-container" id="tagsContainer"></div>
+      <div class="select-wrapper">
+        <select id="funcionalidadesSelect" class="select-input">
+          <option value="" disabled selected>Selecione as funções afetadas por esse problema</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="section">
+      <label class="section-label">Documento de simulação do chamado <span class="required">*</span></label>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="pdfInput" accept=".pdf" class="file-input" />
+        <div class="dropzone-content" id="dropzoneContent">
+          <span class="dropzone-icon">📎</span>
+          <span class="dropzone-text">Arraste o PDF de simulação aqui ou <strong>clique para selecionar</strong></span>
+          <span class="dropzone-hint">Exportado do Jira — apenas arquivos .pdf</span>
+        </div>
+        <div class="dropzone-filename" id="dropzoneFilename" style="display:none"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <label class="checkbox-label">
+        <input type="checkbox" id="checkObservacao" />
+        Adicionar informações para o agente
+      </label>
+      <textarea
+        id="observacaoTextarea"
+        class="textarea"
+        style="display:none"
+        placeholder="Descreva o passo a passo do erro, mensagem exata, comportamento esperado vs real, versão afetada..."
+        rows="4"
+      ></textarea>
+    </section>
+
+    <div class="actions">
+      <button id="btnIniciar" class="btn btn-primary" disabled>Iniciar</button>
+    </div>
+
+  </div>
+
+  <!-- Tela de loading -->
+  <div id="telaLoading" style="display:none" class="loading-screen">
+    <div class="spinner"></div>
+    <p class="loading-text">Analisando...</p>
+    <p class="loading-etapa" id="loadingEtapa">Iniciando...</p>
+    <p class="loading-timer" id="loadingTimer">0s</p>
+    <p class="loading-hint">Pode fechar e reabrir o plugin sem perder o progresso.</p>
+  </div>
+
+  <!-- Tela de resultado -->
+  <div id="telaResultado" style="display:none">
+
+    <div class="resultado-header">
+      <h2 class="resultado-titulo">Análise concluída</h2>
+      <div class="download-row">
+        <button id="btnDownloadAnalise" class="btn-download">⬇ Baixar análise (.txt)</button>
+        <button id="btnDownloadLog" class="btn-download">⬇ Baixar log (.log)</button>
+      </div>
+    </div>
+
+    <div class="resultado-scroll">
+
+      <!-- Formato estruturado (quando Claude seguiu o template) -->
+      <div id="secaoEstruturada" style="display:none">
+
+        <div class="resultado-secao" id="secaoLocalizacao">
+          <h3 class="secao-titulo">📍 Localização do Problema</h3>
+          <div class="secao-conteudo destaque" id="conteudoLocalizacao"></div>
+        </div>
+
+        <div class="resultado-secao" id="secaoCausa">
+          <h3 class="secao-titulo">🔍 Causa Provável</h3>
+          <div class="secao-conteudo" id="conteudoCausa"></div>
+        </div>
+
+        <!-- SEÇÃO DE ALTERAÇÃO — destaque especial -->
+        <div class="resultado-secao secao-alteracao" id="secaoResolver">
+          <h3 class="secao-titulo alteracao-titulo">🔧 O QUE ALTERAR NO CÓDIGO</h3>
+          <div class="secao-conteudo alteracao-conteudo" id="conteudoResolver"></div>
+        </div>
+
+        <div class="resultado-secao" id="secaoArquivos">
+          <h3 class="secao-titulo">📂 Arquivos Analisados</h3>
+          <div class="secao-conteudo" id="conteudoArquivos"></div>
+        </div>
+
+        <div class="resultado-secao" id="secaoObservacoes">
+          <h3 class="secao-titulo">⚠️ Observações</h3>
+          <div class="secao-conteudo" id="conteudoObservacoes"></div>
+        </div>
+
+      </div>
+
+      <!-- Formato livre (fallback quando Claude não seguiu o template) -->
+      <div id="secaoBruta" style="display:none">
+        <div class="aviso-formato">
+          ℹ️ O agente retornou a análise em formato livre.
+        </div>
+        <div class="bruto-conteudo" id="conteudoBruto"></div>
+      </div>
+
+    </div><!-- .resultado-scroll -->
+
+    <div class="actions resultado-actions">
+      <button id="btnCopiar" class="btn btn-secondary">Copiar resultado</button>
+      <button id="btnNovaAnalise" class="btn btn-primary">Limpar</button>
+    </div>
+
+  </div>
+
+  <!-- Tela de erro -->
+  <div id="telaErro" style="display:none" class="erro-screen">
+    <p class="erro-icone">❌</p>
+    <p class="erro-mensagem" id="erroMensagem"></p>
+    <button id="btnTentarNovamente" class="btn btn-primary">Tentar novamente</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

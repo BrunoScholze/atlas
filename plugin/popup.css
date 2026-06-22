@@ -1,0 +1,397 @@
+/* Reset e base */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 580px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: #1a1a2e;
+  background: #f6f8fa;
+  overflow-x: hidden;
+}
+
+/* ============================================================ HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  background: #1a1a2e;
+  color: white;
+}
+
+.header-title { font-weight: 600; font-size: 14px; }
+.status-indicator { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #888; }
+.status-dot.online  { background: #3fb950; }
+.status-dot.offline { background: #f85149; }
+
+/* ============================================================ FORMULÁRIO */
+.section { padding: 12px 16px; border-bottom: 1px solid #e9ecef; background: white; }
+
+.section-label {
+  display: block;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #57606a;
+  margin-bottom: 8px;
+}
+
+.required { color: #cf222e; }
+
+.ticket-info { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ticket-id { font-weight: 700; color: #0969da; font-size: 12px; }
+.ticket-titulo { font-size: 12px; color: #333; }
+.jira-status { margin-top: 4px; font-size: 11px; color: #57606a; }
+.jira-status.ok   { color: #1a7f37; }
+.jira-status.erro { color: #cf222e; }
+
+.tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  background: #ddf4ff; border: 1px solid #54aeff;
+  border-radius: 12px; font-size: 11px; color: #0969da;
+}
+.tag-remove { cursor: pointer; font-size: 13px; color: #0969da; border: none; background: none; padding: 0; line-height: 1; }
+.tag-remove:hover { color: #cf222e; }
+
+.select-wrapper { position: relative; }
+.select-input {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid #d0d7de; border-radius: 6px;
+  background: white; font-size: 12px; color: #24292f; cursor: pointer; appearance: none;
+}
+.select-input:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.15); }
+
+.dropzone {
+  position: relative; border: 2px dashed #d0d7de;
+  border-radius: 6px; padding: 16px; text-align: center;
+  cursor: pointer; background: #f6f8fa;
+  transition: border-color .2s, background .2s;
+}
+.dropzone:hover, .dropzone.dragover { border-color: #0969da; background: #ddf4ff; }
+.dropzone.com-arquivo { border-color: #1a7f37; background: #dafbe1; }
+.file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.dropzone-content { display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+.dropzone-icon { font-size: 20px; }
+.dropzone-text { font-size: 12px; color: #24292f; }
+.dropzone-hint { font-size: 11px; color: #57606a; }
+.dropzone-filename { font-size: 12px; color: #1a7f37; font-weight: 600; }
+
+.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: #24292f; }
+.textarea {
+  width: 100%; margin-top: 10px; padding: 8px;
+  border: 1px solid #d0d7de; border-radius: 6px;
+  font-size: 12px; font-family: inherit; color: #24292f; resize: vertical;
+}
+.textarea:focus { outline: none; border-color: #0969da; }
+
+.actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px 16px; background: white; border-top: 1px solid #e9ecef;
+}
+.btn { padding: 7px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: #1f883d; color: white; }
+.btn-primary:not(:disabled):hover { background: #1a7f37; }
+.btn-secondary { background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; }
+.btn-secondary:hover { background: #e9ecef; }
+
+/* ============================================================ LOADING */
+.loading-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px 16px; background: white; gap: 12px;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e9ecef; border-top-color: #0969da;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text  { font-weight: 600; color: #1a1a2e; }
+.loading-etapa { font-size: 12px; color: #0969da; font-weight: 500; margin-top: 2px; }
+.loading-timer { font-size: 24px; font-weight: 700; color: #1a1a2e; font-variant-numeric: tabular-nums; }
+.loading-hint  { font-size: 11px; color: #57606a; max-width: 340px; text-align: center; }
+
+/* ============================================================ RESULTADO — cabeçalho */
+.resultado-header {
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #d0d7de;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.resultado-titulo { font-size: 15px; font-weight: 700; color: #1a7f37; }
+.download-row { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-download {
+  padding: 5px 10px; font-size: 11px; font-weight: 600;
+  border: 1px solid #d0d7de; border-radius: 6px;
+  background: white; color: #24292f; cursor: pointer; white-space: nowrap;
+  transition: background .15s;
+}
+.btn-download:hover { background: #f3f4f6; border-color: #0969da; color: #0969da; }
+
+/* Scroll do conteúdo */
+.resultado-scroll { overflow: visible; }
+
+/* ============================================================ SEÇÕES do resultado */
+.resultado-secao {
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0;
+}
+
+.secao-titulo {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 16px 6px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: #57606a;
+}
+
+.secao-conteudo {
+  padding: 4px 16px 14px;
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Localização — pill com monospace */
+.secao-conteudo.destaque {
+  margin: 4px 16px 12px;
+  padding: 10px 14px;
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  border-radius: 6px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  color: #633c01;
+}
+
+/* ============================================================ SEÇÃO "O QUE ALTERAR" */
+.secao-alteracao { background: #fff9f0; border-bottom: 2px solid #fb8f44 !important; }
+.alteracao-titulo {
+  padding: 12px 16px 6px !important;
+  font-size: 12px !important; font-weight: 800 !important;
+  color: #bc4c00 !important; text-transform: uppercase;
+}
+.alteracao-conteudo { padding: 4px 16px 14px !important; }
+
+/* ============================================================ MARKDOWN */
+.md-h1 { font-size: 15px; font-weight: 700; color: #24292f; margin: 10px 0 6px; border-bottom: 1px solid #e9ecef; padding-bottom: 4px; }
+.md-h2 { font-size: 13px; font-weight: 700; color: #24292f; margin: 10px 0 4px; }
+.md-h3 { font-size: 12px; font-weight: 700; color: #57606a; margin: 8px 0 4px; }
+.md-p  { font-size: 12px; line-height: 1.65; color: #24292f; margin: 4px 0 6px; }
+.md-hr { border: none; border-top: 1px solid #e9ecef; margin: 10px 0; }
+
+.md-list { padding-left: 0; list-style: none; margin: 6px 0 8px; }
+.md-li   { display: flex; gap: 6px; font-size: 12px; line-height: 1.6; color: #24292f; padding: 2px 0; }
+.li-num    { color: #57606a; flex-shrink: 0; min-width: 18px; font-weight: 600; }
+.li-bullet { color: #57606a; flex-shrink: 0; }
+
+.inline-code {
+  background: #f0f0f0; border: 1px solid #d0d7de;
+  padding: 1px 5px; border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; color: #953800;
+}
+
+/* ============================================================ CODE BLOCK */
+.code-block {
+  background: #f6f8fa; border: 1px solid #d0d7de;
+  border-radius: 6px; overflow: hidden;
+  font-family: 'Consolas', 'Monaco', monospace; font-size: 12px;
+  margin: 8px 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 8px 4px 12px;
+  background: #f0f2f5; border-bottom: 1px solid #d0d7de;
+  font-size: 10px; font-weight: 700; color: #57606a; text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.code-block code { display: block; padding: 12px; white-space: pre-wrap; word-break: break-all; color: #24292f; }
+
+/* ============================================================ DIFF ESTILO GITHUB */
+.diff-block {
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.diff-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 12px;
+  background: #f6f8fa; border-bottom: 1px solid #d0d7de;
+}
+
+.diff-filename {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px; font-weight: 700; color: #24292f;
+}
+
+.diff-lang-badge {
+  font-size: 10px; font-weight: 700; color: #57606a;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  background: #e9ecef; padding: 2px 6px; border-radius: 4px;
+}
+
+.diff-header-right { display: flex; align-items: center; gap: 10px; }
+.diff-legend { display: flex; gap: 10px; font-size: 11px; }
+.leg-rem { color: #cf222e; font-weight: 700; }
+.leg-add { color: #1a7f37; font-weight: 700; }
+
+/* Botão </> — toggle claro/escuro */
+.btn-toggle-view {
+  padding: 2px 7px;
+  font-size: 11px; font-weight: 700;
+  font-family: 'Consolas', 'Monaco', monospace;
+  border: 1px solid #d0d7de; border-radius: 4px;
+  background: white; color: #57606a;
+  cursor: pointer; line-height: 1.4;
+  transition: background .15s, color .15s;
+}
+.btn-toggle-view:hover { background: #1e1e1e; color: #e0e0e0; border-color: #555; }
+
+/* Container das linhas — sem scroll lateral */
+.diff-lines {
+  overflow-x: hidden;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Cada linha ocupa a largura total */
+.diff-add,
+.diff-rem,
+.diff-ctx,
+.diff-hunk,
+.diff-meta {
+  display: flex;
+  align-items: flex-start;
+  min-height: 20px;
+  width: 100%;
+}
+
+/* Número de linha — oculto no modo claro, visível no escuro */
+.diff-linenum {
+  display: none;
+  flex: 0 0 42px;
+  text-align: right;
+  padding: 2px 8px 2px 4px;
+  user-select: none;
+  font-size: 11px;
+  color: #6e7681;
+}
+
+/* Coluna do sinal (+ − espaço) */
+.diff-sign {
+  flex: 0 0 22px;
+  text-align: center;
+  font-weight: 700;
+  user-select: none;
+  padding: 2px 0;
+}
+
+/* Coluna do conteúdo de código — quebra linha longa ao invés de rolar */
+.diff-content {
+  flex: 1;
+  padding: 2px 12px 2px 4px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-width: 0;
+}
+
+/* Cores por tipo de linha — background na div inteira */
+.diff-add                { background: #e6ffec; }
+.diff-add .diff-sign     { color: #1a7f37; background: #ccffd8; }
+.diff-add .diff-content  { color: #1c4a2a; }
+
+.diff-rem                { background: #ffebe9; }
+.diff-rem .diff-sign     { color: #cf222e; background: #ffd7d5; }
+.diff-rem .diff-content  { color: #6e1a0e; }
+
+.diff-ctx                { background: #ffffff; }
+.diff-ctx .diff-sign     { color: #57606a; background: #f6f8fa; }
+.diff-ctx .diff-content  { color: #24292f; }
+
+.diff-hunk               { background: #ddf4ff; }
+.diff-hunk .diff-sign    { color: #0969da; background: #b6e3ff; }
+.diff-hunk .diff-content { color: #0550ae; font-style: italic; }
+
+.diff-meta               { background: #f6f8fa; }
+.diff-meta .diff-sign    { color: #57606a; background: #eee; }
+.diff-meta .diff-content { color: #57606a; font-style: italic; }
+
+/* ============================================================ MODO ESCURO (toggle </>) */
+
+/* --- diff block escuro --- */
+.diff-block.view-dark { border-color: #3c3c3c; }
+.diff-block.view-dark .diff-header { background: #2d2d2d; border-color: #3c3c3c; }
+.diff-block.view-dark .diff-filename { color: #cccccc; }
+.diff-block.view-dark .diff-lang-badge { background: #3c3c3c; color: #aaa; }
+.diff-block.view-dark .leg-rem { color: #f47067; }
+.diff-block.view-dark .leg-add { color: #57ab5a; }
+.diff-block.view-dark .btn-toggle-view { background: #1e1e1e; color: #e0e0e0; border-color: #555; }
+
+/* numeração de linha — aparece só no modo escuro */
+.diff-block.view-dark .diff-lines { counter-reset: diff-line 0; }
+.diff-block.view-dark .diff-add,
+.diff-block.view-dark .diff-rem,
+.diff-block.view-dark .diff-ctx  { counter-increment: diff-line; }
+.diff-block.view-dark .diff-linenum { display: block; }
+.diff-block.view-dark .diff-linenum::before { content: counter(diff-line); }
+
+/* cores de linha no escuro */
+.diff-block.view-dark .diff-add               { background: #1c2f1d; }
+.diff-block.view-dark .diff-add .diff-sign    { background: #1e3b1f; color: #57ab5a; }
+.diff-block.view-dark .diff-add .diff-content { color: #87d391; }
+.diff-block.view-dark .diff-add .diff-linenum { background: #1e3b1f; color: #57ab5a; }
+
+.diff-block.view-dark .diff-rem               { background: #2f1c1c; }
+.diff-block.view-dark .diff-rem .diff-sign    { background: #3b1e1e; color: #f47067; }
+.diff-block.view-dark .diff-rem .diff-content { color: #f47067; }
+.diff-block.view-dark .diff-rem .diff-linenum { background: #3b1e1e; color: #f47067; }
+
+.diff-block.view-dark .diff-ctx               { background: #1e1e1e; }
+.diff-block.view-dark .diff-ctx .diff-sign    { background: #252526; color: #555; }
+.diff-block.view-dark .diff-ctx .diff-content { color: #d4d4d4; }
+.diff-block.view-dark .diff-ctx .diff-linenum { background: #252526; color: #555; }
+
+.diff-block.view-dark .diff-hunk               { background: #0d2535; }
+.diff-block.view-dark .diff-hunk .diff-sign    { background: #0a1e2e; color: #569cd6; }
+.diff-block.view-dark .diff-hunk .diff-content { color: #9cdcfe; }
+.diff-block.view-dark .diff-hunk .diff-linenum { background: #0a1e2e; color: #569cd6; }
+
+.diff-block.view-dark .diff-meta               { background: #252526; }
+.diff-block.view-dark .diff-meta .diff-content { color: #858585; }
+
+/* --- code block escuro --- */
+.code-block.view-dark { background: #1e1e1e; border-color: #3c3c3c; }
+.code-block.view-dark .code-header { background: #2d2d2d; border-color: #3c3c3c; color: #aaa; }
+.code-block.view-dark .btn-toggle-view { background: #1e1e1e; color: #e0e0e0; border-color: #555; }
+.code-block.view-dark code { color: #d4d4d4; background: #1e1e1e; }
+
+/* ============================================================ FORMATO LIVRE (fallback) */
+.aviso-formato {
+  padding: 8px 16px; font-size: 11px;
+  color: #9a6700; background: #fff8c5;
+  border-bottom: 1px solid #d4a72c;
+}
+.bruto-conteudo { padding: 14px 16px; background: white; }
+
+/* ============================================================ RODAPÉ DO RESULTADO */
+.resultado-actions { border-top: 1px solid #e9ecef; }
+
+/* ============================================================ ERRO */
+.erro-screen {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 16px; background: white; gap: 12px; text-align: center;
+}
+.erro-icone    { font-size: 32px; }
+.erro-mensagem { font-size: 12px; color: #cf222e; max-width: 440px; line-height: 1.5; }

@@ -1,0 +1,32 @@
+Análise concluída. O `output.txt` foi salvo em `C:\azure\app-bot\output.txt`.
+
+---
+
+## Resumo da investigação — DMANUFATURA-17443
+
+**Problema confirmado:** Bug introduzido por uma modificação recente no `datasul-report-v2.page.ts`.
+
+### O que acontece
+
+1. Usuário usa o cronômetro → clica em "Apontar" → vai para a tela de reporte (`datasul-report-v2`)
+2. Informa Qtd Reportada **1.198,0000** e Qtd Refugada **15,0000**
+3. Clica em **"Alterar requisições"** → chama `getProductionOrderDefaultMaterials()`
+4. **BUG:** A função buscou os materiais padrão apenas para `1.198,0000` (só `qt-reportada`)
+5. A quantidade de refugo (`15,0000`) não foi somada ao total — ela foi **removida** da função
+6. O usuário vê e confirma materiais para 1.198 unidades na tela de requisições
+7. Ao reportar, o backend recebe materiais para 1.198 → consome apenas para o ACA Acabado
+
+### A mudança que causou o bug
+
+Em `datasul-report-v2.page.ts`, função `getProductionOrderDefaultMaterials()`, foram removidas:
+
+```typescript
+// LINHAS REMOVIDAS (precisam ser restauradas):
+const scrapQuantity = this.getFieldById('qt-refugo').field_data;
+// ...
+quantity = String(Number(quantity) + Number(scrapQuantity));  // dentro do if (this.isSFC)
+```
+
+### Como corrigir
+
+Restaurar essas duas linhas na função. Ver o `output.txt` para o código completo da versão corrigida. Atenção também para um `if (this.materials.length == 0)` com chaves mal posicionadas que foi adicionado junto — verificar a estrutura completa do método após a correção.

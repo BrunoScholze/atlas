@@ -1,0 +1,54 @@
+========================================
+COMO SUBIR O SERVIDOR NODE (API LOCAL)
+========================================
+
+1. Abrir terminal na pasta:
+   cd C:\azure\app-bot\server
+
+2. Subir o servidor:
+   node index.js
+
+3. Confirmar que aparece no terminal:
+   [Servidor] Rodando em http://localhost:3000
+
+4. Testar se está ok (outro terminal ou navegador):
+   http://localhost:3000/health
+   → retorna: {"status":"ok"}
+
+PARAR: Ctrl+C no terminal
+
+----------------------------------------
+ENDPOINTS DISPONÍVEIS
+----------------------------------------
+
+GET  /health           → verifica se o servidor está no ar
+GET  /funcionalidades  → lista as funcionalidades do Funcionalidades.md
+POST /analisar         → recebe dados do plugin e executa a análise
+
+----------------------------------------
+SE PRECISAR REINSTALAR AS DEPENDÊNCIAS
+----------------------------------------
+
+cd C:\azure\app-bot\server
+npm install
+
+----------------------------------------
+ARQUIVOS DO SERVIDOR
+----------------------------------------
+
+server\index.js   → código principal (endpoints)
+server\.env       → caminhos configurados (não alterar sem necessidade)
+server\package.json
+
+----------------------------------------
+VARIÁVEIS DO .env
+----------------------------------------
+
+PORT=3000
+REPO_PATH=C:\azure\app-bot\app-minha-producao
+CONTEXT_PATH=C:\azure\app-bot
+OUTPUT_PATH=C:\azure\app-bot\output.txt
+BAT_PATH=C:\azure\app-bot\scripts\claude.bat
+TEMP_PATH=C:\azure\app-bot\temp
+
+========================================

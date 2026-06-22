@@ -1,0 +1,42 @@
+[2026-06-22 19:21:16.032] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:16.034] [INFO ] === NOVA ANÁLISE INICIADA ===
+[2026-06-22 19:21:16.035] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:16.036] [INFO ] RequestId    : 8638654f-3571-4da0-8d93-9d930a372abb
+[2026-06-22 19:21:16.053] [INFO ] Data/Hora    : 22/06/2026, 16:21:16
+[2026-06-22 19:21:16.054] [INFO ] TicketId     : DMANUFATURA-17443
+[2026-06-22 19:21:16.057] [INFO ] Titulo       : (vazio)
+[2026-06-22 19:21:16.059] [INFO ] Prioridade   : (vazio)
+[2026-06-22 19:21:16.060] [INFO ] Tipo         : (vazio)
+[2026-06-22 19:21:16.061] [INFO ] Responsavel  : (vazio)
+[2026-06-22 19:21:16.061] [INFO ] Funcionalidades: Apontamento de ordem de produção por cronômetro
+[2026-06-22 19:21:16.062] [INFO ] Observacao   : (não informada)
+[2026-06-22 19:21:16.063] [INFO ] PDF          : C:\azure\app-bot\temp\DMANUFATURA-17443_1782156076004.pdf
+[2026-06-22 19:21:16.063] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:16.065] [INFO ] Lendo claude.md...
+[2026-06-22 19:21:16.068] [INFO ] claude.md: 8792 chars
+[2026-06-22 19:21:16.070] [INFO ] Lendo Funcionalidades.md...
+[2026-06-22 19:21:16.074] [INFO ] Funcionalidades.md: 2584 chars
+[2026-06-22 19:21:16.078] [INFO ] Montando prompt...
+[2026-06-22 19:21:16.080] [INFO ] Prompt montado: 11734 chars
+[2026-06-22 19:21:16.084] [INFO ] prompt_temp.txt gravado: C:\azure\app-bot\prompt_temp.txt
+[2026-06-22 19:21:16.085] [INFO ] PS1 path: C:\azure\scripts\run-claude.ps1
+[2026-06-22 19:21:16.085] [INFO ] Output path: C:\azure\app-bot\output.txt
+[2026-06-22 19:21:16.086] [INFO ] Repo path: C:\azure\app-bot\app-minha-producao
+[2026-06-22 19:21:16.087] [INFO ] Log file: C:\azure\app-bot\logs\2026-06-22_19-21-16_DMANUFATURA-17443_8638654f.log
+[2026-06-22 19:21:16.088] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:16.091] [INFO ] Abrindo janela PowerShell...
+[2026-06-22 19:21:16.093] [DEBUG] Comando: start /wait "Claude Code — DMANUFATURA-17443" powershell -NoProfile -ExecutionPolicy Bypass -File "C:\azure\scripts\run-claude.ps1" "C:\azure\app-bot\prompt_temp.txt" "C:\azure\app-bot\output.txt" "C:\azure\app-bot\app-minha-producao" "C:\azure\app-bot\logs\2026-06-22_19-21-16_DMANUFATURA-17443_8638654f.log"
+[2026-06-22 19:21:17.245] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:17.248] [INFO ] PowerShell finalizado. Duração: 1.2s
+[2026-06-22 19:21:17.260] [INFO ] PDF temp deletado
+[2026-06-22 19:21:17.263] [INFO ] prompt_temp.txt deletado
+[2026-06-22 19:21:17.268] [INFO ] output.txt lido: 1514 chars
+[2026-06-22 19:21:17.270] [INFO ] Preview do resultado:
+[2026-06-22 19:21:17.271] [INFO ]   | Análise concluída. O `output.txt` foi salvo em `C:\azure\app-bot\output.txt`.
+[2026-06-22 19:21:17.273] [INFO ]   | ---
+[2026-06-22 19:21:17.274] [INFO ]   | ## Resumo da investigação — DMANUFATURA-17443
+[2026-06-22 19:21:17.276] [INFO ]   | **Problema confirmado:** Bug introduzido por uma modificação recente no `datasul-report-v2.page.ts`.
+[2026-06-22 19:21:17.277] [INFO ]   | ### O que acontece
+[2026-06-22 19:21:17.279] [-----] ----------------------------------------------------------------
+[2026-06-22 19:21:17.281] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
+[2026-06-22 19:21:17.283] [-----] ----------------------------------------------------------------
