@@ -154,10 +154,16 @@ body {
 }
 
 .secao-conteudo {
-  padding: 4px 16px 14px;
+  padding: 4px 16px 18px;
   overflow-x: hidden;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* Observações — mais altura e espaçamento generoso */
+#secaoObservacoes .secao-conteudo {
+  padding: 8px 16px 24px;
+  min-height: 60px;
 }
 
 /* Localização — pill com monospace */
@@ -171,6 +177,25 @@ body {
   font-size: 12px;
   color: #633c01;
 }
+
+/* ============================================================ SANFONA (Arquivos Analisados) */
+details.sanfona { cursor: default; }
+details.sanfona > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  display: flex; align-items: center; gap: 6px;
+}
+details.sanfona > summary::-webkit-details-marker { display: none; }
+details.sanfona > summary::after {
+  content: "▼";
+  font-size: 9px;
+  color: #57606a;
+  margin-left: auto;
+  margin-right: 16px;
+}
+details.sanfona[open] > summary::after { content: "▲"; }
+details.sanfona > summary:hover { background: #f6f8fa; }
 
 /* ============================================================ SEÇÃO "O QUE ALTERAR" */
 .secao-alteracao { background: #fff9f0; border-bottom: 2px solid #fb8f44 !important; }
@@ -189,9 +214,9 @@ body {
 .md-hr { border: none; border-top: 1px solid #e9ecef; margin: 10px 0; }
 
 .md-list { padding-left: 0; list-style: none; margin: 6px 0 8px; }
-.md-li   { display: flex; gap: 6px; font-size: 12px; line-height: 1.6; color: #24292f; padding: 2px 0; }
-.li-num    { color: #57606a; flex-shrink: 0; min-width: 18px; font-weight: 600; }
-.li-bullet { color: #57606a; flex-shrink: 0; }
+.md-li   { display: block; font-size: 12px; line-height: 1.7; color: #24292f; padding: 3px 0 5px; word-break: break-word; }
+.li-num    { display: inline; color: #57606a; margin-right: 5px; font-weight: 600; }
+.li-bullet { display: inline; color: #57606a; margin-right: 5px; }
 
 .inline-code {
   background: #f0f0f0; border: 1px solid #d0d7de;

@@ -95,7 +95,9 @@ REGRAS ABSOLUTAS:
 3. NÃO escreva introdução ("Vou analisar...", "Análise concluída...")
 4. NÃO confirme que salvou o arquivo — você não salva, apenas imprime
 5. Preencha TODAS as seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, OBSERVAÇÕES
-6. Na seção COMO RESOLVER, use formato diff com nome do arquivo no cabeçalho:
+6. REGRA INVIOLÁVEL PARA CÓDIGO: qualquer alteração de código DEVE usar bloco diff.
+   NUNCA escreva código como texto corrido, nunca use bloco genérico \`\`\`ts ou \`\`\`html.
+   SEMPRE use \`\`\`diff com - (linha removida) e + (linha adicionada):
    \`\`\`diff
    --- a/caminho/do/arquivo.ts
    +++ b/caminho/do/arquivo.ts
@@ -105,8 +107,9 @@ REGRAS ABSOLUTAS:
    + linha que deve ser ADICIONADA
     outra linha de contexto
    \`\`\`
-   Use - para remover, + para adicionar, e linhas sem sinal para contexto.
-   Se houver múltiplos arquivos, use um bloco diff separado para cada um.
+   - Use exatamente 3 traços (---/+++) seguidos de espaço e do caminho do arquivo
+   - Se houver múltiplos arquivos, use um bloco diff separado para cada um
+   - Isso vale para .html, .ts, .scss, .p — qualquer tipo de arquivo
   `.trim();
 }
 

@@ -3,7 +3,7 @@ COMO SUBIR O SERVIDOR NODE (API LOCAL)
 ========================================
 
 1. Abrir terminal na pasta:
-   cd C:\azure\app-bot\server
+   cd C:\azure\atlas\server
 
 2. Subir o servidor:
    node index.js
@@ -21,15 +21,21 @@ PARAR: Ctrl+C no terminal
 ENDPOINTS DISPONÍVEIS
 ----------------------------------------
 
-GET  /health           → verifica se o servidor está no ar
-GET  /funcionalidades  → lista as funcionalidades do Funcionalidades.md
-POST /analisar         → recebe dados do plugin e executa a análise
+GET  /health                    → verifica se o servidor está no ar
+GET  /funcionalidades           → lista as funcionalidades do Funcionalidades.md
+POST /analisar                  → recebe dados do plugin e executa a análise
+GET  /analisar/status/:id       → polling do status da análise
+POST /cancelar/:id              → cancela análise em andamento
+POST /limpar                    → esvazia output.txt
+GET  /log/latest                → conteúdo do log atual
+GET  /download/output           → download do output.txt
+GET  /download/log/latest       → download do log
 
 ----------------------------------------
 SE PRECISAR REINSTALAR AS DEPENDÊNCIAS
 ----------------------------------------
 
-cd C:\azure\app-bot\server
+cd C:\azure\atlas\server
 npm install
 
 ----------------------------------------
@@ -45,10 +51,9 @@ VARIÁVEIS DO .env
 ----------------------------------------
 
 PORT=3000
-REPO_PATH=C:\azure\app-bot\app-minha-producao
-CONTEXT_PATH=C:\azure\app-bot
-OUTPUT_PATH=C:\azure\app-bot\output.txt
-BAT_PATH=C:\azure\app-bot\scripts\claude.bat
-TEMP_PATH=C:\azure\app-bot\temp
+CONTEXT_PATH=C:\azure\atlas
+OUTPUT_PATH=C:\azure\atlas\output.txt
+REPO_PATH=C:\azure\atlas\app-minha-producao
+TEMP_PATH=C:\azure\atlas\temp
 
 ========================================

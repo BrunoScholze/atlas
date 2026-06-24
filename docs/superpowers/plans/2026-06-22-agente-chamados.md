@@ -62,11 +62,11 @@ Criar `server/package.json`:
 Criar `server/.env` (ajustar caminhos conforme a máquina):
 ```
 PORT=3000
-REPO_PATH=C:\azure\app-bot\app-minha-producao
-CONTEXT_PATH=C:\azure\app-bot
-OUTPUT_PATH=C:\azure\app-bot\output.txt
-BAT_PATH=C:\azure\app-bot\scripts\claude.bat
-TEMP_PATH=C:\azure\app-bot\temp
+REPO_PATH=C:\azure\atlas\app-minha-producao
+CONTEXT_PATH=C:\azure\atlas
+OUTPUT_PATH=C:\azure\atlas\output.txt
+BAT_PATH=C:\azure\atlas\scripts\claude.bat
+TEMP_PATH=C:\azure\atlas\temp
 ```
 
 - [ ] **Step 3: Instalar dependências**
@@ -235,8 +235,8 @@ claude --print %1
 
 Abra um terminal, defina a variável e teste:
 ```cmd
-set REPO_PATH=C:\azure\app-bot\app-minha-producao
-C:\azure\app-bot\scripts\claude.bat "Responda apenas: olá mundo"
+set REPO_PATH=C:\azure\atlas\app-minha-producao
+C:\azure\atlas\scripts\claude.bat "Responda apenas: olá mundo"
 ```
 
 Resultado esperado: Claude Code imprime `olá mundo` no terminal.
@@ -454,7 +454,7 @@ Crie um arquivo PNG 128x128 qualquer e salve em `plugin/icons/icon128.png`. Pode
 1. Abrir chrome://extensions
 2. Ativar "Modo do desenvolvedor" (toggle no canto superior direito)
 3. Clicar em "Carregar sem compactação"
-4. Selecionar a pasta: C:\azure\app-bot\plugin
+4. Selecionar a pasta: C:\azure\atlas\plugin
 ```
 
 Resultado esperado: extensão carregada sem erros vermelhos.
@@ -1371,7 +1371,7 @@ git commit -m "feat: popup.js com fluxo completo de analise e renderizacao do re
 
 - [ ] **Step 1: Criar output.txt vazio**
 
-Criar `output.txt` na raiz de `C:\azure\app-bot\` com conteúdo vazio (o servidor vai sobrescrever após a primeira análise).
+Criar `output.txt` na raiz de `C:\azure\atlas\` com conteúdo vazio (o servidor vai sobrescrever após a primeira análise).
 
 - [ ] **Step 2: Criar pasta temp com .gitkeep**
 
@@ -1396,7 +1396,7 @@ git commit -m "feat: output.txt e pasta temp para PDFs temporarios"
 - [ ] **Step 1: Iniciar o servidor**
 
 ```bash
-cd C:\azure\app-bot\server
+cd C:\azure\atlas\server
 node index.js
 ```
 

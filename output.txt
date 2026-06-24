@@ -1,79 +1,27 @@
-﻿Tenho todos os dados necessários. Vou escrever o output agora.
-
-========================================
+﻿========================================
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
-TICKET   : DMANTECHINSIDE-87 — Problema de visualização de botão na hora de informar motivos de refugo
-DATA     : 2026-06-23 — 14:30
+**TICKET**: DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
 
-----------------------------------------
-FUNCIONALIDADES ANALISADAS
-----------------------------------------
-Selecionadas pelo dev:
-- Motivo de refugo (ligado ao Apontamento)
+---
 
-Adicionadas pelo agente (identificadas durante análise):
-- Nenhuma adicional identificada. O problema é restrito à tela de motivos de refugo e não propaga para outras funcionalidades.
+**Problema localizado:** `datasul-report-reason.html`, linha 93.
 
-----------------------------------------
-ARQUIVOS ANALISADOS
-----------------------------------------
-Prioritários:
-- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
-- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.ts
-- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.scss
-
-Contexto:
-- Nenhum componente filho referenciado pela tela (não há tags `<app-xyz>` nem sub-componentes a navegar)
-
-----------------------------------------
-LOCALIZAÇÃO DO PROBLEMA
-----------------------------------------
-Arquivo : src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
-Função  : N/A (problema de propriedade de componente no template, não em função TypeScript)
-Linha   : 90
-
-----------------------------------------
-CAUSA PROVÁVEL
-----------------------------------------
-O botão "Adicionar motivo" está configurado com `p-type="secondary"` na biblioteca PO-UI. Esse tipo renderiza o botão como **ghost button** — fundo branco/transparente com apenas uma borda e texto colorido, sem preenchimento sólido. Em ambientes com fundo claro (que é o caso do `<ion-content>` da tela), o contraste fica muito baixo e o botão aparece "apagado" ao usuário. O problema é puramente de propriedade do componente PO-UI no template HTML — não envolve lógica no `.ts` nem backend.
-
-----------------------------------------
-COMO RESOLVER
-----------------------------------------
-Altere o valor de `p-type` do `<po-button>` de `"secondary"` para `"default"`. O tipo `"default"` renderiza o botão com fundo azul sólido, muito mais visível em fundo claro.
+O `po-button` "Adicionar motivo" estava com `p-type="secondary"`, que no PO-UI renderiza o botão com fundo transparente e borda sutil — quase invisível em fundo branco. Alterado para `p-type="primary"`.
 
 ```diff
 --- a/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
 +++ b/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-@@ -88,7 +88,7 @@
+@@ -90,7 +90,7 @@
      <po-button
          class="po-sm-12 po-pt-2 po-pr-2 po-pl-2"
          p-label="{{literals.addWithIcon}}"
          (p-click)="openModalNewReason(false)"
 -        p-type="secondary"
-+        p-type="default"
++        p-type="primary"
      >
      </po-button>
 ```
 
-**Por que `default` e não `primary`?**
-Na PO-UI ambos geram botão preenchido azul. A convenção do próprio app já usa `p-type="default"` como padrão em outras telas de apontamento. Use `"primary"` apenas se quiser sinalizar que é a ação principal da página (nesse caso o botão principal já é o "Salvar e Voltar" no footer).
-
-**Teste após a alteração:**
-1. Acesse a tela de apontamento → informe quantidade de refugo ou retrabalho
-2. Navegue para a tela de "Informar Motivo"
-3. Verifique que o botão "Adicionar Motivo" aparece com fundo azul sólido e texto branco
-4. Clique no botão e confirme que o modal abre normalmente (a lógica `openModalNewReason(false)` permanece intacta)
-
-----------------------------------------
-OBSERVAÇÕES
-----------------------------------------
-- **Sem impacto no `.ts`**: a mudança é exclusivamente visual. A função `openModalNewReason(false)` no evento `(p-click)` continua sendo chamada normalmente — nenhuma alteração de lógica é necessária.
-- **Sem impacto no backend**: o problema não envolve envio de dados ao Progress. O `.p` não precisa ser alterado.
-- **Sem impacto no `.scss`**: o arquivo `datasul-report-reason.scss` não possui nenhuma regra que afete o `po-button`. A solução via prop do PO-UI é suficiente — não é necessário adicionar CSS customizado.
-- **Risco da alteração**: baixíssimo. É uma mudança de uma propriedade de apresentação em um único componente isolado.
-- **Ticket de referência DMANUFATURA-21257**: o ticket original do chamado menciona esse issue como caso de teste. A correção acima resolve a evidência visual demonstrada no PDF (botão apagado na tela de motivos de refugo). Versão afetada confirmada: 12.1.2407.12 / DTS 11.5.x.
-
-========================================
+**Correção aplicada** diretamente no arquivo. `output.txt` salvo. Nenhum outro arquivo foi afetado.

@@ -492,13 +492,11 @@ async function downloadArquivo(url, nomeArquivo) {
 }
 
 function extrairSecao(texto, nomeSecao) {
-  // Formato real do output.txt:
-  // ----------------------------------------
-  // NOME DA SEÇÃO
-  // ----------------------------------------
-  // conteúdo aqui
+  // Separadores do template têm 40 traços sozinhos na linha.
+  // Diffs têm "--- a/arquivo.ts" com apenas 3 traços + texto.
+  // O lookahead {10,}\s*[\r\n] para apenas em linhas só-de-traços, nunca em diff.
   const regex = new RegExp(
-    `-{2,}[\\r\\n]+\\s*${nomeSecao}\\s*[\\r\\n]+-{2,}[\\r\\n]+([\\s\\S]*?)(?=[\\r\\n]+-{2,}|$)`,
+    `-{2,}[\\r\\n]+\\s*${nomeSecao}\\s*[\\r\\n]+-{2,}[\\r\\n]+([\\s\\S]*?)(?=[\\r\\n]+-{10,}\\s*[\\r\\n]|$)`,
     'i'
   );
   const match = texto.match(regex);
@@ -529,6 +527,7 @@ function mostrarTela(tela) {
   document.getElementById('telaLoading').style.display     = tela === 'loading'    ? 'flex'  : 'none';
   document.getElementById('telaResultado').style.display   = tela === 'resultado'  ? 'block' : 'none';
   document.getElementById('telaErro').style.display        = tela === 'erro'       ? 'flex'  : 'none';
+  document.body.style.minHeight = tela === 'resultado' ? '660px' : '';
 }
 
 function mostrarErro(mensagem) {

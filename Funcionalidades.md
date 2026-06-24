@@ -5,8 +5,8 @@
 > O agente consulta este arquivo para montar a lista de arquivos a analisar.
 > Durante a análise, o agente pode identificar e adicionar funcionalidades não selecionadas.
 >
-> Repositório base: C:\azure\app-bot
-> Repositório original do app: C:\azure\app-minha-producao
+> Repositório base: C:\azure\atlas
+> Repositório original do app: C:\azure\atlas\app-minha-producao
 >
 > IMPORTANTE: Quando um arquivo suspeito contém sub-componentes (tags como <app-xyz>),
 > o agente DEVE navegar e ler esses componentes também para entender o fluxo completo.

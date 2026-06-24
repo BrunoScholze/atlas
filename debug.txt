@@ -1,52 +1,21 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 86bd1fbf-9926-49bd-b964-7fecf46f07e6
-Data/Hora : 23/06/2026, 17:56:12
+RequestId : 4ad0266c-b972-4af1-9dc5-9a07e14ad639
+Data/Hora : 24/06/2026, 15:01:48
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
 ----------------------------------------
-ticketId       : DMANTECHINSIDE-87
-titulo         : Dev - Agente do App minha prod
-descricao      : OBJETIVO/DETALHAMENTO = Criar componentes padronizados para a implantação e utilização do checklist no âmbito de responde-lo.
-
- QUAL É O PROBLEMA E EM QUAL CONTEXTO SE ENCONTRA?
-
-Complexidade para implantar o e utilizar os serviços do checklist, não tem um padrão de front-end.
-
- OBJETIVO -
-
-Criar componentes padronizados para a implantação e utilização do checklist no âmbito de responde-lo
-
-  POR QUE ESCOLHEMOS COLOCAR ESFORÇO NISSO?
-
-Com o épico finalizado teremos um padrão no layout do checklist, nas perguntas, controle das validações das resposta e utilização segura dos serviço do backend, facilitando a implantação, com o codificador tendo que fornecer poucos dados para o componente gerar o checklist pronto para ser respondido.
-
-Critério de aceite não funcional: 
-
-	O Usuário só pode acessar o componente principal.
-
-
-
-Critério de aceite: 
-
-	Gerar o checklist zerado pronto para ser respondido.
-	Gerar o checklist iniciado com suas respostas pronto para ser respondido.
-	Checklist Validado as regras de cada componente.
-	Checklist sendo finalizado de forma correta.
-
-
-
-TESTANDO COM A ISSUE 
-
-https://jiraproducao.totvs.com.br/browse/DMANUFATURA-21257
+ticketId       : DMANUFATURA-21257
+titulo         : Problema de visualizacao de botao na hora de informar motivos de refugo
+descricao      : Analise bruno, na tela de informar motivos, parece que temos um botao com p-kind secondary, o que deixa ele inivisel quase, precisamos mudar para primary.
 prioridade     : Média
 tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: Motivo de refugo (ligado ao Apontamento)
 observacao     : (não informada)
-pdf            : C:\azure\app-bot\temp\DMANTECHINSIDE-87_1782248172715.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782324108138.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -60,11 +29,12 @@ PROMPT COMPLETO ENVIADO AO CLAUDE CODE
 ## Quem você é
 
 Você é um agente sênior de desenvolvimento especializado no app **Minha Totvs Prod**.
-Seu trabalho é receber um chamado, cruzar com os arquivos suspeitos das funcionalidades
-selecionadas, investigar o código e explicar onde está o problema e como resolver —
-de forma clara para desenvolvedores juniores.
+Seu trabalho é receber um chamado, investigar o código, identificar o problema e —
+depois de ter certeza — aplicar a correção diretamente nos arquivos usando as
+ferramentas do Claude Code (superpowers: Edit, Write).
 
-Você NUNCA altera código. Você apenas analisa e orienta.
+**Você analisa E corrige.** Após confirmar onde está o bug, use a ferramenta Edit
+para aplicar a alteração no arquivo real. Não apenas oriente — faça a mudança.
 
 ---
 
@@ -185,9 +155,28 @@ Trate isso como uma investigação — só encerra quando tiver certeza, não na
 
 ---
 
-### Passo 4 — Escreva o output.txt
+### Passo 4 — Aplique a correção usando superpowers (Edit)
 
-Salve em `output.txt` seguindo EXATAMENTE este formato:
+Agora que você sabe exatamente onde está o problema, use a ferramenta **Edit** do
+Claude Code para aplicar a alteração diretamente no arquivo.
+
+**Regras para aplicar a correção:**
+- Use `Edit` para alterar apenas as linhas identificadas — não mexa em nada além do necessário
+- Se a correção envolver múltiplos arquivos, aplique um de cada vez com `Edit`
+- Após cada `Edit`, confirme mentalmente que a mudança está correta antes de continuar
+- Arquivos `.p` (Progress) ficam no backend — edite com o mesmo cuidado
+- **Não invente correções**: só aplique o que a investigação confirmou com certeza
+
+**Se houver dúvida** sobre qual linha exata alterar, escreva a análise no output.txt
+(Passo 5) sem aplicar o Edit — é melhor orientar do que alterar o lugar errado.
+
+---
+
+### Passo 5 — Escreva o output.txt
+
+Salve em `output.txt` seguindo EXATAMENTE este formato.
+Na seção COMO RESOLVER, mostre o diff exato que foi aplicado (ou que deve ser aplicado
+se você optou por não usar Edit por falta de certeza):
 
 ```
 ========================================
@@ -233,8 +222,23 @@ de forma clara para um dev júnior entender.>
 ----------------------------------------
 COMO RESOLVER
 ----------------------------------------
-<O que deve ser alterado. Inclua trecho de código
-exemplo se necessário. Seja didático e preciso.>
+<O que deve ser alterado. OBRIGATÓRIO: qualquer alteração de código DEVE ser
+apresentada em bloco diff com linhas - (vermelho) para o que sai e + (verde)
+para o que entra. NUNCA escreva código alterado como texto corrido ou em bloco
+de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabeçalho:>
+
+```diff
+--- a/src/caminho/do/arquivo.ts
++++ b/src/caminho/do/arquivo.ts
+@@ -10,7 +10,7 @@
+ linha de contexto (sem sinal)
+- linha que deve ser REMOVIDA
++ linha que deve ser ADICIONADA
+ outra linha de contexto
+```
+
+<Se houver múltiplos arquivos, use um bloco diff separado para cada um.
+Se a alteração for em HTML, .p ou .scss, aplique o mesmo formato diff.>
 
 ----------------------------------------
 OBSERVAÇÕES
@@ -247,15 +251,50 @@ funcionalidades, pontos de atenção.>
 
 ## Regras importantes
 
-1. **Nunca altere o código** — analise e oriente apenas
-2. **Siga os 4 passos na ordem** — não pule a investigação de ponta a ponta
+1. **Use superpowers (Edit) para aplicar a correção** — após confirmar o problema,
+   use a ferramenta Edit do Claude Code para alterar o arquivo real. Não só oriente.
+2. **Siga os 5 passos na ordem** — não pule a investigação antes de editar
 3. **Leia o PDF inteiro** — os prints e passos de simulação são sua maior fonte de contexto
 4. **Use a OBSERVACAO do dev** — ele pode ter identificado algo que não está no Jira
 5. **Seja preciso** — arquivo, função e linha. Nunca seja vago
-6. **Se não encontrar** — diga o que analisou e por que não localizou. Nunca invente
-7. **Sempre salve o output.txt** — o servidor Node lê este arquivo para retornar ao plugin
-8. **Pode adicionar funcionalidades** — se durante a análise identificar que outras
+6. **Se não encontrar com certeza** — escreva a análise no output.txt sem usar Edit.
+   Nunca aplique uma correção que não foi confirmada pela investigação. Nunca invente.
+7. **Altere apenas o necessário** — o Edit deve tocar só as linhas do problema.
+   Nenhuma refatoração, nenhuma limpeza de código além do escopo do chamado.
+8. **Sempre escreva o output.txt** — o servidor Node lê este arquivo para retornar ao plugin
+9. **Pode adicionar funcionalidades** — se durante a análise identificar que outras
    funcionalidades estão envolvidas, adicione-as e justifique no output
+
+---
+
+## Consulta de documentação externa — use context7 quando tiver dúvida
+
+Se após ler o código você ainda tiver dúvida sobre **como um componente ou função
+se comporta**, não assuma — consulte a documentação oficial usando a ferramenta
+**context7** (`mcp__plugin_context7_context7__resolve-library-id` +
+`mcp__plugin_context7_context7__query-docs`).
+
+### Quando consultar e onde:
+
+**Frontend — dúvidas sobre componentes PO-UI** (po-button, po-input, po-table, etc.):
+- Use context7 com a URL: `https://po-ui.io/documentation`
+- Exemplos de quando usar: comportamento de `p-type`, eventos disponíveis num componente,
+  props obrigatórias, diferença entre `p-kind` e `p-type`, como usar `po-modal`, etc.
+
+**Backend — dúvidas sobre sintaxe ou comportamento Progress OpenEdge** (.p):
+- Use context7 com a URL: `https://docs.progress.com/`
+- Exemplos de quando usar: como funciona um `FOR EACH`, comportamento de transação,
+  uso de `FIND`, `BUFFER`, `TEMP-TABLE`, funções de data/hora, etc.
+
+### Como decidir se vale consultar:
+
+- Checou o código e ainda não entende o comportamento → consulte
+- Está em dúvida se um atributo/prop faz X ou Y → consulte
+- Encontrou o bug mas não tem certeza de qual é o valor correto para a correção → consulte
+- Sabe o que alterar com certeza → não precisa consultar, vá direto ao Edit
+
+**Não consulte** para coisas que o próprio código já deixa claro.
+**Não invente** documentação — se context7 não retornar resultado útil, diga isso no output.
 
 ---
 
@@ -291,8 +330,8 @@ funcionalidades, pontos de atenção.>
 > O agente consulta este arquivo para montar a lista de arquivos a analisar.
 > Durante a análise, o agente pode identificar e adicionar funcionalidades não selecionadas.
 >
-> Repositório base: C:\azure\app-bot
-> Repositório original do app: C:\azure\app-minha-producao
+> Repositório base: C:\azure\atlas
+> Repositório original do app: C:\azure\atlas\app-minha-producao
 >
 > IMPORTANTE: Quando um arquivo suspeito contém sub-componentes (tags como <app-xyz>),
 > o agente DEVE navegar e ler esses componentes também para entender o fluxo completo.
@@ -513,40 +552,9 @@ Contexto: analisar em conjunto com datasul-report-v2 e Reporte de GGF/MOB.
 
 
 ---
-TICKET_ID      : DMANTECHINSIDE-87
-TITULO         : Dev - Agente do App minha prod
-DESCRICAO      : OBJETIVO/DETALHAMENTO = Criar componentes padronizados para a implantação e utilização do checklist no âmbito de responde-lo.
-
- QUAL É O PROBLEMA E EM QUAL CONTEXTO SE ENCONTRA?
-
-Complexidade para implantar o e utilizar os serviços do checklist, não tem um padrão de front-end.
-
- OBJETIVO -
-
-Criar componentes padronizados para a implantação e utilização do checklist no âmbito de responde-lo
-
-  POR QUE ESCOLHEMOS COLOCAR ESFORÇO NISSO?
-
-Com o épico finalizado teremos um padrão no layout do checklist, nas perguntas, controle das validações das resposta e utilização segura dos serviço do backend, facilitando a implantação, com o codificador tendo que fornecer poucos dados para o componente gerar o checklist pronto para ser respondido.
-
-Critério de aceite não funcional: 
-
-	O Usuário só pode acessar o componente principal.
-
-
-
-Critério de aceite: 
-
-	Gerar o checklist zerado pronto para ser respondido.
-	Gerar o checklist iniciado com suas respostas pronto para ser respondido.
-	Checklist Validado as regras de cada componente.
-	Checklist sendo finalizado de forma correta.
-
-
-
-TESTANDO COM A ISSUE 
-
-https://jiraproducao.totvs.com.br/browse/DMANUFATURA-21257
+TICKET_ID      : DMANUFATURA-21257
+TITULO         : Problema de visualizacao de botao na hora de informar motivos de refugo
+DESCRICAO      : Analise bruno, na tela de informar motivos, parece que temos um botao com p-kind secondary, o que deixa ele inivisel quase, precisamos mudar para primary.
 PRIORIDADE     : Média
 TIPO           : Spike
 RESPONSAVEL    : Bruno Scholze_
@@ -554,7 +562,7 @@ COMENTARIOS    :
 HISTORICO      : 
 FUNCIONALIDADES: Motivo de refugo (ligado ao Apontamento)
 OBSERVACAO     : Nenhuma observação adicional
-ANEXO          : C:\azure\app-bot\temp\DMANTECHINSIDE-87_1782248172715.pdf
+ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782324108138.pdf
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:
@@ -575,7 +583,9 @@ REGRAS ABSOLUTAS:
 3. NÃO escreva introdução ("Vou analisar...", "Análise concluída...")
 4. NÃO confirme que salvou o arquivo — você não salva, apenas imprime
 5. Preencha TODAS as seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, OBSERVAÇÕES
-6. Na seção COMO RESOLVER, use formato diff com nome do arquivo no cabeçalho:
+6. REGRA INVIOLÁVEL PARA CÓDIGO: qualquer alteração de código DEVE usar bloco diff.
+   NUNCA escreva código como texto corrido, nunca use bloco genérico ```ts ou ```html.
+   SEMPRE use ```diff com - (linha removida) e + (linha adicionada):
    ```diff
    --- a/caminho/do/arquivo.ts
    +++ b/caminho/do/arquivo.ts
@@ -585,7 +595,8 @@ REGRAS ABSOLUTAS:
    + linha que deve ser ADICIONADA
     outra linha de contexto
    ```
-   Use - para remover, + para adicionar, e linhas sem sinal para contexto.
-   Se houver múltiplos arquivos, use um bloco diff separado para cada um.
+   - Use exatamente 3 traços (---/+++) seguidos de espaço e do caminho do arquivo
+   - Se houver múltiplos arquivos, use um bloco diff separado para cada um
+   - Isso vale para .html, .ts, .scss, .p — qualquer tipo de arquivo
 
 ========================================

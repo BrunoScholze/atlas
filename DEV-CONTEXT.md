@@ -1,4 +1,4 @@
-# DEV-CONTEXT.md — App-Bot: Plugin de Chamados Minha Totvs Prod
+# DEV-CONTEXT.md — Atlas: Plugin de Chamados Minha Totvs Prod
 
 > Leia este arquivo no início de qualquer sessão de desenvolvimento neste repositório.
 > Ele contém o contexto completo do projeto, decisões técnicas e armadilhas conhecidas.
@@ -25,7 +25,7 @@ e o sistema aciona o Claude Code para investigar o código e retornar onde está
 ## Estrutura de pastas
 
 ```
-C:\azure\app-bot\
+C:\azure\atlas\
 ├── server\
 │   ├── index.js          ← servidor Express principal
 │   ├── .env              ← variáveis de ambiente (não comitar)
@@ -48,8 +48,8 @@ C:\azure\app-bot\
 └── prompt_temp.txt       ← prompt temporário (apagado após execução)
 ```
 
-**Repositório do app analisado:** `C:\azure\app-bot\app-minha-producao\`
-(anteriormente chamado `app-minha-producao`, renomeado para ficar dentro de app-bot)
+**Repositório do app analisado:** `C:\azure\atlas\app-minha-producao\`
+(app do Minha Totvs Prod, migrado para atlas)
 
 ---
 
@@ -57,10 +57,10 @@ C:\azure\app-bot\
 
 ```
 PORT=3000
-CONTEXT_PATH=C:\azure\app-bot
-OUTPUT_PATH=C:\azure\app-bot\output.txt
-REPO_PATH=C:\azure\app-bot\app-minha-producao
-TEMP_PATH=C:\azure\app-bot\temp
+CONTEXT_PATH=C:\azure\atlas
+OUTPUT_PATH=C:\azure\atlas\output.txt
+REPO_PATH=C:\azure\atlas\app-minha-producao
+TEMP_PATH=C:\azure\atlas\temp
 ```
 
 ---
@@ -75,7 +75,7 @@ foreach ($p in $procs) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinu
 
 # Subir o servidor em background sem janela
 Start-Process -FilePath "node" -ArgumentList "index.js" `
-  -WorkingDirectory "C:\azure\app-bot\server" -WindowStyle Hidden
+  -WorkingDirectory "C:\azure\atlas\server" -WindowStyle Hidden
 
 # Verificar se subiu
 Start-Sleep -Seconds 2
@@ -246,9 +246,9 @@ Arquivos suspeitos:
 ## Onde ver os logs em tempo real
 
 ```
-C:\azure\app-bot\logs\agent.log   ← log da última execução
-C:\azure\app-bot\debug.txt        ← todos os parâmetros + prompt completo
-C:\azure\app-bot\output.txt       ← resultado retornado pelo Claude
+C:\azure\atlas\logs\agent.log   ← log da última execução
+C:\azure\atlas\debug.txt        ← todos os parâmetros + prompt completo
+C:\azure\atlas\output.txt       ← resultado retornado pelo Claude
 ```
 
 Ou via servidor:
