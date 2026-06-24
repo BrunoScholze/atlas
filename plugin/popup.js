@@ -315,7 +315,20 @@ async function verificarAnaliseEmAndamento() {
 
 // --- Renderização do resultado ---
 
+function normalizarOutput(texto) {
+  // Remove BOM
+  if (texto.charCodeAt(0) === 0xFEFF) texto = texto.slice(1);
+  // Remove o banner de cabeçalho (=====...===== AGENTE DE CHAMADOS ... =====)
+  // e o bloco TICKET/DATA antes do primeiro separador ----
+  const primeiroSep = texto.indexOf('\n----------------------------------------');
+  if (primeiroSep !== -1) texto = texto.slice(primeiroSep + 1);
+  // Remove o rodapé ===== final
+  texto = texto.replace(/\n={8,}\s*$/, '');
+  return texto.trim();
+}
+
 function renderizarResultado(texto) {
+  texto = normalizarOutput(texto);
   const localizacao = extrairSecao(texto, 'LOCALIZAÇÃO DO PROBLEMA');
   const causa       = extrairSecao(texto, 'CAUSA PROVÁVEL');
   const resolver    = extrairSecao(texto, 'COMO RESOLVER');
@@ -393,8 +406,9 @@ function renderCodeBlock(lang, codigo, contexto) {
     const linhasHtml = todasLinhas.map((linha, idx) => {
       if (!linha && idx === todasLinhas.length - 1) return '';
 
+      // --- a/arquivo e +++ b/arquivo já aparecem no header do bloco — ocultar aqui
       if (linha.startsWith('+++') || linha.startsWith('---')) {
-        return `<div class="diff-meta"><span class="diff-linenum"></span><span class="diff-sign"> </span><span class="diff-content">${escaparHtml(linha)}</span></div>`;
+        return '';
       }
       if (linha.startsWith('+')) {
         return `<div class="diff-add"><span class="diff-linenum"></span><span class="diff-sign">+</span><span class="diff-content">${escaparHtml(linha.slice(1))}</span></div>`;

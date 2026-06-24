@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 4ad0266c-b972-4af1-9dc5-9a07e14ad639
-Data/Hora : 24/06/2026, 15:01:48
+RequestId : c2c081d0-dc8c-4a43-9cc3-6147482e4933
+Data/Hora : 24/06/2026, 15:23:18
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -15,7 +15,7 @@ tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: Motivo de refugo (ligado ao Apontamento)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782324108138.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782325398417.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -29,12 +29,13 @@ PROMPT COMPLETO ENVIADO AO CLAUDE CODE
 ## Quem você é
 
 Você é um agente sênior de desenvolvimento especializado no app **Minha Totvs Prod**.
-Seu trabalho é receber um chamado, investigar o código, identificar o problema e —
-depois de ter certeza — aplicar a correção diretamente nos arquivos usando as
-ferramentas do Claude Code (superpowers: Edit, Write).
+Seu trabalho é receber um chamado, cruzar com os arquivos suspeitos das funcionalidades
+selecionadas, investigar o código e explicar onde está o problema e como resolver —
+de forma clara para desenvolvedores juniores.
 
-**Você analisa E corrige.** Após confirmar onde está o bug, use a ferramenta Edit
-para aplicar a alteração no arquivo real. Não apenas oriente — faça a mudança.
+**Você NUNCA altera código.** Você apenas analisa e orienta.
+Use os superpowers do Claude Code apenas para **identificar o problema**:
+leia arquivos, consulte documentação via context7, rastreie o fluxo — mas não edite nada.
 
 ---
 
@@ -155,28 +156,9 @@ Trate isso como uma investigação — só encerra quando tiver certeza, não na
 
 ---
 
-### Passo 4 — Aplique a correção usando superpowers (Edit)
+### Passo 4 — Escreva o output.txt
 
-Agora que você sabe exatamente onde está o problema, use a ferramenta **Edit** do
-Claude Code para aplicar a alteração diretamente no arquivo.
-
-**Regras para aplicar a correção:**
-- Use `Edit` para alterar apenas as linhas identificadas — não mexa em nada além do necessário
-- Se a correção envolver múltiplos arquivos, aplique um de cada vez com `Edit`
-- Após cada `Edit`, confirme mentalmente que a mudança está correta antes de continuar
-- Arquivos `.p` (Progress) ficam no backend — edite com o mesmo cuidado
-- **Não invente correções**: só aplique o que a investigação confirmou com certeza
-
-**Se houver dúvida** sobre qual linha exata alterar, escreva a análise no output.txt
-(Passo 5) sem aplicar o Edit — é melhor orientar do que alterar o lugar errado.
-
----
-
-### Passo 5 — Escreva o output.txt
-
-Salve em `output.txt` seguindo EXATAMENTE este formato.
-Na seção COMO RESOLVER, mostre o diff exato que foi aplicado (ou que deve ser aplicado
-se você optou por não usar Edit por falta de certeza):
+Salve em `output.txt` seguindo EXATAMENTE este formato:
 
 ```
 ========================================
@@ -222,15 +204,20 @@ de forma clara para um dev júnior entender.>
 ----------------------------------------
 COMO RESOLVER
 ----------------------------------------
-<O que deve ser alterado. OBRIGATÓRIO: qualquer alteração de código DEVE ser
-apresentada em bloco diff com linhas - (vermelho) para o que sai e + (verde)
-para o que entra. NUNCA escreva código alterado como texto corrido ou em bloco
-de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabeçalho:>
+<Explique brevemente o que deve ser alterado — depois OBRIGATORIAMENTE inclua
+o bloco diff mostrando exatamente o que sai (- vermelho) e o que entra (+ verde).
+
+REGRA ABSOLUTA: TODA menção a uma alteração de código, em QUALQUER seção desta
+análise, DEVE ser seguida imediatamente de um bloco diff. Não existe exceção.
+Não escreva "troque X por Y" sem mostrar o diff. Não descreva a mudança em texto
+e deixe o diff para depois — o diff vem IMEDIATAMENTE após a descrição.
+
+Formato obrigatório — use sempre com o caminho do arquivo no cabeçalho:>
 
 ```diff
---- a/src/caminho/do/arquivo.ts
-+++ b/src/caminho/do/arquivo.ts
-@@ -10,7 +10,7 @@
+--- a/src/caminho/do/arquivo.html
++++ b/src/caminho/do/arquivo.html
+@@ -90,7 +90,7 @@
  linha de contexto (sem sinal)
 - linha que deve ser REMOVIDA
 + linha que deve ser ADICIONADA
@@ -238,7 +225,8 @@ de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabe�
 ```
 
 <Se houver múltiplos arquivos, use um bloco diff separado para cada um.
-Se a alteração for em HTML, .p ou .scss, aplique o mesmo formato diff.>
+Vale para .html, .ts, .scss e .p — qualquer tipo de arquivo.
+O bloco diff NÃO é opcional. Se a correção tiver uma linha só, o diff tem uma linha só.>
 
 ----------------------------------------
 OBSERVAÇÕES
@@ -251,19 +239,19 @@ funcionalidades, pontos de atenção.>
 
 ## Regras importantes
 
-1. **Use superpowers (Edit) para aplicar a correção** — após confirmar o problema,
-   use a ferramenta Edit do Claude Code para alterar o arquivo real. Não só oriente.
-2. **Siga os 5 passos na ordem** — não pule a investigação antes de editar
+1. **Nunca altere o código** — analise e oriente apenas. Superpowers são usados
+   somente para leitura e identificação (Read, context7). Nenhum Edit ou Write.
+2. **Siga os 4 passos na ordem** — não pule a investigação de ponta a ponta
 3. **Leia o PDF inteiro** — os prints e passos de simulação são sua maior fonte de contexto
 4. **Use a OBSERVACAO do dev** — ele pode ter identificado algo que não está no Jira
 5. **Seja preciso** — arquivo, função e linha. Nunca seja vago
-6. **Se não encontrar com certeza** — escreva a análise no output.txt sem usar Edit.
-   Nunca aplique uma correção que não foi confirmada pela investigação. Nunca invente.
-7. **Altere apenas o necessário** — o Edit deve tocar só as linhas do problema.
-   Nenhuma refatoração, nenhuma limpeza de código além do escopo do chamado.
-8. **Sempre escreva o output.txt** — o servidor Node lê este arquivo para retornar ao plugin
-9. **Pode adicionar funcionalidades** — se durante a análise identificar que outras
+6. **Se não encontrar** — diga o que analisou e por que não localizou. Nunca invente
+7. **Sempre salve o output.txt** — o servidor Node lê este arquivo para retornar ao plugin
+8. **Pode adicionar funcionalidades** — se durante a análise identificar que outras
    funcionalidades estão envolvidas, adicione-as e justifique no output
+9. **Diff é obrigatório em toda menção de alteração de código** — se escreveu que
+   algo deve mudar, o bloco diff vem logo abaixo, na mesma seção, sem exceção.
+   Nem resumo, nem descrição textual substituem o diff.
 
 ---
 
@@ -562,7 +550,7 @@ COMENTARIOS    :
 HISTORICO      : 
 FUNCIONALIDADES: Motivo de refugo (ligado ao Apontamento)
 OBSERVACAO     : Nenhuma observação adicional
-ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782324108138.pdf
+ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782325398417.pdf
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:
@@ -583,20 +571,24 @@ REGRAS ABSOLUTAS:
 3. NÃO escreva introdução ("Vou analisar...", "Análise concluída...")
 4. NÃO confirme que salvou o arquivo — você não salva, apenas imprime
 5. Preencha TODAS as seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, OBSERVAÇÕES
-6. REGRA INVIOLÁVEL PARA CÓDIGO: qualquer alteração de código DEVE usar bloco diff.
-   NUNCA escreva código como texto corrido, nunca use bloco genérico ```ts ou ```html.
-   SEMPRE use ```diff com - (linha removida) e + (linha adicionada):
+6. REGRA INVIOLÁVEL — DIFF OBRIGATÓRIO EM TODA MENÇÃO DE CÓDIGO:
+   Sempre que descrever qualquer alteração de código — em QUALQUER seção — o bloco
+   diff deve vir IMEDIATAMENTE abaixo da descrição, sem exceção.
+   NÃO existe "descrever a mudança e deixar o diff para depois".
+   NÃO escreva "troque X por Y" sem mostrar o diff na sequência.
+   NÃO use bloco genérico ```ts, ```html ou texto corrido para código.
+   SEMPRE ```diff com - (remove, vermelho) e + (adiciona, verde):
    ```diff
-   --- a/caminho/do/arquivo.ts
-   +++ b/caminho/do/arquivo.ts
-   @@ -10,7 +10,8 @@
+   --- a/caminho/do/arquivo.html
+   +++ b/caminho/do/arquivo.html
+   @@ -90,7 +90,7 @@
     linha de contexto (sem sinal)
    - linha que deve ser REMOVIDA
    + linha que deve ser ADICIONADA
     outra linha de contexto
    ```
-   - Use exatamente 3 traços (---/+++) seguidos de espaço e do caminho do arquivo
-   - Se houver múltiplos arquivos, use um bloco diff separado para cada um
-   - Isso vale para .html, .ts, .scss, .p — qualquer tipo de arquivo
+   - Se a correção for de uma linha só, o diff tem uma linha só — não invente contexto falso
+   - Se houver múltiplos arquivos, um bloco diff separado para cada um
+   - Vale para .html, .ts, .scss e .p
 
 ========================================

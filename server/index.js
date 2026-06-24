@@ -95,21 +95,25 @@ REGRAS ABSOLUTAS:
 3. NÃO escreva introdução ("Vou analisar...", "Análise concluída...")
 4. NÃO confirme que salvou o arquivo — você não salva, apenas imprime
 5. Preencha TODAS as seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, OBSERVAÇÕES
-6. REGRA INVIOLÁVEL PARA CÓDIGO: qualquer alteração de código DEVE usar bloco diff.
-   NUNCA escreva código como texto corrido, nunca use bloco genérico \`\`\`ts ou \`\`\`html.
-   SEMPRE use \`\`\`diff com - (linha removida) e + (linha adicionada):
+6. REGRA INVIOLÁVEL — DIFF OBRIGATÓRIO EM TODA MENÇÃO DE CÓDIGO:
+   Sempre que descrever qualquer alteração de código — em QUALQUER seção — o bloco
+   diff deve vir IMEDIATAMENTE abaixo da descrição, sem exceção.
+   NÃO existe "descrever a mudança e deixar o diff para depois".
+   NÃO escreva "troque X por Y" sem mostrar o diff na sequência.
+   NÃO use bloco genérico \`\`\`ts, \`\`\`html ou texto corrido para código.
+   SEMPRE \`\`\`diff com - (remove, vermelho) e + (adiciona, verde):
    \`\`\`diff
-   --- a/caminho/do/arquivo.ts
-   +++ b/caminho/do/arquivo.ts
-   @@ -10,7 +10,8 @@
+   --- a/caminho/do/arquivo.html
+   +++ b/caminho/do/arquivo.html
+   @@ -90,7 +90,7 @@
     linha de contexto (sem sinal)
    - linha que deve ser REMOVIDA
    + linha que deve ser ADICIONADA
     outra linha de contexto
    \`\`\`
-   - Use exatamente 3 traços (---/+++) seguidos de espaço e do caminho do arquivo
-   - Se houver múltiplos arquivos, use um bloco diff separado para cada um
-   - Isso vale para .html, .ts, .scss, .p — qualquer tipo de arquivo
+   - Se a correção for de uma linha só, o diff tem uma linha só — não invente contexto falso
+   - Se houver múltiplos arquivos, um bloco diff separado para cada um
+   - Vale para .html, .ts, .scss e .p
   `.trim();
 }
 

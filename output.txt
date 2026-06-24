@@ -1,27 +1,74 @@
-﻿========================================
+﻿Já tenho tudo que preciso. O problema está claro: `p-type="primary"` controla o tipo HTML do botão (button/submit/reset), não a aparência visual — que é controlada por `p-kind`. Sem `p-kind`, o PO-UI renderiza o botão com o estilo padrão "secondary" (contorno/apagado). Vou escrever o output agora.
+
+========================================
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
-**TICKET**: DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+DATA     : 2026-06-24 — análise automatizada
 
----
+----------------------------------------
+FUNCIONALIDADES ANALISADAS
+----------------------------------------
+Selecionadas pelo dev:
+- Motivo de refugo (ligado ao Apontamento)
 
-**Problema localizado:** `datasul-report-reason.html`, linha 93.
+Adicionadas pelo agente (identificadas durante análise):
+- Nenhuma adicionada — o problema é isolado ao template da tela de motivos de refugo.
 
-O `po-button` "Adicionar motivo" estava com `p-type="secondary"`, que no PO-UI renderiza o botão com fundo transparente e borda sutil — quase invisível em fundo branco. Alterado para `p-type="primary"`.
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+Prioritários:
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.ts
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.scss
+
+Contexto:
+- Nenhum arquivo de contexto adicional necessário — o problema é visual e está contido no template.
+
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo : datasul-report-reason.html
+Função  : N/A — problema no atributo do componente `po-button` no template
+Linha   : 93
+
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+O componente `po-button` do PO-UI possui dois atributos distintos:
+
+- `p-type`: define o **tipo HTML** do botão (`button`, `submit`, `reset`) — controla o comportamento de formulário, não a aparência.
+- `p-kind`: define o **estilo visual** do botão (`primary`, `secondary`, `tertiary`, `danger`) — controla a cor e o destaque visual.
+
+Na linha 93, o botão "Adicionar motivo" foi escrito com `p-type="primary"`. Como `"primary"` não é um valor válido para `p-type` (que aceita apenas `button`, `submit` ou `reset`), o PO-UI ignora esse valor e aplica o estilo padrão, que é `p-kind="secondary"` — um botão com contorno e sem preenchimento, praticamente invisível sobre fundos claros. O atributo que deveria ter sido usado é `p-kind="primary"`, que renderiza o botão com fundo azul sólido e texto branco.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Trocar `p-type="primary"` por `p-kind="primary"` na declaração do `po-button` na linha 93.
 
 ```diff
 --- a/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
 +++ b/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-@@ -90,7 +90,7 @@
-     <po-button
-         class="po-sm-12 po-pt-2 po-pr-2 po-pl-2"
-         p-label="{{literals.addWithIcon}}"
-         (p-click)="openModalNewReason(false)"
--        p-type="secondary"
-+        p-type="primary"
-     >
-     </po-button>
+@@ -89,7 +89,7 @@
+ <po-button
+     class="po-sm-12 po-pt-2 po-pr-2 po-pl-2"
+     p-label="{{literals.addWithIcon}}"
+     (p-click)="openModalNewReason(false)"
+-    p-type="primary"
++    p-kind="primary"
+ >
+ </po-button>
 ```
 
-**Correção aplicada** diretamente no arquivo. `output.txt` salvo. Nenhum outro arquivo foi afetado.
+----------------------------------------
+OBSERVAÇÕES
+----------------------------------------
+- O arquivo `.ts` e o `.scss` foram analisados e não têm relação com o problema — a lógica de abertura do modal (`openModalNewReason`) funciona corretamente, e o SCSS não possui nenhum override de estilo para esse botão.
+- O botão no rodapé (`ion-button` com `expand="block"`) usa o componente Ionic nativo e não é afetado por essa alteração.
+- Vale verificar se há outros `po-button` no projeto usando `p-type` com valores de aparência visual (`"primary"`, `"secondary"`, `"danger"`) em vez de `p-kind`, pois o mesmo erro pode existir em outras telas. Uma busca por `p-type="primary"` em arquivos `.html` do repositório pode mapear ocorrências similares.
+- Impacto da alteração: zero risco funcional. A mudança é puramente visual e não altera nenhum binding, nenhuma emissão de evento nem nenhuma lógica de negócio.
+
+========================================

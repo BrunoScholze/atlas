@@ -178,15 +178,20 @@ de forma clara para um dev júnior entender.>
 ----------------------------------------
 COMO RESOLVER
 ----------------------------------------
-<O que deve ser alterado. OBRIGATÓRIO: qualquer alteração de código DEVE ser
-apresentada em bloco diff com linhas - (vermelho) para o que sai e + (verde)
-para o que entra. NUNCA escreva código alterado como texto corrido ou em bloco
-de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabeçalho:>
+<Explique brevemente o que deve ser alterado — depois OBRIGATORIAMENTE inclua
+o bloco diff mostrando exatamente o que sai (- vermelho) e o que entra (+ verde).
+
+REGRA ABSOLUTA: TODA menção a uma alteração de código, em QUALQUER seção desta
+análise, DEVE ser seguida imediatamente de um bloco diff. Não existe exceção.
+Não escreva "troque X por Y" sem mostrar o diff. Não descreva a mudança em texto
+e deixe o diff para depois — o diff vem IMEDIATAMENTE após a descrição.
+
+Formato obrigatório — use sempre com o caminho do arquivo no cabeçalho:>
 
 ```diff
---- a/src/caminho/do/arquivo.ts
-+++ b/src/caminho/do/arquivo.ts
-@@ -10,7 +10,7 @@
+--- a/src/caminho/do/arquivo.html
++++ b/src/caminho/do/arquivo.html
+@@ -90,7 +90,7 @@
  linha de contexto (sem sinal)
 - linha que deve ser REMOVIDA
 + linha que deve ser ADICIONADA
@@ -194,7 +199,8 @@ de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabe�
 ```
 
 <Se houver múltiplos arquivos, use um bloco diff separado para cada um.
-Se a alteração for em HTML, .p ou .scss, aplique o mesmo formato diff.>
+Vale para .html, .ts, .scss e .p — qualquer tipo de arquivo.
+O bloco diff NÃO é opcional. Se a correção tiver uma linha só, o diff tem uma linha só.>
 
 ----------------------------------------
 OBSERVAÇÕES
@@ -217,6 +223,9 @@ funcionalidades, pontos de atenção.>
 7. **Sempre salve o output.txt** — o servidor Node lê este arquivo para retornar ao plugin
 8. **Pode adicionar funcionalidades** — se durante a análise identificar que outras
    funcionalidades estão envolvidas, adicione-as e justifique no output
+9. **Diff é obrigatório em toda menção de alteração de código** — se escreveu que
+   algo deve mudar, o bloco diff vem logo abaixo, na mesma seção, sem exceção.
+   Nem resumo, nem descrição textual substituem o diff.
 
 ---
 
