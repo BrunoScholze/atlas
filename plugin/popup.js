@@ -340,11 +340,11 @@ function renderizarResultado(texto) {
   if (temEstrutura) {
     document.getElementById('secaoEstruturada').style.display = 'block';
     document.getElementById('secaoBruta').style.display = 'none';
-    document.getElementById('conteudoLocalizacao').innerHTML = renderMarkdown(localizacao);
-    document.getElementById('conteudoCausa').innerHTML      = renderMarkdown(causa);
-    document.getElementById('conteudoResolver').innerHTML   = renderMarkdown(resolver);
-    document.getElementById('conteudoArquivos').innerHTML   = renderMarkdown(arquivos);
-    document.getElementById('conteudoObservacoes').innerHTML = renderMarkdown(obs);
+    document.getElementById('conteudoLocalizacao').innerHTML = renderSecao(localizacao);
+    document.getElementById('conteudoCausa').innerHTML      = renderSecao(causa);
+    document.getElementById('conteudoResolver').innerHTML   = renderSecao(resolver);
+    document.getElementById('conteudoArquivos').innerHTML   = renderSecao(arquivos);
+    document.getElementById('conteudoObservacoes').innerHTML = renderSecao(obs);
   } else {
     document.getElementById('secaoEstruturada').style.display = 'none';
     document.getElementById('secaoBruta').style.display = 'block';
@@ -486,6 +486,99 @@ function renderTexto(texto) {
   }).join('');
 
   return h;
+}
+
+// --- renderSecao: detecta DIFF_START/DIFF_END e renderiza visualmente ---
+
+function renderSecao(texto) {
+  if (!texto) return '';
+
+  let html = '';
+  const linhas = texto.split('\n');
+  let i = 0;
+
+  while (i < linhas.length) {
+    const linha = linhas[i];
+
+    if (linha.trim().startsWith('DIFF_START')) {
+      console.log('DIFF detectado:', linha);
+      const arquivoMatch = linha.match(/arquivo:\s*(.+)/i);
+      const nomeArquivo = arquivoMatch
+        ? arquivoMatch[1].trim().split('/').pop()
+        : 'arquivo';
+
+      const linhasRemovidas = [];
+      const linhasAdicionadas = [];
+      i++;
+
+      while (i < linhas.length && !linhas[i].trim().startsWith('DIFF_END')) {
+        const l = linhas[i];
+        if (l.startsWith('-')) linhasRemovidas.push(l.substring(1).trim());
+        else if (l.startsWith('+')) linhasAdicionadas.push(l.substring(1).trim());
+        i++;
+      }
+
+      html += `
+        <div class="diff-block" data-view="light">
+          <div class="diff-header">
+            <span class="diff-file-icon">▣</span>
+            <span class="diff-filename">${nomeArquivo}</span>
+            <div class="diff-header-right">
+              <span class="diff-legend">
+                <span class="leg-rem">- removido</span>
+                <span class="leg-add">+ adicionado</span>
+              </span>
+              <button class="btn-toggle-view" onclick="toggleDiffView(this)" title="Alternar modo escuro">&lt;/&gt;</button>
+            </div>
+          </div>
+          <div class="diff-lines">
+            ${linhasRemovidas.map(l => `
+              <div class="diff-rem">
+                <span class="diff-linenum"></span>
+                <span class="diff-sign">−</span>
+                <span class="diff-content">${escapeHtml(l)}</span>
+              </div>
+            `).join('')}
+            ${linhasAdicionadas.map(l => `
+              <div class="diff-add">
+                <span class="diff-linenum"></span>
+                <span class="diff-sign">+</span>
+                <span class="diff-content">${escapeHtml(l)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+    } else {
+      html += renderLinha(linha);
+    }
+
+    i++;
+  }
+
+  return html;
+}
+
+function renderLinha(linha) {
+  return renderTexto(linha);
+}
+
+function toggleDiffView(btn) {
+  const block = btn.closest('.diff-block');
+  if (block.classList.contains('view-dark')) {
+    block.classList.remove('view-dark');
+  } else {
+    block.classList.add('view-dark');
+  }
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // --- Download de arquivos ---

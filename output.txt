@@ -2,61 +2,39 @@
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
-TICKET   : (sem ID) — Problema de visualização de botão na hora de informar motivos de refugo
-DATA     : 2026-06-24
+TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+DATA     : 2026-06-24 (análise automática)
 
 ----------------------------------------
-FUNCIONALIDADES ANALISADAS
+LOCALIZAÇÃO DO PROBLEMA
 ----------------------------------------
-Selecionadas pelo dev:
-- Motivo de refugo (ligado ao Apontamento)
+Arquivo: `datasul-report-reason.html`, linha 93
+O po-button "Adicionar Motivo" usa `p-type="primary"` em vez de `p-kind="primary"`, renderizando como botão secundário (outline apagado).
 
-Adicionadas pelo agente:
-- Nenhuma
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+Em PO-UI, `p-type` controla o tipo HTML do botão (submit/button/reset) — não sua aparência visual. Sem `p-kind` definido, o botão assume o default `secondary` (outline), ficando quase invisível sobre fundo branco.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Substituir `p-type="primary"` por `p-kind="primary"` na linha 93:
+
+DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+-        p-type="primary"
++        p-kind="primary"
+DIFF_END
+
+Com `p-kind="primary"` o botão recebe o preenchimento azul sólido padrão do PO-UI, tornando-o visível e consistente com os demais botões primários do app.
 
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
 Prioritários:
 - src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts
 
 Contexto:
-- Nenhum adicional necessário
-
-----------------------------------------
-LOCALIZAÇÃO DO PROBLEMA
-----------------------------------------
-Arquivo: `datasul-report-reason.html`, linha 93
-O `po-button` "Adicionar Motivo" não tem `p-kind="primary"`, fazendo-o renderizar com estilo secundário (apagado/outline).
-
-----------------------------------------
-CAUSA PROVÁVEL
-----------------------------------------
-No PO-UI, `p-type` controla o tipo HTML do botão (`button`/`submit`/`reset`), não o estilo visual. O atributo que define aparência preenchida (azul sólido) é `p-kind="primary"`, que está ausente.
-
-----------------------------------------
-COMO RESOLVER
-----------------------------------------
-Adicionar `p-kind="primary"` ao `po-button` na linha 93:
-
-```diff
---- a/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-+++ b/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-@@ -89,7 +89,8 @@
-     <po-button
-         class="po-sm-12 po-pt-2 po-pr-2 po-pl-2"
-         p-label="{{literals.addWithIcon}}"
-         (p-click)="openModalNewReason(false)"
-         p-type="primary"
-+        p-kind="primary"
-     >
-     </po-button>
-```
-
-----------------------------------------
-OBSERVAÇÕES
-----------------------------------------
-Verificar se outros `po-button` no fluxo de apontamento (`datasul-report-v2.page.html`) possuem o mesmo padrão incorreto de usar `p-type` no lugar de `p-kind` para estilo visual.
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts
 
 ========================================

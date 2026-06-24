@@ -1,0 +1,141 @@
+# ============================================================
+# PROBLEMA A RESOLVER — popup.js
+# ============================================================
+
+No arquivo plugin/popup.js existe uma função que faz o parse
+do output.txt e renderiza o resultado na tela do plugin.
+
+O problema é o seguinte:
+
+Quando o output.txt contém um bloco de diff neste formato:
+
+  DIFF_START arquivo: src/app/report-process/datasul/datasul-report-reason/datasul-report-reason.html
+  - p-type="primary"
+  + p-kind="primary"
+  DIFF_END
+
+Esse bloco está sendo renderizado como TEXTO PURO na tela.
+Aparece literalmente "DIFF_START arquivo: ...", "- p-type=..."
+como se fossem parágrafos normais de texto.
+
+# ============================================================
+# O QUE DEVE ACONTECER
+# ============================================================
+
+Sempre que o parser encontrar uma linha que começa com DIFF_START,
+ele deve parar de renderizar como texto e executar esta lógica:
+
+PASSO 1 — Extrair o caminho do arquivo
+  A linha DIFF_START tem o formato:
+  "DIFF_START arquivo: src/caminho/completo/do/arquivo.html"
+  Extraia tudo após "arquivo:" e faça trim().
+  Para o header visual, use apenas o nome do arquivo
+  (última parte do caminho, após a última barra).
+
+PASSO 2 — Coletar as linhas do bloco
+  Leia as linhas seguintes uma a uma até encontrar DIFF_END.
+  Separe em dois grupos:
+  - Linhas que começam com "-" → são linhas REMOVIDAS (vermelho)
+  - Linhas que começam com "+" → são linhas ADICIONADAS (verde)
+  Para o conteúdo, remova o primeiro caractere (- ou +) e faça trim().
+
+PASSO 3 — Montar o container HTML
+  Monte exatamente esta estrutura HTML para cada bloco:
+
+  <div class="diff-block">
+    <div class="diff-header">
+      <span class="diff-filename">NOME_DO_ARQUIVO</span>
+      <div class="diff-header-right">
+        <span class="diff-legend">
+          <span class="leg-rem">- removido</span>
+          <span class="leg-add">+ adicionado</span>
+        </span>
+        <button class="btn-toggle-view" onclick="toggleDiffView(this)">&lt;/&gt;</button>
+      </div>
+    </div>
+    <div class="diff-lines">
+      <!-- Para cada linha removida: -->
+      <div class="diff-rem">
+        <span class="diff-sign">−</span>
+        <span class="diff-content">CONTEUDO DA LINHA</span>
+      </div>
+      <!-- Para cada linha adicionada: -->
+      <div class="diff-add">
+        <span class="diff-sign">+</span>
+        <span class="diff-content">CONTEUDO DA LINHA</span>
+      </div>
+    </div>
+  </div>
+
+PASSO 4 — Múltiplos blocos
+  Se houver mais de um bloco DIFF_START/DIFF_END no mesmo texto,
+  cada um vira um container separado, renderizado um abaixo do outro.
+  Nunca misture linhas de arquivos diferentes no mesmo container.
+
+PASSO 5 — Escape de HTML
+  O conteúdo das linhas deve ter os caracteres especiais escapados
+  antes de inserir no HTML para evitar quebra visual:
+  & → &amp;
+  < → &lt;
+  > → &gt;
+  " → &quot;
+
+# ============================================================
+# FUNÇÃO toggleDiffView
+# ============================================================
+
+O botão </> no header de cada diff-block alterna o modo escuro.
+Garanta que esta função existe no popup.js:
+
+function toggleDiffView(btn) {
+  const block = btn.closest('.diff-block');
+  if (block.classList.contains('view-dark')) {
+    block.classList.remove('view-dark');
+  } else {
+    block.classList.add('view-dark');
+  }
+}
+
+# ============================================================
+# IMPORTANTE — CSS JÁ EXISTE
+# ============================================================
+
+NÃO mexa no popup.css.
+Todas as classes já estão definidas com as cores corretas:
+
+  .diff-block       → container principal com borda
+  .diff-header      → fundo cinza claro com nome do arquivo
+  .diff-filename    → nome do arquivo em negrito
+  .diff-header-right → lado direito com badges e botão
+  .diff-legend      → container dos badges removido/adicionado
+  .leg-rem          → badge "- removido" em vermelho
+  .leg-add          → badge "+ adicionado" em verde
+  .btn-toggle-view  → botão </> para alternar modo escuro
+  .diff-lines       → container das linhas de código
+  .diff-rem         → linha removida (fundo vermelho claro)
+  .diff-add         → linha adicionada (fundo verde claro)
+  .diff-sign        → coluna do sinal (+ ou −)
+  .diff-content     → coluna do conteúdo de código
+  .view-dark        → classe adicionada ao diff-block no modo escuro
+
+# ============================================================
+# RESULTADO ESPERADO
+# ============================================================
+
+Antes (errado):
+  DIFF_START arquivo: src/.../datasul-report-reason.html
+  • p-type="primary"
+  + p-kind="primary"
+  DIFF_END
+
+Depois (correto):
+  ┌──────────────────────────────────────────────────────┐
+  │ datasul-report-reason.html   - removido  + adicionado  </> │
+  ├──────────────────────────────────────────────────────┤
+  │ −  p-type="primary"                                  │  ← fundo vermelho
+  │ +  p-kind="primary"                                  │  ← fundo verde
+  └──────────────────────────────────────────────────────┘
+
+# ============================================================
+# FIM
+# ============================================================

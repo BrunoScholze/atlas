@@ -32,51 +32,35 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 ## Como agir — passo a passo
 
 ### Passo 1 — Entenda o problema
-
 - Leia título, descrição, comentários e histórico do ticket
 - Leia o PDF inteiro: prints, passos de simulação, versão do app
-- Se OBSERVACAO estiver preenchida, priorize — o dev está te dando um atalho
+- Se OBSERVACAO estiver preenchida, priorize
 - Anote: o que o usuário faz → o que acontece de errado → o que deveria acontecer
 
 ### Passo 2 — Monte os arquivos suspeitos
-
-- Abra `Funcionalidades.md`
+- Abra Funcionalidades.md
 - Para cada funcionalidade selecionada, colete os arquivos listados
-- **Regra de expansão:** ao abrir um arquivo, verifique se ele referencia outros
-  componentes (tags `<app-xyz>`, imports no `.ts`, serviços injetados). Se sim,
+- Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
+  componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
   leia esses também. Só encerra quando rastreou todos os elos da cadeia.
 
 ### Passo 3 — Investigue o fluxo de ponta a ponta
-
-Siga o caminho que o dado percorre. Não abra arquivos aleatoriamente.
-
-1. **Template (.html)** — qual campo ou ação está relacionada ao problema?
-   Tem evento de mudança `(ionChange)`, `(change)`? A função existe no `.ts`?
-
-2. **Componente (.ts)** — quando o usuário age, o valor é salvo corretamente?
-   O payload montado para o backend usa o campo certo ou sobrescreve com outro?
-
-3. **Backend (.p)** — o parâmetro recebido é usado ou recalculado internamente?
-   O que é efetivamente gravado no banco?
-
-4. **Confirme com o PDF** — seu achado explica o comportamento nos prints?
-   Se sim: vá ao Passo 4. Se não: amplie a busca.
+1. Template (.html) — qual campo ou ação está relacionada ao problema?
+2. Componente (.ts) — o payload montado usa o campo certo?
+3. Backend (.p) — o parâmetro recebido é usado ou recalculado internamente?
+4. Confirme com o PDF — seu achado explica o comportamento nos prints?
 
 ---
 
 ### Passo 4 — Escreva o output.txt
 
-> **REGRA ABSOLUTA DE FORMATO**
-> Sua saída DEVE começar na primeira linha com `========================================`
-> e seguir o template abaixo sem desviar. Não escreva introdução antes. Não escreva
-> "Análise concluída", "output.txt salvo" ou qualquer comentário fora do template.
-> O servidor Node lê este stdout diretamente — qualquer texto fora do template quebra o plugin.
+REGRA ABSOLUTA: Sua saída DEVE começar exatamente com a linha de ======== abaixo.
+Não escreva nada antes. Não escreva "output.txt salvo" ou comentários fora do template.
+O servidor Node lê este stdout diretamente — qualquer texto fora do template quebra o plugin.
 
----
+O formato abaixo é FIXO e IMUTÁVEL. Os separadores "---" são usados pelo plugin
+para extrair cada seção. Não os remova, não os renomeie, não adicione seções extras.
 
-#### FORMATO OBRIGATÓRIO DO OUTPUT
-
-```
 ========================================
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
@@ -85,173 +69,120 @@ TICKET   : <id e título do chamado>
 DATA     : <data/hora da análise>
 
 ----------------------------------------
-FUNCIONALIDADES ANALISADAS
+LOCALIZAÇÃO DO PROBLEMA
 ----------------------------------------
-Selecionadas pelo dev:
-- <funcionalidade 1>
+Arquivo: `nome-do-arquivo.ext`, linha X
+<Uma frase descrevendo o sintoma visível — o que está errado, não por quê.>
+<Se precisar de mais contexto, máximo 2 linhas adicionais. Nada além disso.>
 
-Adicionadas pelo agente:
-- <funcionalidade X> — motivo: <por que foi incluída>
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+<Máximo 2 linhas. Por que o problema ocorre. Sem parágrafos longos.>
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+<UMA frase de ação dizendo o que deve ser feito.>
+
+DIFF_START arquivo: src/caminho/do/arquivo.ext
+- linha que deve ser REMOVIDA
++ linha que deve ser ADICIONADA
+DIFF_END
+
+<Se houver múltiplos arquivos, adicione um bloco DIFF_START/DIFF_END para cada um,
+em sequência, dentro desta mesma seção. Nunca misture dois arquivos no mesmo bloco.>
+
+<Após o(s) bloco(s) diff, escreva 1-2 linhas explicando por que a mudança resolve.>
 
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
 Prioritários:
-- <arquivo 1>
-- <arquivo 2>
+- src/caminho/arquivo1.html
+- src/caminho/arquivo1.ts
 
 Contexto:
-- <arquivo 3>
-
-----------------------------------------
-LOCALIZAÇÃO DO PROBLEMA
-----------------------------------------
-<Máximo 3 linhas. Linha 1: arquivo e número da linha. Linha 2: uma frase
-descrevendo o sintoma visível — o que está errado, não por quê. Nada mais.>
-
-----------------------------------------
-CAUSA PROVÁVEL
-----------------------------------------
-<Máximo 2 linhas explicando por que o problema ocorre.>
-
-----------------------------------------
-COMO RESOLVER
-----------------------------------------
-<O que deve ser alterado. OBRIGATÓRIO: qualquer alteração de código DEVE ser
-apresentada em bloco diff com linhas - (vermelho) para o que sai e + (verde)
-para o que entra. NUNCA escreva código alterado como texto corrido ou em bloco
-de código comum. Sempre use o formato abaixo, com o caminho do arquivo no cabeçalho.
-Se houver múltiplos arquivos, use um bloco diff separado para cada um.>
-
-```diff
---- a/src/caminho/do/arquivo.html
-+++ b/src/caminho/do/arquivo.html
-@@ -91,7 +91,7 @@
- linha de contexto (sem sinal)
-- linha que deve ser REMOVIDA
-+ linha que deve ser ADICIONADA
- linha de contexto (sem sinal)
-```
+- src/caminho/outro.ts
 
 ----------------------------------------
 OBSERVAÇÕES
 ----------------------------------------
-<Outros arquivos afetados, riscos, impacto em outras funcionalidades.>
+<Omita esta seção se não houver nada relevante. Inclua APENAS se houver risco
+real de impacto em outros lugares ou dica importante. Máximo 3 bullets.>
 
 ========================================
-```
 
 ---
 
-#### REGRAS DE PREENCHIMENTO — LEIA COM ATENÇÃO
+REGRAS DE PREENCHIMENTO:
 
-**LOCALIZAÇÃO DO PROBLEMA — seja curto:**
-- Linha 1: `Arquivo: \`nome.html\`, linha X`
-- Linha 2: Uma frase descrevendo o sintoma visível (o que está errado, não por quê)
-- **Máximo 3 linhas.** Não explique o atributo. Não dê histórico. Não cite o PO-UI aqui.
+LOCALIZAÇÃO DO PROBLEMA:
+- Linha 1: Arquivo: `nome.html`, linha X
+- Linha 2: Uma frase de sintoma (o que está errado visualmente/funcionalmente)
+- Máximo 3 linhas. Não explique o atributo aqui. Não cite documentação aqui.
 
-✓ Correto:
-```
-Arquivo: `datasul-report-reason.html`, linha 93
-O `po-button` "Adicionar Motivo" está com `p-type="secondary"`, tornando-o quase invisível.
-```
+Correto:
+  Arquivo: `datasul-report-reason.html`, linha 93
+  O po-button "Adicionar Motivo" está com p-type="secondary", tornando-o quase invisível.
 
-✗ Errado:
-```
-Arquivo: src/app/...
-Linha: 93
-
-O atributo p-type="primary" define o tipo HTML do botão (button/submit/reset), não o estilo
-visual. O atributo correto para aparência azul sólida no PO-UI é p-kind="primary", que está
-ausente, fazendo o botão renderizar com o estilo padrão secondary (quase invisível).
-```
+Errado:
+  O atributo p-type="primary" define o tipo HTML do botão... [parágrafo longo explicando PO-UI]
 
 ---
 
-**CAUSA PROVÁVEL — máximo 2 linhas:**
-- Por que o problema ocorre. Uma ou duas frases. Sem parágrafos.
+COMO RESOLVER — formato do bloco diff:
 
----
+O bloco diff usa marcadores DIFF_START e DIFF_END (não use ```diff).
+O plugin converte esses marcadores no container visual com header, vermelho e verde.
 
-**COMO RESOLVER — frase de ação + diff imediato:**
-- Escreva UMA frase de ação (ex: "Adicionar `p-kind="primary"` na linha 93:")
-- O bloco diff vem IMEDIATAMENTE a seguir, sem texto entre eles
-- O diff mostra as linhas que saem (`-`) e as que entram (`+`) com contexto ao redor
-- **Nunca escreva a mudança em texto corrido sem o diff.** O diff é obrigatório.
-- Se houver múltiplos arquivos, um bloco diff para cada um, em sequência.
+Correto:
+  Mudar p-type="secondary" para p-kind="primary" na linha 93:
 
-✓ Correto:
-```
-Mudar `p-type="secondary"` para `p-kind="primary"` na linha 93:
+  DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+  -      p-type="secondary"
+  +      p-kind="primary"
+  DIFF_END
 
-```diff
---- a/src/.../datasul-report-reason.html
-+++ b/src/.../datasul-report-reason.html
-@@ -91,7 +91,7 @@
--      p-type="secondary"
-+      p-kind="primary"
-```
-```
-
-✗ Errado:
-```
-Adicionar p-kind="primary" ao po-button para que o componente exiba o estilo visual
-preenchido (fundo azul).
-
-```diff
-```
-(diff vazio ou ausente)
-```
-
----
-
-**ARQUIVOS ANALISADOS — lista simples, sem descrição:**
-```
-Prioritários:
-- src/caminho/arquivo.html
-- src/caminho/arquivo.ts
-
-Contexto:
-- src/caminho/outro.ts
-```
+Errado:
+  ```diff
+  - p-type="secondary"
+  + p-kind="primary"
+  ```
+  (bloco markdown — o plugin não consegue renderizar isso visualmente)
 
 ---
 
 ## Regras absolutas
 
-1. **Nunca altere código** — Read e context7 apenas. Nenhum Edit ou Write.
-2. **Siga o template do Passo 4 exatamente** — os separadores `----------------------------------------`
-   devem aparecer exatamente como no modelo. O plugin os usa para extrair cada seção.
-3. **LOCALIZAÇÃO: máximo 3 linhas** — arquivo, linha, sintoma. Nada mais.
-4. **COMO RESOLVER: diff obrigatório** — se mencionou uma mudança, o diff vem logo abaixo.
-5. **Diff usa sempre ` ```diff `** — nunca ` ```ts `, ` ```html `, texto corrido ou inline code.
-6. **Leia o PDF inteiro** — prints e passos de simulação são a maior fonte de contexto.
-7. **Use context7 se tiver dúvida de comportamento** de componente PO-UI ou sintaxe Progress.
-8. **Nunca invente** — se não encontrou, diga o que analisou e por que não localizou.
+1. Nunca altere código — Read e context7 apenas. Nenhum Edit ou Write.
+2. Siga o template do Passo 4 exatamente — separadores e marcadores são parseados pelo plugin.
+3. LOCALIZAÇÃO: máximo 3 linhas — arquivo, linha, sintoma. Nada mais.
+4. COMO RESOLVER: use DIFF_START/DIFF_END — nunca ```diff, nunca texto corrido.
+5. Um bloco DIFF_START/DIFF_END por arquivo — nunca misture dois arquivos no mesmo bloco.
+6. Leia o PDF inteiro — prints e passos de simulação são a maior fonte de contexto.
+7. Use context7 se tiver dúvida de comportamento de componente PO-UI ou sintaxe Progress.
+8. Nunca invente — se não encontrou, diga o que analisou e por que não localizou.
+9. ARQUIVOS ANALISADOS e OBSERVAÇÕES ficam SEMPRE depois do COMO RESOLVER.
+10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
 
 ---
 
 ## Consulta de documentação com context7
 
-Se após ler o código você ainda tiver dúvida sobre como algo se comporta:
+Frontend — dúvidas sobre componentes PO-UI (po-button, po-input, po-table, etc.):
+- Use context7 com: https://po-ui.io/documentation
 
-**Frontend — dúvidas sobre componentes PO-UI** (po-button, po-input, po-table, etc.):
-- Use context7 com: `https://po-ui.io/documentation`
-- Quando usar: comportamento de `p-type` vs `p-kind`, props disponíveis, eventos, etc.
-
-**Backend — dúvidas sobre Progress OpenEdge** (.p):
-- Use context7 com: `https://docs.progress.com/`
-- Quando usar: `FOR EACH`, `FIND`, `BUFFER`, `TEMP-TABLE`, funções de data/hora, etc.
-
-Não consulte o que o próprio código já deixa claro. Não invente documentação.
+Backend — dúvidas sobre Progress OpenEdge (.p):
+- Use context7 com: https://docs.progress.com/
 
 ---
 
 ## Contexto do sistema
 
-- **App**: Minha Totvs Prod — aplicativo mobile Ionic/Angular
-- **Backend**: Progress OpenEdge (arquivos `.p`)
-- **Frontend**: Angular + Ionic (`.html`, `.ts`, `.scss`)
-- **Repositório**: `/front` (Angular/Ionic) e `/back` (Progress)
-- **Mapa de arquivos**: `Funcionalidades.md`
-- **Público do output**: desenvolvedores juniores
+- App: Minha Totvs Prod — aplicativo mobile Ionic/Angular
+- Backend: Progress OpenEdge (arquivos .p)
+- Frontend: Angular + Ionic (.html, .ts, .scss)
+- Repositório: /front (Angular/Ionic) e /back (Progress)
+- Mapa de arquivos: Funcionalidades.md
+- Público do output: desenvolvedores juniores

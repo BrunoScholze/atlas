@@ -98,30 +98,35 @@
       <!-- Formato estruturado (quando Claude seguiu o template) -->
       <div id="secaoEstruturada" style="display:none">
 
+        <!-- Localização — aberta por padrão -->
         <div class="resultado-secao" id="secaoLocalizacao">
-          <h3 class="secao-titulo">Localização do Problema</h3>
+          <h3 class="secao-titulo">📍 LOCALIZAÇÃO DO PROBLEMA</h3>
           <div class="secao-conteudo" id="conteudoLocalizacao"></div>
         </div>
 
+        <!-- Causa Provável — aberta por padrão -->
         <div class="resultado-secao" id="secaoCausa">
-          <h3 class="secao-titulo">Causa Provável</h3>
+          <h3 class="secao-titulo">🔍 CAUSA PROVÁVEL</h3>
           <div class="secao-conteudo" id="conteudoCausa"></div>
         </div>
 
+        <!-- Como Resolver — aberto por padrão, contém os diffs -->
         <div class="resultado-secao" id="secaoResolver">
-          <h3 class="secao-titulo">Como Resolver</h3>
+          <h3 class="secao-titulo">🔧 COMO RESOLVER</h3>
           <div class="secao-conteudo" id="conteudoResolver"></div>
         </div>
 
+        <!-- Arquivos Analisados — sanfona, fechada por padrão -->
         <details class="resultado-secao sanfona" id="secaoArquivos">
-          <summary class="secao-titulo sanfona-titulo">📂 Arquivos Analisados</summary>
+          <summary class="secao-titulo sanfona-titulo">📂 ARQUIVOS ANALISADOS</summary>
           <div class="secao-conteudo" id="conteudoArquivos"></div>
         </details>
 
-        <div class="resultado-secao" id="secaoObservacoes">
-          <h3 class="secao-titulo">⚠️ Observações</h3>
+        <!-- Observações — sanfona, fechada por padrão -->
+        <details class="resultado-secao sanfona" id="secaoObservacoes">
+          <summary class="secao-titulo sanfona-titulo">⚠️ OBSERVAÇÕES</summary>
           <div class="secao-conteudo" id="conteudoObservacoes"></div>
-        </div>
+        </details>
 
       </div>
 

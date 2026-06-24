@@ -158,6 +158,23 @@ body {
   overflow-x: hidden;
   max-width: 100%;
   box-sizing: border-box;
+  background: transparent;
+}
+
+/* Remove background/border colorido de seções de localização e resolução */
+.secao-alteracao,
+.resultado-secao {
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.resultado-secao,
+.secao-conteudo,
+#secaoResolver,
+#secaoLocalizacao {
+  border-left: none !important;
+  border-top: none !important;
+  background: white !important;
 }
 
 /* Observações — mais altura e espaçamento generoso */
@@ -178,6 +195,7 @@ details.sanfona > summary {
   list-style: none;
   user-select: none;
   display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px;
 }
 details.sanfona > summary::-webkit-details-marker { display: none; }
 details.sanfona > summary::after {
@@ -240,20 +258,23 @@ details.sanfona > summary:hover { background: #f6f8fa; }
   border: 1px solid #d0d7de;
   border-radius: 6px;
   overflow: hidden;
-  margin: 8px 0;
+  margin: 10px 0;
   max-width: 100%;
   box-sizing: border-box;
+  font-family: 'Consolas', 'Monaco', monospace;
 }
 
 .diff-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 8px;
   padding: 6px 12px;
   background: #f6f8fa; border-bottom: 1px solid #d0d7de;
 }
 
+.diff-file-icon { font-size: 12px; color: #57606a; }
+
 .diff-filename {
-  font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px; font-weight: 700; color: #24292f;
+  flex: 1;
 }
 
 .diff-lang-badge {
@@ -274,15 +295,13 @@ details.sanfona > summary:hover { background: #f6f8fa; }
   font-family: 'Consolas', 'Monaco', monospace;
   border: 1px solid #d0d7de; border-radius: 4px;
   background: white; color: #57606a;
-  cursor: pointer; line-height: 1.4;
+  cursor: pointer;
   transition: background .15s, color .15s;
 }
 .btn-toggle-view:hover { background: #1e1e1e; color: #e0e0e0; border-color: #555; }
 
-/* Container das linhas — sem scroll lateral */
+/* Container das linhas */
 .diff-lines {
-  overflow-x: hidden;
-  font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   line-height: 1.5;
 }
