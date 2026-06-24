@@ -87,33 +87,35 @@ Qualquer atalho via git invalida a análise.
 
 ---
 INSTRUÇÃO DE EXECUÇÃO — LEIA ANTES DE RESPONDER:
-Você está rodando em modo automatizado via "claude --print". Sua resposta completa
-será capturada diretamente como stdout e salva no output.txt.
+Você está rodando em modo --print automatizado. Seu stdout INTEIRO é capturado e
+exibido no plugin. Qualquer texto fora do template quebra a renderização.
+
 REGRAS ABSOLUTAS:
-1. Comece a resposta EXATAMENTE com a linha: ========================================
-2. Siga o template do Passo 4 do CLAUDE.MD acima, sem desviar
-3. NÃO escreva introdução ("Vou analisar...", "Análise concluída...")
-4. NÃO confirme que salvou o arquivo — você não salva, apenas imprime
-5. Preencha TODAS as seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, OBSERVAÇÕES
-6. REGRA INVIOLÁVEL — DIFF OBRIGATÓRIO EM TODA MENÇÃO DE CÓDIGO:
-   Sempre que descrever qualquer alteração de código — em QUALQUER seção — o bloco
-   diff deve vir IMEDIATAMENTE abaixo da descrição, sem exceção.
-   NÃO existe "descrever a mudança e deixar o diff para depois".
-   NÃO escreva "troque X por Y" sem mostrar o diff na sequência.
-   NÃO use bloco genérico \`\`\`ts, \`\`\`html ou texto corrido para código.
-   SEMPRE \`\`\`diff com - (remove, vermelho) e + (adiciona, verde):
+1. PRIMEIRA LINHA da resposta: ========================================
+   Não escreva NADA antes disso. Nenhuma introdução. Nenhum comentário.
+2. Siga o template do Passo 4 do CLAUDE.MD exatamente, incluindo os separadores ----
+3. NÃO escreva "Análise concluída", "output.txt salvo" ou qualquer texto fora do template
+4. LOCALIZAÇÃO DO PROBLEMA: máximo 3 linhas
+   - Linha 1: Arquivo: \`nome.html\`, linha X
+   - Linha 2: Uma frase descrevendo o sintoma (o que está errado, não por quê)
+   - NADA MAIS. Sem parágrafos. Sem explicações de atributos. Sem histórico.
+5. COMO RESOLVER: UMA frase de ação + bloco diff IMEDIATAMENTE abaixo
+   - A frase descreve O QUE fazer (ex: "Adicionar p-kind na linha 93:")
+   - O diff vem logo depois, sem nenhum texto entre a frase e o bloco
+   - NUNCA escreva a mudança em texto corrido sem o diff
+   - NUNCA use \`\`\`ts, \`\`\`html ou inline code para mostrar mudança de código
+   - SEMPRE \`\`\`diff com - (vermelho, remove) e + (verde, adiciona):
    \`\`\`diff
-   --- a/caminho/do/arquivo.html
-   +++ b/caminho/do/arquivo.html
-   @@ -90,7 +90,7 @@
-    linha de contexto (sem sinal)
-   - linha que deve ser REMOVIDA
-   + linha que deve ser ADICIONADA
-    outra linha de contexto
+   --- a/src/caminho/do/arquivo.html
+   +++ b/src/caminho/do/arquivo.html
+   @@ -91,7 +91,7 @@
+    linha de contexto
+   - linha REMOVIDA
+   + linha ADICIONADA
+    linha de contexto
    \`\`\`
-   - Se a correção for de uma linha só, o diff tem uma linha só — não invente contexto falso
-   - Se houver múltiplos arquivos, um bloco diff separado para cada um
-   - Vale para .html, .ts, .scss e .p
+   - Se houver múltiplos arquivos: um bloco diff separado por arquivo, em sequência
+   - Se a correção for de uma linha: diff de uma linha — sem inventar contexto falso
   `.trim();
 }
 

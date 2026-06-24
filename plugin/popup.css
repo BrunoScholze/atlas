@@ -166,16 +166,9 @@ body {
   min-height: 60px;
 }
 
-/* Localização — pill com monospace */
+/* Localização — sem destaque, mesmo estilo do restante */
 .secao-conteudo.destaque {
-  margin: 4px 16px 12px;
-  padding: 10px 14px;
-  background: #fff8c5;
-  border: 1px solid #d4a72c;
-  border-radius: 6px;
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 12px;
-  color: #633c01;
+  padding: 4px 16px 18px;
 }
 
 /* ============================================================ SANFONA (Arquivos Analisados) */
@@ -197,12 +190,12 @@ details.sanfona > summary::after {
 details.sanfona[open] > summary::after { content: "▲"; }
 details.sanfona > summary:hover { background: #f6f8fa; }
 
-/* ============================================================ SEÇÃO "O QUE ALTERAR" */
-.secao-alteracao { background: #fff9f0; border-bottom: 2px solid #fb8f44 !important; }
+/* ============================================================ SEÇÃO "COMO RESOLVER" */
+.secao-alteracao { background: #ffffff; }
 .alteracao-titulo {
   padding: 12px 16px 6px !important;
-  font-size: 12px !important; font-weight: 800 !important;
-  color: #bc4c00 !important; text-transform: uppercase;
+  font-size: 12px !important; font-weight: 700 !important;
+  color: #24292f !important; text-transform: uppercase;
 }
 .alteracao-conteudo { padding: 4px 16px 14px !important; }
 

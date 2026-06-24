@@ -359,12 +359,15 @@ function renderizarResultado(texto) {
 function renderMarkdown(texto) {
   if (!texto) return '';
   const partes = [];
-  const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+  // Captura blocos fechados (```lang\n...```) E blocos sem fechamento até o fim do texto
+  const codeBlockRegex = /```(\w*)\n?([\s\S]*?)(?:```|$)/g;
   let lastIndex = 0;
   let ultimoTexto = '';
   let match;
 
   while ((match = codeBlockRegex.exec(texto)) !== null) {
+    // Ignora match vazio ao final
+    if (!match[1] && !match[2].trim()) { lastIndex = match.index + match[0].length; break; }
     const textoAntes = texto.slice(lastIndex, match.index);
     if (textoAntes) {
       partes.push({ tipo: 'texto', conteudo: textoAntes });
