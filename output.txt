@@ -1,32 +1,79 @@
-Análise concluída. O `output.txt` foi salvo em `C:\azure\app-bot\output.txt`.
+﻿Tenho todos os dados necessários. Vou escrever o output agora.
 
----
+========================================
+AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+========================================
 
-## Resumo da investigação — DMANUFATURA-17443
+TICKET   : DMANTECHINSIDE-87 — Problema de visualização de botão na hora de informar motivos de refugo
+DATA     : 2026-06-23 — 14:30
 
-**Problema confirmado:** Bug introduzido por uma modificação recente no `datasul-report-v2.page.ts`.
+----------------------------------------
+FUNCIONALIDADES ANALISADAS
+----------------------------------------
+Selecionadas pelo dev:
+- Motivo de refugo (ligado ao Apontamento)
 
-### O que acontece
+Adicionadas pelo agente (identificadas durante análise):
+- Nenhuma adicional identificada. O problema é restrito à tela de motivos de refugo e não propaga para outras funcionalidades.
 
-1. Usuário usa o cronômetro → clica em "Apontar" → vai para a tela de reporte (`datasul-report-v2`)
-2. Informa Qtd Reportada **1.198,0000** e Qtd Refugada **15,0000**
-3. Clica em **"Alterar requisições"** → chama `getProductionOrderDefaultMaterials()`
-4. **BUG:** A função buscou os materiais padrão apenas para `1.198,0000` (só `qt-reportada`)
-5. A quantidade de refugo (`15,0000`) não foi somada ao total — ela foi **removida** da função
-6. O usuário vê e confirma materiais para 1.198 unidades na tela de requisições
-7. Ao reportar, o backend recebe materiais para 1.198 → consome apenas para o ACA Acabado
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+Prioritários:
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.ts
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.scss
 
-### A mudança que causou o bug
+Contexto:
+- Nenhum componente filho referenciado pela tela (não há tags `<app-xyz>` nem sub-componentes a navegar)
 
-Em `datasul-report-v2.page.ts`, função `getProductionOrderDefaultMaterials()`, foram removidas:
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo : src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
+Função  : N/A (problema de propriedade de componente no template, não em função TypeScript)
+Linha   : 90
 
-```typescript
-// LINHAS REMOVIDAS (precisam ser restauradas):
-const scrapQuantity = this.getFieldById('qt-refugo').field_data;
-// ...
-quantity = String(Number(quantity) + Number(scrapQuantity));  // dentro do if (this.isSFC)
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+O botão "Adicionar motivo" está configurado com `p-type="secondary"` na biblioteca PO-UI. Esse tipo renderiza o botão como **ghost button** — fundo branco/transparente com apenas uma borda e texto colorido, sem preenchimento sólido. Em ambientes com fundo claro (que é o caso do `<ion-content>` da tela), o contraste fica muito baixo e o botão aparece "apagado" ao usuário. O problema é puramente de propriedade do componente PO-UI no template HTML — não envolve lógica no `.ts` nem backend.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Altere o valor de `p-type` do `<po-button>` de `"secondary"` para `"default"`. O tipo `"default"` renderiza o botão com fundo azul sólido, muito mais visível em fundo claro.
+
+```diff
+--- a/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
++++ b/src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+@@ -88,7 +88,7 @@
+     <po-button
+         class="po-sm-12 po-pt-2 po-pr-2 po-pl-2"
+         p-label="{{literals.addWithIcon}}"
+         (p-click)="openModalNewReason(false)"
+-        p-type="secondary"
++        p-type="default"
+     >
+     </po-button>
 ```
 
-### Como corrigir
+**Por que `default` e não `primary`?**
+Na PO-UI ambos geram botão preenchido azul. A convenção do próprio app já usa `p-type="default"` como padrão em outras telas de apontamento. Use `"primary"` apenas se quiser sinalizar que é a ação principal da página (nesse caso o botão principal já é o "Salvar e Voltar" no footer).
 
-Restaurar essas duas linhas na função. Ver o `output.txt` para o código completo da versão corrigida. Atenção também para um `if (this.materials.length == 0)` com chaves mal posicionadas que foi adicionado junto — verificar a estrutura completa do método após a correção.
+**Teste após a alteração:**
+1. Acesse a tela de apontamento → informe quantidade de refugo ou retrabalho
+2. Navegue para a tela de "Informar Motivo"
+3. Verifique que o botão "Adicionar Motivo" aparece com fundo azul sólido e texto branco
+4. Clique no botão e confirme que o modal abre normalmente (a lógica `openModalNewReason(false)` permanece intacta)
+
+----------------------------------------
+OBSERVAÇÕES
+----------------------------------------
+- **Sem impacto no `.ts`**: a mudança é exclusivamente visual. A função `openModalNewReason(false)` no evento `(p-click)` continua sendo chamada normalmente — nenhuma alteração de lógica é necessária.
+- **Sem impacto no backend**: o problema não envolve envio de dados ao Progress. O `.p` não precisa ser alterado.
+- **Sem impacto no `.scss`**: o arquivo `datasul-report-reason.scss` não possui nenhuma regra que afete o `po-button`. A solução via prop do PO-UI é suficiente — não é necessário adicionar CSS customizado.
+- **Risco da alteração**: baixíssimo. É uma mudança de uma propriedade de apresentação em um único componente isolado.
+- **Ticket de referência DMANUFATURA-21257**: o ticket original do chamado menciona esse issue como caso de teste. A correção acima resolve a evidência visual demonstrada no PDF (botão apagado na tela de motivos de refugo). Versão afetada confirmada: 12.1.2407.12 / DTS 11.5.x.
+
+========================================

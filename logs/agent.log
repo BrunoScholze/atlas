@@ -1,0 +1,83 @@
+[2026-06-23 20:56:12.724] [-----] ----------------------------------------------------------------
+[2026-06-23 20:56:12.725] [INFO ] === NOVA ANÁLISE INICIADA ===
+[2026-06-23 20:56:12.726] [-----] ----------------------------------------------------------------
+[2026-06-23 20:56:12.727] [INFO ] RequestId    : 86bd1fbf-9926-49bd-b964-7fecf46f07e6
+[2026-06-23 20:56:12.746] [INFO ] Data/Hora    : 23/06/2026, 17:56:12
+[2026-06-23 20:56:12.747] [INFO ] TicketId     : DMANTECHINSIDE-87
+[2026-06-23 20:56:12.748] [INFO ] Titulo       : Dev - Agente do App minha prod
+[2026-06-23 20:56:12.748] [INFO ] Prioridade   : Média
+[2026-06-23 20:56:12.749] [INFO ] Tipo         : Spike
+[2026-06-23 20:56:12.750] [INFO ] Responsavel  : Bruno Scholze_
+[2026-06-23 20:56:12.750] [INFO ] Funcionalidades: Motivo de refugo (ligado ao Apontamento)
+[2026-06-23 20:56:12.751] [INFO ] Observacao   : (não informada)
+[2026-06-23 20:56:12.753] [INFO ] PDF          : C:\azure\app-bot\temp\DMANTECHINSIDE-87_1782248172715.pdf
+[2026-06-23 20:56:12.754] [-----] ----------------------------------------------------------------
+[2026-06-23 20:56:12.755] [INFO ] Lendo claude.md...
+[2026-06-23 20:56:12.756] [INFO ] claude.md: 9241 chars
+[2026-06-23 20:56:12.757] [INFO ] Lendo Funcionalidades.md...
+[2026-06-23 20:56:12.758] [INFO ] Funcionalidades.md: 13566 chars
+[2026-06-23 20:56:12.759] [INFO ] Montando prompt...
+[2026-06-23 20:56:12.760] [INFO ] Prompt montado: 25960 chars
+[2026-06-23 20:56:12.763] [INFO ] debug.txt atualizado
+[2026-06-23 20:56:12.766] [INFO ] prompt_temp.txt gravado: C:\azure\app-bot\prompt_temp.txt
+[2026-06-23 20:56:12.767] [INFO ] PS1 path: C:\azure\app-bot\scripts\run-claude.ps1
+[2026-06-23 20:56:12.768] [INFO ] Output path: C:\azure\app-bot\output.txt
+[2026-06-23 20:56:12.769] [INFO ] Repo path: C:\azure\app-bot\app-minha-producao
+[2026-06-23 20:56:12.770] [INFO ] Log file: C:\azure\app-bot\logs\agent.log
+[2026-06-23 20:56:12.771] [-----] ----------------------------------------------------------------
+[2026-06-23 20:56:12.772] [INFO ] Iniciando PowerShell...
+[2026-06-23 20:56:12.773] [DEBUG] Comando: powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\azure\app-bot\scripts\run-claude.ps1" "C:\azure\app-bot\prompt_temp.txt" "C:\azure\app-bot\output.txt" "C:\azure\app-bot\app-minha-producao" "C:\azure\app-bot\logs\agent.log"
+[2026-06-23 17:56:13.519] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:13.592] [INFO] === AGENTE DE CHAMADOS - POWERSHELL INICIADO ===
+[2026-06-23 17:56:13.596] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:13.597] [INFO] PromptFile : C:\azure\app-bot\prompt_temp.txt
+[2026-06-23 17:56:13.600] [INFO] OutputFile : C:\azure\app-bot\output.txt
+[2026-06-23 17:56:13.601] [INFO] RepoPath   : C:\azure\app-bot\app-minha-producao
+[2026-06-23 17:56:13.604] [INFO] LogFile    : C:\azure\app-bot\logs\agent.log
+[2026-06-23 17:56:13.606] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:13.608] [INFO] Lendo prompt_temp.txt...
+[2026-06-23 17:56:13.614] [INFO] Prompt lido: 25960 chars
+[2026-06-23 17:56:13.630] [INFO] Ticket         : TICKET_ID      : <id do chamado ex: DMANUFATURA-14158>
+[2026-06-23 17:56:13.634] [INFO] Funcionalidades: FUNCIONALIDADES: <uma ou mais funcionalidades selecionadas pelo dev no multiselect>
+[2026-06-23 17:56:13.638] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:13.641] [INFO] Mudando para repositorio: C:\azure\app-bot\app-minha-producao
+[2026-06-23 17:56:13.647] [INFO] Diretorio atual: C:\azure\app-bot\app-minha-producao
+[2026-06-23 17:56:13.649] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:13.653] [INFO] Chamando Claude Code via stdin...
+[2026-06-23 17:56:13.657] [INFO] Flags: --dangerously-skip-permissions --print
+[2026-06-23 17:56:13.660] [----] ----------------------------------------------------------------
+[2026-06-23 17:56:19.504] [WAIT] Claude processando... 6s decorridos
+[2026-06-23 17:56:24.594] [WAIT] Claude processando... 11s decorridos
+[2026-06-23 17:56:29.610] [WAIT] Claude processando... 16s decorridos
+[2026-06-23 17:56:34.623] [WAIT] Claude processando... 21s decorridos
+[2026-06-23 17:56:39.640] [WAIT] Claude processando... 26s decorridos
+[2026-06-23 17:56:44.654] [WAIT] Claude processando... 31s decorridos
+[2026-06-23 17:56:49.684] [WAIT] Claude processando... 36s decorridos
+[2026-06-23 17:56:54.702] [WAIT] Claude processando... 41s decorridos
+[2026-06-23 17:56:59.722] [WAIT] Claude processando... 46s decorridos
+[2026-06-23 17:57:04.733] [WAIT] Claude processando... 51s decorridos
+[2026-06-23 17:57:09.752] [WAIT] Claude processando... 56s decorridos
+[2026-06-23 17:57:14.772] [WAIT] Claude processando... 61s decorridos
+[2026-06-23 17:57:19.782] [WAIT] Claude processando... 66s decorridos
+[2026-06-23 17:57:23.808] [----] ----------------------------------------------------------------
+[2026-06-23 17:57:23.810] [INFO] Claude finalizado. Exit code: 0 | Tempo: 70s
+[2026-06-23 17:57:23.851] [INFO] Resultado: 4678 chars
+[2026-06-23 17:57:23.856] [INFO] Preview  : Tenho todos os dados necessários. Vou escrever o output agora. |  | ========================================
+[2026-06-23 17:57:23.861] [INFO] output.txt gravado com sucesso
+[2026-06-23 17:57:23.866] [----] ----------------------------------------------------------------
+[2026-06-23 17:57:23.870] [INFO] === POWERSHELL CONCLUIDO ===
+[2026-06-23 17:57:23.873] [----] ----------------------------------------------------------------
+[2026-06-23 20:57:23.921] [-----] ----------------------------------------------------------------
+[2026-06-23 20:57:23.922] [INFO ] PowerShell finalizado. Duração: 71.1s
+[2026-06-23 20:57:23.924] [INFO ] PDF temp deletado
+[2026-06-23 20:57:23.926] [INFO ] prompt_temp.txt deletado
+[2026-06-23 20:57:23.927] [INFO ] output.txt lido: 4678 chars
+[2026-06-23 20:57:23.928] [INFO ] Preview do resultado:
+[2026-06-23 20:57:23.929] [INFO ]   | Tenho todos os dados necessários. Vou escrever o output agora.
+[2026-06-23 20:57:23.930] [INFO ]   | ========================================
+[2026-06-23 20:57:23.932] [INFO ]   | AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+[2026-06-23 20:57:23.933] [INFO ]   | ========================================
+[2026-06-23 20:57:23.934] [INFO ]   | TICKET   : DMANTECHINSIDE-87 — Problema de visualização de botão na hora de informar motivos de refugo
+[2026-06-23 20:57:23.935] [-----] ----------------------------------------------------------------
+[2026-06-23 20:57:23.937] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
+[2026-06-23 20:57:23.938] [-----] ----------------------------------------------------------------

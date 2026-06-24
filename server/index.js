@@ -77,6 +77,15 @@ OBSERVACAO     : ${dados.observacao || 'Nenhuma observação adicional'}
 ANEXO          : ${dados.pdfPath || ''}
 
 ---
+⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:
+O sistema pode ter injetado automaticamente informações de git status, git diff
+ou arquivos alterados recentemente. IGNORE COMPLETAMENTE essas informações.
+Não use git status, git diff, git log ou qualquer mudança recente para identificar o bug.
+Siga OBRIGATORIAMENTE o fluxo dos 4 passos: leia o ticket → Funcionalidades.md
+→ investigue o código (.html → .ts → .p) → escreva o output.
+Qualquer atalho via git invalida a análise.
+
+---
 INSTRUÇÃO DE EXECUÇÃO — LEIA ANTES DE RESPONDER:
 Você está rodando em modo automatizado via "claude --print". Sua resposta completa
 será capturada diretamente como stdout e salva no output.txt.
@@ -138,16 +147,48 @@ app.get('/download/output', (req, res) => {
   }
 });
 
-// GET /download/log/latest — baixa o log da última análise
+// GET /download/log/latest — baixa o log da execução atual
 app.get('/download/log/latest', (req, res) => {
   try {
-    const logsDir = path.join(process.env.CONTEXT_PATH, 'logs');
-    const logFile = fs.readFileSync(path.join(logsDir, 'latest.log'), 'utf8').trim();
+    const logFile = path.join(process.env.CONTEXT_PATH, 'logs', 'agent.log');
     const conteudo = fs.readFileSync(logFile, 'utf8');
-    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(logFile)}"`);
+    res.setHeader('Content-Disposition', 'attachment; filename="agent.log"');
     res.type('text/plain; charset=utf-8').send(conteudo);
   } catch (e) {
     res.status(404).type('text').send('Log não encontrado.');
+  }
+});
+
+// -------------------------------------------------------
+// POST /cancelar/:requestId — cancela análise em andamento
+// -------------------------------------------------------
+app.post('/cancelar/:requestId', (req, res) => {
+  const analise = analises[req.params.requestId];
+  if (!analise) return res.status(404).json({ sucesso: false, erro: 'Análise não encontrada.' });
+  if (analise.status !== 'running') return res.json({ sucesso: false, erro: 'Análise não está em andamento.' });
+
+  analise.status = 'cancelled';
+
+  if (analise.childProcess && analise.childProcess.pid) {
+    const pid = analise.childProcess.pid;
+    // taskkill /T mata o processo inteiro incluindo subprocessos (PowerShell + Claude)
+    exec(`taskkill /PID ${pid} /T /F`, (e) => {
+      if (e) console.warn(`[cancelar] taskkill retornou: ${e.message}`);
+    });
+  }
+
+  res.json({ sucesso: true });
+});
+
+// -------------------------------------------------------
+// POST /limpar — limpa output.txt e storage de resultado
+// -------------------------------------------------------
+app.post('/limpar', (req, res) => {
+  try {
+    fs.writeFileSync(process.env.OUTPUT_PATH, '', 'utf8');
+    res.json({ sucesso: true });
+  } catch (e) {
+    res.status(500).json({ sucesso: false, erro: e.message });
   }
 });
 
@@ -169,14 +210,11 @@ app.post('/analisar', upload.single('pdf'), (req, res) => {
   const logsDir = path.join(process.env.CONTEXT_PATH, 'logs');
   if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
-  // Nome do arquivo de log: timestamp_ticketId_requestIdCurto.log
-  const tsStr = new Date().toISOString().replace(/:/g, '-').replace('T', '_').split('.')[0];
-  const logFile = path.join(logsDir, `${tsStr}_${ticketId}_${requestId.slice(0, 8)}.log`);
+  // Arquivo de log único — sobrescrito a cada execução
+  const logFile = path.join(logsDir, 'agent.log');
+  fs.writeFileSync(logFile, '', 'utf8');
 
   analises[requestId] = { status: 'running', inicio, ticketId, logPath: logFile };
-
-  // Grava link para o último log (facilita abrir sempre o mais recente)
-  try { fs.writeFileSync(path.join(logsDir, 'latest.log'), logFile, 'utf8'); } catch (e) { /* ignora */ }
 
   res.json({ sucesso: true, requestId });
   executarAnalise(requestId, req.body, pdfPath, inicio, logFile);
@@ -209,12 +247,10 @@ app.get('/log/:requestId', (req, res) => {
   }
 });
 
-// GET /log/latest — atalho para o log mais recente
+// GET /log/latest — atalho para o log da execução atual
 app.get('/log/latest', (req, res) => {
   try {
-    const logsDir = path.join(process.env.CONTEXT_PATH, 'logs');
-    const latestPath = path.join(logsDir, 'latest.log');
-    const logFile = fs.readFileSync(latestPath, 'utf8').trim();
+    const logFile = path.join(process.env.CONTEXT_PATH, 'logs', 'agent.log');
     const conteudo = fs.readFileSync(logFile, 'utf8');
     res.type('text').send(conteudo);
   } catch (e) {
@@ -259,6 +295,41 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     const prompt = montarPrompt(dados, claudeMd, funcionalidadesMd);
     log.info(`Prompt montado: ${prompt.length} chars`);
 
+    // Grava debug.txt com todos os parâmetros e prompt desta execução
+    const debugPath = path.join(process.env.CONTEXT_PATH, 'debug.txt');
+    const debugConteudo = [
+      '========================================',
+      'DEBUG — EXECUÇÃO DO AGENTE',
+      '========================================',
+      `RequestId : ${requestId}`,
+      `Data/Hora : ${new Date().toLocaleString('pt-BR')}`,
+      '',
+      '----------------------------------------',
+      'PARÂMETROS RECEBIDOS DO PLUGIN',
+      '----------------------------------------',
+      `ticketId       : ${body.ticketId || '(vazio)'}`,
+      `titulo         : ${body.titulo || '(vazio)'}`,
+      `descricao      : ${body.descricao || '(vazio)'}`,
+      `prioridade     : ${body.prioridade || '(vazio)'}`,
+      `tipo           : ${body.tipo || '(vazio)'}`,
+      `responsavel    : ${body.responsavel || '(vazio)'}`,
+      `funcionalidades: ${body.funcionalidades || '(vazio)'}`,
+      `observacao     : ${body.observacao || '(não informada)'}`,
+      `pdf            : ${pdfPath}`,
+      `comentarios    :`,
+      body.comentarios || '(vazio)',
+      `historico      :`,
+      body.historico || '(vazio)',
+      '',
+      '----------------------------------------',
+      'PROMPT COMPLETO ENVIADO AO CLAUDE CODE',
+      '----------------------------------------',
+      prompt,
+      '',
+      '========================================'
+    ].join('\n');
+    try { fs.writeFileSync(debugPath, debugConteudo, 'utf8'); log.info('debug.txt atualizado'); } catch (e) { log.warn(`Não gravou debug.txt: ${e.message}`); }
+
     // Grava prompt em arquivo
     const promptPath = path.join(process.env.CONTEXT_PATH, 'prompt_temp.txt');
     fs.writeFileSync(promptPath, prompt, 'utf8');
@@ -266,25 +337,24 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
     const outputPath = process.env.OUTPUT_PATH;
     const repoPath = process.env.REPO_PATH;
-    const ps1Path = path.resolve(process.env.CONTEXT_PATH, '..', 'scripts', 'run-claude.ps1');
+    const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');
 
     log.info(`PS1 path: ${ps1Path}`);
     log.info(`Output path: ${outputPath}`);
     log.info(`Repo path: ${repoPath}`);
     log.info(`Log file: ${logFile}`);
     log.sep();
-    log.info('Abrindo janela PowerShell...');
+    log.info('Iniciando PowerShell...');
 
     const env = { ...process.env };
 
-    // Escapa caminhos com espaços para o comando start
     const esc = (p) => `"${p}"`;
-    const comando = `start /wait "Claude Code — ${body.ticketId || 'Análise'}" powershell -NoProfile -ExecutionPolicy Bypass -File ${esc(ps1Path)} ${esc(promptPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`;
+    const comando = `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(promptPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`;
 
     log.debug(`Comando: ${comando}`);
     const execInicio = Date.now();
 
-    exec(comando, { timeout: 0, env }, (err, stdout, stderr) => {
+    const childProcess = exec(comando, { timeout: 0, env }, (err, stdout, stderr) => {
       const duracao = ((Date.now() - execInicio) / 1000).toFixed(1);
       log.sep();
       log.info(`PowerShell finalizado. Duração: ${duracao}s`);
@@ -293,6 +363,13 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
       try { fs.unlinkSync(pdfPath); log.info('PDF temp deletado'); } catch (e) { log.warn(`Não deletou PDF: ${e.message}`); }
       try { fs.unlinkSync(promptPath); log.info('prompt_temp.txt deletado'); } catch (e) { /* ignora */ }
+
+      // Se foi cancelado pelo usuário, apenas encerra
+      if (analises[requestId] && analises[requestId].status === 'cancelled') {
+        log.info('Análise cancelada pelo usuário — encerrando sem processar resultado');
+        log.sep();
+        return;
+      }
 
       if (err && err.code !== 0) {
         log.error(`Erro no PowerShell. code=${err.code} | msg=${err.message}`);
@@ -306,6 +383,8 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       let analise = '';
       try {
         analise = fs.readFileSync(outputPath, 'utf8');
+        // Remove BOM se presente
+        if (analise.charCodeAt(0) === 0xFEFF) analise = analise.slice(1);
         log.info(`output.txt lido: ${analise.length} chars`);
       } catch (e) {
         log.error(`Erro ao ler output.txt: ${e.message}`);
@@ -313,7 +392,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
       if (!analise.trim()) {
         log.error('Claude não retornou conteúdo (output.txt vazio)');
-        analises[requestId] = { status: 'error', erro: 'Claude não retornou análise. Verifique a janela do PowerShell.', inicio, logPath: logFile };
+        analises[requestId] = { status: 'error', erro: 'Claude não retornou análise. Verifique os logs.', inicio, logPath: logFile };
         log.sep();
         log.error('=== ANÁLISE ENCERRADA SEM RESULTADO ===');
         return;
@@ -329,6 +408,9 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       log.info('=== ANÁLISE CONCLUÍDA COM SUCESSO ===');
       log.sep();
     });
+
+    // Guarda referência ao processo para permitir cancelamento
+    if (analises[requestId]) analises[requestId].childProcess = childProcess;
 
   } catch (err) {
     log.error(`Exceção não tratada: ${err.message}`);

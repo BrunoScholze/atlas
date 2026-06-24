@@ -18,6 +18,7 @@ const state = {
 
 let pollingInterval = null;
 let timerInterval = null;
+let currentRequestId = null;
 
 // --- Inicialização ---
 
@@ -145,6 +146,7 @@ function configurarEventos() {
   });
 
   document.getElementById('btnIniciar').addEventListener('click', analisar);
+  document.getElementById('btnCancelar').addEventListener('click', cancelarAnalise);
   document.getElementById('btnCopiar').addEventListener('click', copiarResultado);
   document.getElementById('btnNovaAnalise').addEventListener('click', resetarFormulario);
   document.getElementById('btnTentarNovamente').addEventListener('click', resetarFormulario);
@@ -222,6 +224,7 @@ async function analisar() {
 // --- Polling + Timer ---
 
 function iniciarPolling(requestId, inicio) {
+  currentRequestId = requestId;
   pararPolling();
   mostrarTela('loading');
   atualizarTimer(inicio);
@@ -256,6 +259,10 @@ async function consultarStatus(requestId, inicio) {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);
       mostrarErro(json.erro || 'Erro na análise.');
+    } else if (json.status === 'cancelled') {
+      pararPolling();
+      await chrome.storage.local.remove(['requestId', 'inicio']);
+      mostrarTela('formulario');
     }
     // status === 'running': continua o polling
   } catch (e) {
@@ -266,6 +273,20 @@ async function consultarStatus(requestId, inicio) {
 function pararPolling() {
   if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+async function cancelarAnalise() {
+  if (!currentRequestId) return;
+  const btn = document.getElementById('btnCancelar');
+  btn.disabled = true;
+  btn.textContent = 'Cancelando...';
+  try {
+    await fetch(`${SERVER_URL}/cancelar/${currentRequestId}`, { method: 'POST' });
+  } catch (e) { /* servidor pode ter reiniciado */ }
+  pararPolling();
+  await chrome.storage.local.remove(['requestId', 'inicio']);
+  currentRequestId = null;
+  mostrarTela('formulario');
 }
 
 // Ao abrir o popup, verifica se há resultado salvo de análise anterior
@@ -515,9 +536,10 @@ function mostrarErro(mensagem) {
   mostrarTela('erro');
 }
 
-function resetarFormulario() {
+async function resetarFormulario() {
   pararPolling();
   chrome.storage.local.remove(['requestId', 'inicio', 'resultado']);
+  try { await fetch(`${SERVER_URL}/limpar`, { method: 'POST' }); } catch (e) {}
 
   state.funcionalidadesSelecionadas = [];
   state.pdfFile = null;

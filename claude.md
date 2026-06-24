@@ -73,6 +73,13 @@ Usuário inicia cronômetro → clica em Apontar → altera hora início e fim m
 - Para cada funcionalidade em FUNCIONALIDADES, colete os arquivos suspeitos listados
 - Agrupe em: **prioritários** (funcionalidades selecionadas) e **contexto** (relacionados)
 
+**Regra de expansão obrigatória — siga sub-componentes:**
+Ao abrir qualquer arquivo suspeito, verifique se ele referencia outros componentes
+(ex: tags `<app-xyz>`, `<datasul-abc>`, imports no `.ts`, serviços injetados).
+Se sim, localize e leia esses arquivos também. Tudo que estiver relacionado ao
+fluxo do problema deve ser investigado — não pare nos arquivos da lista inicial.
+A análise só está completa quando você rastreou todos os elos da cadeia.
+
 **Importante:** Após análise, se você identificar que outras funcionalidades
 do Funcionalidades.md também estão envolvidas, adicione-as à lista e justifique.
 
@@ -180,8 +187,6 @@ funcionalidades, pontos de atenção.>
 
 ========================================
 ```
-
----
 
 ## Regras importantes
 

@@ -1,7 +1,7 @@
 param($PromptFile, $OutputFile, $RepoPath, $LogFile)
 
 # -------------------------------------------------------
-# Helpers de log — escreve no arquivo E na janela visível
+# Helpers de log
 # -------------------------------------------------------
 function Log {
     param($Level, $Message)
@@ -14,10 +14,18 @@ function Log {
 function LogSep { Log "----" "----------------------------------------------------------------" }
 
 # -------------------------------------------------------
+# Força UTF-8 no console para não corromper a saída do Claude
+# -------------------------------------------------------
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+$OutputEncoding           = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
+
+# -------------------------------------------------------
 # Início
 # -------------------------------------------------------
 LogSep
-Log "INFO" "=== AGENTE DE CHAMADOS — POWERSHELL INICIADO ==="
+Log "INFO" "=== AGENTE DE CHAMADOS - POWERSHELL INICIADO ==="
 LogSep
 Log "INFO" "PromptFile : $PromptFile"
 Log "INFO" "OutputFile : $OutputFile"
@@ -25,7 +33,7 @@ Log "INFO" "RepoPath   : $RepoPath"
 Log "INFO" "LogFile    : $LogFile"
 LogSep
 
-# Lê o prompt
+# Lê o prompt para logging
 Log "INFO" "Lendo prompt_temp.txt..."
 try {
     $prompt = [System.IO.File]::ReadAllText($PromptFile, [System.Text.Encoding]::UTF8)
@@ -38,38 +46,38 @@ try {
 # Extrai TICKET_ID e FUNCIONALIDADES do prompt para log
 $ticketLine = ($prompt -split "`n" | Where-Object { $_ -match "^TICKET_ID\s*:" } | Select-Object -First 1)
 $funcLine   = ($prompt -split "`n" | Where-Object { $_ -match "^FUNCIONALIDADES\s*:" } | Select-Object -First 1)
-Log "INFO" "Ticket       : $($ticketLine.Trim())"
-Log "INFO" "Funcionalidades: $($funcLine.Trim())"
+$ticketInfo = if ($ticketLine) { $ticketLine.Trim() } else { '(nao encontrado)' }
+$funcInfo   = if ($funcLine)   { $funcLine.Trim()   } else { '(nao encontrado)' }
+Log "INFO" "Ticket         : $ticketInfo"
+Log "INFO" "Funcionalidades: $funcInfo"
 LogSep
 
 # Muda para o diretório do repositório
-Log "INFO" "Mudando para repositório: $RepoPath"
+Log "INFO" "Mudando para repositorio: $RepoPath"
 try {
     Set-Location $RepoPath
-    Log "INFO" "Diretório atual: $(Get-Location)"
+    Log "INFO" "Diretorio atual: $(Get-Location)"
 } catch {
-    Log "ERROR" "Falha ao mudar de diretório: $_"
+    Log "ERROR" "Falha ao mudar de diretorio: $_"
     exit 1
 }
 
 LogSep
-Log "INFO" "Enviando prompt para o Claude Code via pipe..."
+Log "INFO" "Chamando Claude Code via stdin..."
 Log "INFO" "Flags: --dangerously-skip-permissions --print"
-Log "INFO" "Aguardando resposta (sem timeout)..."
 LogSep
 
 # -------------------------------------------------------
-# Heartbeat em background — escreve no log a cada 5s
-# enquanto o Claude processa
+# Heartbeat em background
 # -------------------------------------------------------
-$startTime = Get-Date
+$startTime  = Get-Date
 $logFileRef = $LogFile
-$heartbeat = Start-Job -ScriptBlock {
+$heartbeat  = Start-Job -ScriptBlock {
     param($lf, $st)
     while ($true) {
         Start-Sleep -Seconds 5
         $elapsed = [int]((Get-Date) - $st).TotalSeconds
-        $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+        $ts   = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
         $line = "[$ts] [WAIT] Claude processando... ${elapsed}s decorridos"
         Write-Output $line
         if ($lf) { Add-Content -Path $lf -Value $line -Encoding UTF8 }
@@ -77,35 +85,36 @@ $heartbeat = Start-Job -ScriptBlock {
 } -ArgumentList $logFileRef, $startTime
 
 # -------------------------------------------------------
-# Executa o Claude Code
+# Executa o Claude Code — cmd /c com chcp 65001 garante UTF-8
 # -------------------------------------------------------
 try {
-    $result = $prompt | & claude --dangerously-skip-permissions --print 2>&1
+    $result   = cmd /c "chcp 65001 > nul 2>&1 & claude --dangerously-skip-permissions --print < `"$PromptFile`""
     $exitCode = $LASTEXITCODE
 } catch {
-    Log "ERROR" "Exceção ao chamar claude: $_"
-    Stop-Job $heartbeat -ErrorAction SilentlyContinue
+    Log "ERROR" "Excecao ao chamar claude: $_"
+    Stop-Job  $heartbeat -ErrorAction SilentlyContinue
     Remove-Job $heartbeat -ErrorAction SilentlyContinue
     exit 1
 }
 
-# Para o heartbeat
-Stop-Job $heartbeat -ErrorAction SilentlyContinue
+Stop-Job  $heartbeat -ErrorAction SilentlyContinue
 Remove-Job $heartbeat -ErrorAction SilentlyContinue
 
 $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
-
 LogSep
 Log "INFO" "Claude finalizado. Exit code: $exitCode | Tempo: ${elapsed}s"
 
 # -------------------------------------------------------
-# Verifica e grava o resultado
+# Grava o resultado em UTF-8
 # -------------------------------------------------------
 if ($result -and ($result | Out-String).Trim().Length -gt 0) {
     $resultStr = ($result | Out-String).Trim()
+    # Remove BOM se presente (U+FEFF)
+    if ($resultStr.Length -gt 0 -and [int][char]$resultStr[0] -eq 65279) {
+        $resultStr = $resultStr.Substring(1)
+    }
     Log "INFO" "Resultado: $($resultStr.Length) chars"
 
-    # Preview das primeiras 3 linhas
     $preview = ($resultStr -split "`n" | Select-Object -First 3) -join " | "
     Log "INFO" "Preview  : $preview"
 
@@ -117,11 +126,11 @@ if ($result -and ($result | Out-String).Trim().Length -gt 0) {
         exit 1
     }
 } else {
-    Log "WARN" "Claude não retornou conteúdo! (resultado vazio)"
+    Log "WARN" "Claude nao retornou conteudo (resultado vazio)"
     Log "WARN" "Exit code foi: $exitCode"
     [System.IO.File]::WriteAllText($OutputFile, "", [System.Text.Encoding]::UTF8)
 }
 
 LogSep
-Log "INFO" "=== POWERSHELL CONCLUÍDO ==="
+Log "INFO" "=== POWERSHELL CONCLUIDO ==="
 LogSep
