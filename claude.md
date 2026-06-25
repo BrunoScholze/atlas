@@ -96,9 +96,11 @@ COMO RESOLVER
 ----------------------------------------
 <UMA frase de ação dizendo o que deve ser feito.>
 
-DIFF_START arquivo: src/caminho/do/arquivo.ext
+DIFF_START arquivo: src/caminho/do/arquivo.ext linha: 93
+  2 linhas de contexto ANTES da mudança (prefixadas com 2 espaços)
 - linha que deve ser REMOVIDA
 + linha que deve ser ADICIONADA
+  2 linhas de contexto DEPOIS da mudança (prefixadas com 2 espaços)
 DIFF_END
 
 <Se houver múltiplos arquivos: um bloco DIFF_START/DIFF_END por arquivo, em sequência.>
@@ -129,6 +131,9 @@ OBSERVAÇÕES
 2. Siga o template do Passo 4 exatamente — separadores e marcadores são parseados pelo plugin.
 3. LOCALIZAÇÃO: arquivo + linha + sintoma em 1-2 frases. Nada mais.
 4. COMO RESOLVER: use DIFF_START/DIFF_END — nunca ```diff, nunca texto corrido.
+   - `linha: N` no cabeçalho = número da linha do primeiro `-` ou `+` no arquivo
+   - Inclua exatamente 2 linhas de contexto antes e 2 depois, prefixadas com 2 espaços
+   - Linhas de contexto mostram onde exatamente inserir/remover no arquivo real
 5. Um bloco DIFF_START/DIFF_END por arquivo — nunca misture dois arquivos no mesmo bloco.
 6. Leia o PDF inteiro — prints e passos de simulação são a maior fonte de contexto.
 7. Use context7 se tiver dúvida de comportamento de componente PO-UI ou sintaxe Progress.

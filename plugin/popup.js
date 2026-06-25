@@ -732,51 +732,51 @@ function renderSecao(texto) {
   while (i < linhas.length) {
     const linha = linhas[i];
 
-    // Formato primário: DIFF_START arquivo: path
+    // Formato primário: DIFF_START arquivo: path linha: N
     if (linha.trim().startsWith('DIFF_START')) {
-      const arquivoMatch = linha.match(/arquivo:\s*(.+)/i);
-      const nomeArquivo  = arquivoMatch
-        ? arquivoMatch[1].trim().split('/').pop()
-        : 'arquivo';
+      const fileMatch  = linha.match(/arquivo:\s*(.+?)(?:\s+linha:\s*(\d+))?\s*$/i);
+      const caminho    = fileMatch ? fileMatch[1].trim() : '';
+      const nomeArq    = caminho ? caminho.split('/').pop() : 'arquivo';
+      const linhaRef   = fileMatch && fileMatch[2] ? parseInt(fileMatch[2]) : null;
 
-      const linhasRemovidas   = [];
-      const linhasAdicionadas = [];
+      const itens = [];
       i++;
-
       while (i < linhas.length && !linhas[i].trim().startsWith('DIFF_END')) {
         const l = linhas[i];
-        if (l.startsWith('-'))      linhasRemovidas.push(l.substring(1).trim());
-        else if (l.startsWith('+')) linhasAdicionadas.push(l.substring(1).trim());
+        if (l.startsWith('-'))      itens.push({ tipo: 'rem', conteudo: l.slice(1) });
+        else if (l.startsWith('+')) itens.push({ tipo: 'add', conteudo: l.slice(1) });
+        else                        itens.push({ tipo: 'ctx', conteudo: l.startsWith('  ') ? l.slice(2) : l.startsWith(' ') ? l.slice(1) : l });
         i++;
       }
 
-      html += construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas);
+      html += construirDiffBlock(nomeArq, itens, linhaRef, false);
 
     // Formato fallback: ```diff ... ``` (markdown padrão)
     } else if (linha.trim() === '```diff') {
-      const linhasRemovidas   = [];
-      const linhasAdicionadas = [];
-      let nomeArquivo = 'arquivo';
+      const itens = [];
+      let nomeArq    = 'arquivo';
+      let linhaRef   = null;
       i++;
 
       while (i < linhas.length && linhas[i].trim() !== '```') {
         const l = linhas[i];
-        // Extrai nome do arquivo da linha "--- a/path/to/file.ext"
         if (l.startsWith('--- ') && !l.startsWith('--- /dev/null')) {
           const nome = l.replace(/^---\s+(a\/)?/, '').trim();
-          if (nome) nomeArquivo = nome.split('/').pop();
-        }
-        // Ignora cabeçalhos: +++ , @@, e linhas de contexto (espaço)
-        else if (l.startsWith('- ') || (l.startsWith('-') && !l.startsWith('---'))) {
-          linhasRemovidas.push(l.substring(1).trim());
-        }
-        else if (l.startsWith('+ ') || (l.startsWith('+') && !l.startsWith('+++'))) {
-          linhasAdicionadas.push(l.substring(1).trim());
+          if (nome) nomeArq = nome.split('/').pop();
+        } else if (l.startsWith('@@ ')) {
+          const m = l.match(/@@ -(\d+)/);
+          if (m) linhaRef = parseInt(m[1]);  // bloco começa nesta linha (inclui contexto)
+        } else if (l.startsWith('-') && !l.startsWith('---')) {
+          itens.push({ tipo: 'rem', conteudo: l.slice(1) });
+        } else if (l.startsWith('+') && !l.startsWith('+++')) {
+          itens.push({ tipo: 'add', conteudo: l.slice(1) });
+        } else if (l.startsWith(' ')) {
+          itens.push({ tipo: 'ctx', conteudo: l.slice(1) });
         }
         i++;
       }
 
-      html += construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas);
+      html += construirDiffBlock(nomeArq, itens, linhaRef, true);
 
     } else {
       html += renderTexto(linha);
@@ -786,7 +786,44 @@ function renderSecao(texto) {
   return html;
 }
 
-function construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas) {
+// itens: [{ tipo: 'rem'|'add'|'ctx', conteudo: string }]
+// linhaRef: número da linha do 1º change (DIFF_START) ou início do bloco (```diff com @@)
+// linhaRefIsBlockStart: true quando linhaRef vem do @@  (já inclui linhas de contexto antes)
+function construirDiffBlock(nomeArquivo, itens, linhaRef, linhaRefIsBlockStart) {
+  // Calcula o número da 1ª linha exibida
+  let lineNo = null;
+  if (linhaRef !== null) {
+    if (linhaRefIsBlockStart) {
+      lineNo = linhaRef;
+    } else {
+      // linhaRef aponta pro 1º change; subtrai as ctx antes para chegar à 1ª linha da lista
+      const preCtx = itens.findIndex(it => it.tipo === 'rem' || it.tipo === 'add');
+      lineNo = preCtx >= 0 ? linhaRef - preCtx : linhaRef;
+    }
+  }
+
+  let lastRemNo = null;
+  const linhasHtml = itens.map(item => {
+    let num;
+    if (item.tipo === 'rem') {
+      num = lineNo;
+      lastRemNo = lineNo;
+      if (lineNo !== null) lineNo++;
+    } else if (item.tipo === 'add') {
+      num = lastRemNo !== null ? lastRemNo : lineNo;
+      // não avança lineNo — a linha adicionada ocupa a mesma posição da removida
+    } else {
+      num = lineNo;
+      lastRemNo = null;
+      if (lineNo !== null) lineNo++;
+    }
+
+    const cls  = item.tipo === 'rem' ? 'diff-rem' : item.tipo === 'add' ? 'diff-add' : 'diff-ctx';
+    const sign = item.tipo === 'rem' ? '−' : item.tipo === 'add' ? '+' : ' ';
+    const numStr = num !== null ? num : '';
+    return `<div class="${cls}"><span class="diff-linenum">${numStr}</span><span class="diff-sign">${sign}</span><span class="diff-content">${escapeHtml(item.conteudo)}</span></div>`;
+  }).join('');
+
   return `
     <div class="diff-block" data-view="light">
       <div class="diff-header">
@@ -800,14 +837,7 @@ function construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas) {
           <button class="btn-toggle-view" title="Alternar modo escuro">&lt;/&gt;</button>
         </div>
       </div>
-      <div class="diff-lines">
-        ${linhasRemovidas.map(l => `
-          <div class="diff-rem"><span class="diff-linenum"></span><span class="diff-sign">−</span><span class="diff-content">${escapeHtml(l)}</span></div>
-        `).join('')}
-        ${linhasAdicionadas.map(l => `
-          <div class="diff-add"><span class="diff-linenum"></span><span class="diff-sign">+</span><span class="diff-content">${escapeHtml(l)}</span></div>
-        `).join('')}
-      </div>
+      <div class="diff-lines">${linhasHtml}</div>
     </div>
   `;
 }
