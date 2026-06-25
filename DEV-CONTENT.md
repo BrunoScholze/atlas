@@ -40,10 +40,10 @@ C:\azure\atlas\
 ├── logs\
 │   └── agent.log              ← Log da execução mais recente (sobrescrito a cada análise)
 │
-├── CLAUDE.md                  ← Instruções do agente (quem é, template de output, regras)
-├── PROJETOS.md                ← Lista de projetos ativos com slug, nome, CLAUDE.md e status
-├── Funcionalidades.md         ← Mapa de funcionalidades → arquivos do repositório
-├── output.txt                 ← Saída mais recente do Claude (lida pelo plugin via polling)
+├── CLAUDE.md                        ← Instruções do agente (quem é, template de output, regras)
+├── PROJETOS.md                      ← Lista de projetos ativos com slug, nome, CLAUDE.md, Funcionalidades e status
+├── Funcionalidades-App-minha-prod.md ← Mapa de funcionalidades do APP Minha Prod
+├── output.txt                       ← Saída mais recente do Claude (lida pelo plugin via polling)
 ├── debug.txt                  ← Debug da última execução (prompt completo + parâmetros)
 └── DEV-CONTENT.md             ← Este arquivo
 ```
@@ -96,8 +96,8 @@ TEMP_PATH=C:\azure\atlas\temp
 ### Fluxo de análise (server/index.js)
 
 1. POST `/analisar` recebe os dados e o PDF (opcional)
-2. Lê `PROJETOS.md` → encontra o `CLAUDE.md` correto para o slug informado
-3. Lê `Funcionalidades.md` → filtra apenas as seções com tag `[slug]`
+2. Lê `PROJETOS.md` → encontra o `CLAUDE.md` e o arquivo `Funcionalidades` corretos para o slug
+3. Lê o arquivo de funcionalidades do projeto (ex: `Funcionalidades-App-minha-prod.md`) direto, sem filtro
 4. Monta o prompt em `montarPrompt()` e salva em `prompt_temp.txt`
 5. Executa `run-claude.ps1` via PowerShell com os argumentos de caminho
 6. Polling aguarda o PS1 terminar; lê `output.txt`
@@ -181,30 +181,37 @@ Nenhum `onclick`, `ondragover` ou outro handler inline no HTML. **Todos os event
 Nome: APP Minha Prod
 Descrição: Aplicativo mobile Ionic/Angular — Minha Totvs Prod
 CLAUDE: CLAUDE.md
+Funcionalidades: Funcionalidades-App-minha-prod.md
+Azure: https://dev.azure.com/totvstfs/Linha-Datasul-Mobile/_git/app-minha-producao
 Status: ativo
 ```
 
 - Cada `## slug` é um projeto
 - `CLAUDE:` aponta para o arquivo de instruções do agente para esse projeto
+- `Funcionalidades:` aponta para o arquivo de funcionalidades exclusivo do projeto
+- `Azure:` base URL do repositório no Azure DevOps (usada para gerar links de arquivos)
 - `Status: ativo` — só projetos ativos aparecem no dropdown
 
-### Funcionalidades.md
+### Arquivo de funcionalidades por projeto
 
-Cada seção `##` tem uma tag `[slug]` indicando a qual projeto pertence:
+Cada projeto tem seu próprio arquivo (ex: `Funcionalidades-App-minha-prod.md`).
+Não há mais tags `[slug]` nas seções — o arquivo já é exclusivo do projeto.
 
 ```markdown
-## Login [app-minha-prod]
-- Arquivo: src/app/login/login.page.html
-- Arquivo: src/app/login/login.page.ts
+## Login
+Descrição: Tela de autenticação do app.
+Arquivos suspeitos:
+- src\app\shared\pages\login\login.page.html
+- src\app\shared\pages\login\login.page.ts
 ```
 
-O servidor filtra automaticamente as seções pelo slug selecionado.
+O servidor lê o arquivo direto, sem filtro. O agente recebe apenas as funcionalidades do projeto selecionado.
 
 ### Adicionar novo projeto
 
-1. Adicionar bloco em `PROJETOS.md`
+1. Adicionar bloco em `PROJETOS.md` com `CLAUDE:`, `Funcionalidades:`, `Azure:` e `Status: ativo`
 2. Criar `CLAUDE-novo-projeto.md` (ou apontar para o mesmo CLAUDE.md)
-3. Adicionar seções tagadas em `Funcionalidades.md` com `[novo-slug]`
+3. Criar `Funcionalidades-Novo-Projeto.md` com as seções do projeto
 4. Reiniciar o servidor
 
 ---
@@ -250,7 +257,7 @@ O plugin converte isso num container visual com header (nome do arquivo), linhas
 | Dual-theme dark/light com toggle | popup.css + popup.js `toggleTheme()` |
 | Duas telas (seleção + formulário) | popup.html + popup.js `mostrarTela()` |
 | Multi-projeto via PROJETOS.md | server/index.js `parseProjetos()` + `/projetos` endpoint |
-| Filtro de funcionalidades por slug | server/index.js `filtrarFuncionalidades()` |
+| Arquivo de funcionalidades por projeto | PROJETOS.md campo `Funcionalidades:` + arquivo dedicado por projeto |
 | Diff sempre branco (GitHub light) | popup.css seção DIFF (cores hardcoded) |
 | Log de funcionalidades e arquivos | server/index.js após leitura do output.txt |
 | CSP-safe (sem inline handlers) | popup.html + popup.js `configurarEventos()` |

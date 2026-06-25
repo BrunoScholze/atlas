@@ -1,12 +1,12 @@
 // Servidor do Agente de Chamados — Atlas Code
 //
 // Arquitetura multi-projeto:
-//   PROJETOS.md  — lista projetos: slug, nome, CLAUDE.md e status
-//   Funcionalidades.md — cada ## heading tem tag [slug] indicando o projeto
+//   PROJETOS.md  — lista projetos: slug, nome, CLAUDE.md, Funcionalidades e status
+//   Cada projeto tem seu próprio arquivo de Funcionalidades (ex: Funcionalidades-App-minha-prod.md)
 //   POST /analisar recebe campo 'projeto' (slug) e:
 //     (a) lê o CLAUDE.md correto via campo CLAUDE: do PROJETOS.md
-//     (b) filtra Funcionalidades.md pelas entradas tagadas com [slug]
-//   Adicionar novo projeto = novo bloco em PROJETOS.md + entradas tagadas em Funcionalidades.md
+//     (b) lê o arquivo de Funcionalidades correto via campo Funcionalidades: do PROJETOS.md
+//   Adicionar novo projeto = novo bloco em PROJETOS.md + criar Funcionalidades-<projeto>.md
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
@@ -81,22 +81,11 @@ function parseProjetos(conteudo) {
       descricao: meta['descrição'] || meta.descricao || '',
       status: meta.status || 'ativo',
       claude: meta.claude || 'CLAUDE.md',
+      funcionalidades: meta.funcionalidades || 'Funcionalidades.md',
       azure: meta.azure || ''
     });
   }
   return projetos;
-}
-
-function filtrarFuncionalidades(conteudo, projetoSlug) {
-  if (!projetoSlug) return conteudo;
-  const tag = `[${projetoSlug}]`;
-  const partes = conteudo.split(/(?=\n## )/);
-  const preambulo = partes[0];
-  const secoes = partes.slice(1).filter(s => {
-    const primeiraLinha = s.split('\n').find(l => l.startsWith('## ')) || '';
-    return primeiraLinha.includes(tag);
-  });
-  return preambulo + secoes.join('');
 }
 
 // -------------------------------------------------------
@@ -353,16 +342,22 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
   log.sep();
 
   try {
-    // Lê arquivos de contexto — resolve projeto e filtra funcionalidades
+    // Lê arquivos de contexto — resolve projeto e carrega arquivos corretos
     const projetoSlug = body.projeto || '';
     let claudeFile = 'CLAUDE.md';
+    let funcFile   = 'Funcionalidades.md';
 
     if (projetoSlug) {
       try {
         const projetosMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
         const proj = parseProjetos(projetosMd).find(p => p.slug === projetoSlug);
-        if (proj) { claudeFile = proj.claude || 'CLAUDE.md'; log.info(`Projeto: ${projetoSlug} → ${claudeFile}`); }
-        else log.warn(`Projeto '${projetoSlug}' não encontrado em PROJETOS.md — usando CLAUDE.md padrão`);
+        if (proj) {
+          claudeFile = proj.claude           || 'CLAUDE.md';
+          funcFile   = proj.funcionalidades  || 'Funcionalidades.md';
+          log.info(`Projeto: ${projetoSlug} → CLAUDE: ${claudeFile} | Funcionalidades: ${funcFile}`);
+        } else {
+          log.warn(`Projeto '${projetoSlug}' não encontrado em PROJETOS.md — usando arquivos padrão`);
+        }
       } catch (e) { log.warn(`Não leu PROJETOS.md: ${e.message}`); }
     }
 
@@ -370,14 +365,9 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     const claudeMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, claudeFile), 'utf8');
     log.info(`${claudeFile}: ${claudeMd.length} chars`);
 
-    log.info('Lendo Funcionalidades.md...');
-    let funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'Funcionalidades.md'), 'utf8');
-    if (projetoSlug) {
-      funcionalidadesMd = filtrarFuncionalidades(funcionalidadesMd, projetoSlug);
-      log.info(`Funcionalidades.md filtrado para [${projetoSlug}]: ${funcionalidadesMd.length} chars`);
-    } else {
-      log.info(`Funcionalidades.md: ${funcionalidadesMd.length} chars (sem filtro)`);
-    }
+    log.info(`Lendo ${funcFile}...`);
+    const funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, funcFile), 'utf8');
+    log.info(`${funcFile}: ${funcionalidadesMd.length} chars`);
 
     // Monta prompt
     const dados = { ...body, pdfPath };
