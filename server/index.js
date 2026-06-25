@@ -15,6 +15,7 @@ const path = require('path');
 const multer = require('multer');
 const { exec } = require('child_process');
 const crypto = require('crypto');
+let pdfParse; try { pdfParse = require('pdf-parse'); } catch (e) { pdfParse = null; }
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,29 @@ function criarLogger(requestId, logPath) {
 
 function addLog(requestId, msg) {
   if (analises[requestId]) analises[requestId].logs.push(msg);
+}
+
+// Trunca texto mantendo o final (comentários/histórico recentes são mais relevantes)
+function truncar(texto, max) {
+  if (!texto || texto.length <= max) return texto || '';
+  return '[...trecho anterior omitido...]\n' + texto.slice(texto.length - max);
+}
+
+// Extrai texto de um PDF — retorna null se falhar ou pdf-parse não estiver disponível
+async function extrairTextoPDF(pdfPath) {
+  if (!pdfParse || !pdfPath) return null;
+  try {
+    const buffer = fs.readFileSync(pdfPath);
+    const data   = await pdfParse(buffer);
+    const texto  = (data.text || '').trim().replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
+    if (!texto) return null;
+    const MAX = 8000;
+    return texto.length > MAX
+      ? texto.slice(0, MAX) + '\n[...PDF truncado — primeiros 8.000 chars extraídos]'
+      : texto;
+  } catch (e) {
+    return null;
+  }
 }
 
 // -------------------------------------------------------
@@ -93,6 +117,53 @@ function parseProjetos(conteudo) {
 }
 
 // -------------------------------------------------------
+// Filtra funcionalidades relevantes para o chamado
+// -------------------------------------------------------
+function filtrarFuncionalidadesRelevantes(funcMd, ticket) {
+  const STOP = new Set(['de','do','da','dos','das','o','a','os','as','um','uma',
+    'em','no','na','nos','nas','por','para','com','que','se','ao','às','e','é',
+    'ou','não','mas','foi','ser','ter','como','mais','já','quando','então','isso',
+    'isso','pelo','pela','ele','ela','seu','sua','qual','este','esse','aqui']);
+
+  // Texto de busca: ticket completo em minúsculas
+  const textoTicket = [ticket.titulo, ticket.descricao, ticket.comentarios,
+    ticket.historico, ticket.observacao].filter(Boolean).join(' ').toLowerCase();
+
+  // Tokens relevantes do ticket (length > 3, sem stop words)
+  const tokens = [...new Set(
+    textoTicket.replace(/[^a-záàâãéêíóôõúç\s]/gi, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !STOP.has(w))
+  )];
+
+  // Separa o arquivo em cabeçalho + seções
+  const partes   = funcMd.split(/(?=\n## )/);
+  const cabecalho = partes[0];
+  const secoes    = partes.slice(1);
+
+  if (secoes.length === 0) return funcMd;
+
+  // Pontua cada seção pelo número de tokens do ticket que aparecem nela
+  const pontuadas = secoes.map(secao => {
+    const corpo = secao.toLowerCase();
+    const score = tokens.reduce((acc, t) => acc + (corpo.includes(t) ? 1 : 0), 0);
+    return { secao, score };
+  });
+
+  // Ordena por score, pega as 3 mais relevantes com score > 0
+  const relevantes = pontuadas
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(s => s.secao);
+
+  // Fallback: se nenhuma pontuou, devolve o arquivo completo
+  if (relevantes.length === 0) return funcMd;
+
+  return cabecalho + relevantes.join('');
+}
+
+// -------------------------------------------------------
 // Monta o prompt completo
 // -------------------------------------------------------
 function montarPrompt(dados, claudeMd, funcionalidadesMd) {
@@ -105,16 +176,18 @@ ${funcionalidadesMd}
 ---
 TICKET_ID      : ${dados.ticketId || ''}
 TITULO         : ${dados.titulo || ''}
-DESCRICAO      : ${dados.descricao || ''}
+DESCRICAO      : ${truncar(dados.descricao, 2000) || ''}
 PRIORIDADE     : ${dados.prioridade || ''}
 TIPO           : ${dados.tipo || ''}
 RESPONSAVEL    : ${dados.responsavel || ''}
-COMENTARIOS    : ${dados.comentarios || ''}
-HISTORICO      : ${dados.historico || ''}
+COMENTARIOS    : ${truncar(dados.comentarios, 3000) || ''}
+HISTORICO      : ${truncar(dados.historico, 1500) || ''}
 PROJETO        : ${dados.projeto || ''}
 FUNCIONALIDADES:
-OBSERVACAO     : ${dados.observacao || 'Nenhuma observação adicional'}
-ANEXO          : ${dados.pdfPath || ''}
+OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}
+ANEXO          : ${dados.pdfTexto
+  ? '[CONTEÚDO EXTRAÍDO DO PDF]\n' + dados.pdfTexto
+  : (dados.pdfPath || 'Nenhum PDF')}
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:
@@ -375,19 +448,43 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
     log.info(`Lendo ${funcFile}...`);
     addLog(requestId, `Carregando mapa de funcionalidades (${funcFile})...`);
-    const funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, funcFile), 'utf8');
-    log.info(`${funcFile}: ${funcionalidadesMd.length} chars`);
-    const nFunc = (funcionalidadesMd.match(/^## /gm) || []).length;
-    addLog(requestId, `${nFunc} funcionalidades disponíveis para análise`);
+    const funcionalidadesMdCompleto = fs.readFileSync(path.join(process.env.CONTEXT_PATH, funcFile), 'utf8');
+    log.info(`${funcFile}: ${funcionalidadesMdCompleto.length} chars`);
+    const nFuncTotal = (funcionalidadesMdCompleto.match(/^## /gm) || []).length;
+
+    // Filtra apenas as funcionalidades relevantes para o chamado
+    const funcionalidadesMd = filtrarFuncionalidadesRelevantes(funcionalidadesMdCompleto, body);
+    const nFuncFiltrado = (funcionalidadesMd.match(/^## /gm) || []).length;
+
+    if (nFuncFiltrado < nFuncTotal) {
+      log.info(`Funcionalidades filtradas: ${nFuncFiltrado}/${nFuncTotal} selecionadas por relevância`);
+      addLog(requestId, `${nFuncFiltrado} de ${nFuncTotal} funcionalidades selecionadas por relevância`);
+    } else {
+      log.info(`Funcionalidades: ${nFuncTotal} (sem filtro aplicado — baixa correspondência)`);
+      addLog(requestId, `${nFuncTotal} funcionalidades carregadas (correspondência ampla)`);
+    }
+
+    // Extrai texto do PDF antes de montar o prompt
+    const dados = { ...body, pdfPath };
+    if (pdfPath) {
+      addLog(requestId, 'Extraindo texto do PDF...');
+      const pdfTexto = await extrairTextoPDF(pdfPath);
+      if (pdfTexto) {
+        dados.pdfTexto = pdfTexto;
+        log.info(`PDF extraído: ${pdfTexto.length} chars`);
+        addLog(requestId, `PDF extraído — ${pdfTexto.length.toLocaleString('pt-BR')} chars de texto`);
+      } else {
+        log.warn('Extração do PDF falhou — agente vai ler o arquivo diretamente');
+        addLog(requestId, 'PDF disponível para leitura direta pelo agente');
+      }
+    }
 
     // Monta prompt
-    const dados = { ...body, pdfPath };
     log.info('Montando prompt...');
     addLog(requestId, 'Montando contexto completo do chamado...');
     const prompt = montarPrompt(dados, claudeMd, funcionalidadesMd);
     log.info(`Prompt montado: ${prompt.length} chars`);
     addLog(requestId, `Contexto pronto — ${prompt.length.toLocaleString('pt-BR')} chars`);
-    if (pdfPath) addLog(requestId, 'PDF anexado — agente vai ler o documento completo');
 
     // Grava debug.txt com todos os parâmetros e prompt desta execução
     const debugPath = path.join(process.env.CONTEXT_PATH, 'debug.txt');

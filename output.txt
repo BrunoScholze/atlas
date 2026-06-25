@@ -1,0 +1,135 @@
+﻿Tenho tudo que preciso. O campo `_report.reportedHours` (linha 83 do HTML, `ngModel`) nunca é inicializado em `initReport()`. Vou rastrear o caminho completo e escrever o output.
+
+========================================
+AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+========================================
+
+TICKET   : DMANUFATURA-21274 — Facilitar adicionar ggf em apontamento de ordem
+DATA     : 2026-06-25
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- Editar MOB/GGF (ligado ao Apontamento) — motivo: o ticket descreve exatamente o botão "Editar MOB/GGF" presente na tela datasul-report-v2 que leva à lista de reportes GGF/MOB
+- Apontamento de ordem de produção (fluxo completo) — motivo: as horas de início e fim da produção (`startTime`/`endTime`) que devem pré-preencher o campo estão armazenadas em `datasul-report-v2.page.ts`
+- Reporte de GGF/MOB (Overhead Labor Report) — motivo: o campo "horas reportadas" que precisa ser pré-preenchido pertence a `overhead-labor-create.component.ts`
+
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo: `overhead-labor-create.component.ts`, linha 175
+O método `initReport()` inicializa o objeto `_report` com dados da ordem mas nunca atribui valor a `_report.reportedHours`, deixando o campo em branco na tela de adicionar GGF.
+
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+O `datasul-report-v2.page.ts` possui `startTime` e `endTime` (formato "HH:MM") mas não os repassa à navegação para a lista MOB/GGF. Sem essa informação na cadeia de navegação, o `overhead-labor-create` não tem como calcular o intervalo para pré-preencher o campo.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Calcular o intervalo em `goToOverheadLaborReportPage()`, propagar via state pela cadeia de navegação e atribuir em `initReport()`.
+
+```diff
+--- a/src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts
++++ b/src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts
+@@ -1020,6 +1020,14 @@
+     goToOverheadLaborReportPage() {
+         if (this.isSFC) {
+             this.getSfcParametersForDefaultOverheadLabor();
+         }
+ 
++        let defaultReportedHours: number = 1 / 60;
++        if (this.startTime && this.endTime) {
++            const [startH, startM] = this.startTime.split(':').map(Number);
++            const [endH, endM] = this.endTime.split(':').map(Number);
++            const diff = (endH * 60 + endM - startH * 60 - startM) / 60;
++            defaultReportedHours = diff > 0 ? diff : 1 / 60;
++        }
++
+         this.router.navigate([`overhead-labor-report/datasul/list/${this.productionNumber}`], {
+             state: {
+                 fromMenu: false,
+                 //overheadReports: this.overheadReports,
+                 //laborReports: this.laborReports,
+                 overheadLaborSFCParameters: this.isSFC ? this.overheadLaborSFCParameters : undefined,
+                 ttFormularioOrdem: this.ttFormularioOrdem,
+                 operationCode: this.isSFC ? this.selectedSplit.split('/')[0] : 0,
++                defaultReportedHours: defaultReportedHours,
+             },
+         });
+     }
+```
+
+```diff
+--- a/src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts
++++ b/src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts
+@@ -54,6 +54,7 @@
+     public ttFormularioOrdem: OrderFormParameters = new OrderFormParameters();
+     public overheadSubscription: Subscription;
+     public laborSubscription: Subscription;
++    public defaultReportedHours: number = 0;
+ 
+@@ -139,6 +139,8 @@
+             if (extras.operationCode !== undefined) this.operationCode = extras.operationCode;
+ 
+             if (extras.ttFormularioOrdem !== undefined) this.ttFormularioOrdem = extras.ttFormularioOrdem;
++
++            if (extras.defaultReportedHours !== undefined) this.defaultReportedHours = extras.defaultReportedHours;
+         }
+ 
+@@ -502,6 +502,7 @@
+                 fromMenu: this.fromMenu,
+                 operationCode: this.operationCode,
+                 routingCode: this.routingCode ? this.routingCode : "",
++                defaultReportedHours: this.defaultReportedHours,
+             },
+         });
+     }
+```
+
+```diff
+--- a/src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts
++++ b/src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts
+@@ -60,6 +60,7 @@
+     public overheadSubscription: Subscription;
+     public laborSubscription: Subscription;
+     public path: string = ''
++    private defaultReportedHours: number = 0;
+ 
+@@ -119,6 +119,9 @@
+                     if (nav.routingCode !== undefined && nav.routingCode !== '') {
+                         this._report.routingCode = nav.routingCode;
+                     }
++
++                    if (nav.defaultReportedHours !== undefined && nav.defaultReportedHours > 0)
++                        this.defaultReportedHours = nav.defaultReportedHours;
+                 }
+             }
+ 
+@@ -175,6 +175,9 @@
+     initReport(): void {
+         this._report.productionOrderNumber = this.productionOrder.productionOrderNumber;
+         this._report.laborItemCode = this.productionOrder.itemCode;
+         this._report.referenceCode = this.productionOrder.referenceCode;
+         this._report.transactionDate = new Date().toISOString().split('T')[0];
++        if (this.defaultReportedHours > 0)
++            this._report.reportedHours = this.defaultReportedHours;
+     }
+```
+
+O cálculo em `goToOverheadLaborReportPage()` transforma `startTime`/`endTime` (formato "HH:MM") em horas decimais — o mesmo formato que `calculateReportedTime()` já usa. O valor percorre a cadeia de navegação até `initReport()`, onde é atribuído a `_report.reportedHours` antes de renderizar a tela de adicionar GGF; se o intervalo for zero (mesmo minuto), aplica o mínimo de `1/60` (1 minuto).
+
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+Prioritários:
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts
+- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts
+- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts
+- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.html
+
+Contexto:
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+
+========================================

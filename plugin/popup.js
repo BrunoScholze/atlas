@@ -376,6 +376,13 @@ const TERMINAL_SCRIPT = [
   { delay: 96000, msg: 'Cruzando evidências com o comportamento relatado...' },
   { delay: 110000, msg: 'Formulando diagnóstico...' },
   { delay: 124000, msg: 'Redigindo correção e diff de código...' },
+  { delay: 140000, msg: 'Validando o diff contra o código original...' },
+  { delay: 155000, msg: 'Revisando localização exata do problema...' },
+  { delay: 170000, msg: 'Conferindo arquivos analisados e cobertura...' },
+  { delay: 185000, msg: 'Finalizando output estruturado...' },
+  { delay: 200000, msg: 'Quase lá — aguardando resposta do agente...' },
+  { delay: 220000, msg: 'Análise extensa em andamento — ainda processando...' },
+  { delay: 245000, msg: 'Aguardando conclusão...' },
 ];
 
 function limparTerminal() {
@@ -724,6 +731,8 @@ function renderSecao(texto) {
 
   while (i < linhas.length) {
     const linha = linhas[i];
+
+    // Formato primário: DIFF_START arquivo: path
     if (linha.trim().startsWith('DIFF_START')) {
       const arquivoMatch = linha.match(/arquivo:\s*(.+)/i);
       const nomeArquivo  = arquivoMatch
@@ -741,35 +750,66 @@ function renderSecao(texto) {
         i++;
       }
 
-      html += `
-        <div class="diff-block" data-view="light">
-          <div class="diff-header">
-            <span class="diff-file-icon">▣</span>
-            <span class="diff-filename">${nomeArquivo}</span>
-            <div class="diff-header-right">
-              <span class="diff-legend">
-                <span class="leg-rem">- removido</span>
-                <span class="leg-add">+ adicionado</span>
-              </span>
-              <button class="btn-toggle-view" title="Alternar modo escuro">&lt;/&gt;</button>
-            </div>
-          </div>
-          <div class="diff-lines">
-            ${linhasRemovidas.map(l => `
-              <div class="diff-rem"><span class="diff-linenum"></span><span class="diff-sign">−</span><span class="diff-content">${escapeHtml(l)}</span></div>
-            `).join('')}
-            ${linhasAdicionadas.map(l => `
-              <div class="diff-add"><span class="diff-linenum"></span><span class="diff-sign">+</span><span class="diff-content">${escapeHtml(l)}</span></div>
-            `).join('')}
-          </div>
-        </div>
-      `;
+      html += construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas);
+
+    // Formato fallback: ```diff ... ``` (markdown padrão)
+    } else if (linha.trim() === '```diff') {
+      const linhasRemovidas   = [];
+      const linhasAdicionadas = [];
+      let nomeArquivo = 'arquivo';
+      i++;
+
+      while (i < linhas.length && linhas[i].trim() !== '```') {
+        const l = linhas[i];
+        // Extrai nome do arquivo da linha "--- a/path/to/file.ext"
+        if (l.startsWith('--- ') && !l.startsWith('--- /dev/null')) {
+          const nome = l.replace(/^---\s+(a\/)?/, '').trim();
+          if (nome) nomeArquivo = nome.split('/').pop();
+        }
+        // Ignora cabeçalhos: +++ , @@, e linhas de contexto (espaço)
+        else if (l.startsWith('- ') || (l.startsWith('-') && !l.startsWith('---'))) {
+          linhasRemovidas.push(l.substring(1).trim());
+        }
+        else if (l.startsWith('+ ') || (l.startsWith('+') && !l.startsWith('+++'))) {
+          linhasAdicionadas.push(l.substring(1).trim());
+        }
+        i++;
+      }
+
+      html += construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas);
+
     } else {
       html += renderTexto(linha);
     }
     i++;
   }
   return html;
+}
+
+function construirDiffBlock(nomeArquivo, linhasRemovidas, linhasAdicionadas) {
+  return `
+    <div class="diff-block" data-view="light">
+      <div class="diff-header">
+        <span class="diff-file-icon">▣</span>
+        <span class="diff-filename">${escapeHtml(nomeArquivo)}</span>
+        <div class="diff-header-right">
+          <span class="diff-legend">
+            <span class="leg-rem">- removido</span>
+            <span class="leg-add">+ adicionado</span>
+          </span>
+          <button class="btn-toggle-view" title="Alternar modo escuro">&lt;/&gt;</button>
+        </div>
+      </div>
+      <div class="diff-lines">
+        ${linhasRemovidas.map(l => `
+          <div class="diff-rem"><span class="diff-linenum"></span><span class="diff-sign">−</span><span class="diff-content">${escapeHtml(l)}</span></div>
+        `).join('')}
+        ${linhasAdicionadas.map(l => `
+          <div class="diff-add"><span class="diff-linenum"></span><span class="diff-sign">+</span><span class="diff-content">${escapeHtml(l)}</span></div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function escapeHtml(str) {

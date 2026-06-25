@@ -325,6 +325,11 @@ body {
   position: relative;
 }
 
+.terminal::-webkit-scrollbar        { width: 4px; }
+.terminal::-webkit-scrollbar-track  { background: transparent; }
+.terminal::-webkit-scrollbar-thumb  { background: #333; border-radius: 2px; }
+.terminal::-webkit-scrollbar-thumb:hover { background: #444; }
+
 .terminal-lines { display: flex; flex-direction: column; gap: 5px; }
 
 .terminal-line {
