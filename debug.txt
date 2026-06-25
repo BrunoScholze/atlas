@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 6b460de7-baad-434d-9ab4-e46c1c902cfe
-Data/Hora : 25/06/2026, 13:54:33
+RequestId : 0fccd44f-e1d2-4f1e-a565-f1509afb8748
+Data/Hora : 25/06/2026, 14:07:53
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -19,7 +19,7 @@ tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: (vazio)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782406473779.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782407273757.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -483,7 +483,7 @@ HISTORICO      :
 PROJETO        : app-minha-prod
 FUNCIONALIDADES:
 OBSERVACAO     : Nenhuma observação adicional
-ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782406473779.pdf
+ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782407273757.pdf
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:

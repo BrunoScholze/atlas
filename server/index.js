@@ -480,7 +480,8 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       const duracao = ((Date.now() - execInicio) / 1000).toFixed(1);
       log.sep();
       log.info(`PowerShell finalizado. Duração: ${duracao}s`);
-      addLog(requestId, `Análise concluída — ${duracao}s — processando resultado...`);
+      const promptTokens = Math.round(prompt.length / 4);
+      addLog(requestId, `Análise concluída em ${duracao}s`);
 
       if (stderr && stderr.trim()) log.warn(`stderr: ${stderr.trim()}`);
 
@@ -511,6 +512,13 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         log.info(`output.txt lido: ${analise.length} chars`);
       } catch (e) {
         log.error(`Erro ao ler output.txt: ${e.message}`);
+      }
+
+      if (analise && analise.trim()) {
+        const outputTokens = Math.round(analise.length / 4);
+        const totalTokens  = promptTokens + outputTokens;
+        log.info(`Tokens estimados — entrada: ~${promptTokens} | saída: ~${outputTokens} | total: ~${totalTokens}`);
+        addLog(requestId, `Tokens estimados — entrada: ~${promptTokens.toLocaleString('pt-BR')} | saída: ~${outputTokens.toLocaleString('pt-BR')} | total: ~${totalTokens.toLocaleString('pt-BR')}`);
       }
 
       if (!analise.trim()) {

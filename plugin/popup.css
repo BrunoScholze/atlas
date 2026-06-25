@@ -180,18 +180,24 @@ body {
   transition: background .25s, border-color .25s;
 }
 .issue-strip::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
   background: var(--border2); border-radius: 8px 0 0 8px;
+  transition: background .3s;
 }
+.issue-strip.ok   { border-color: #22c55e; }
+.issue-strip.ok::before   { background: #22c55e; }
+.issue-strip.erro { border-color: #ef4444; }
+.issue-strip.erro::before { background: #ef4444; }
+
 .issue-id    { font-size: 11px; font-weight: 600; color: var(--text); letter-spacing: .05em; white-space: nowrap; }
 .issue-vsep  { width: 1px; height: 12px; background: var(--text); opacity: .25; flex-shrink: 0; }
 .issue-title { font-size: 12px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .25s; opacity: .75; }
 .issue-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text); letter-spacing: .04em; white-space: nowrap; flex-shrink: 0; opacity: .6; }
 .issue-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--text); }
 
-.jira-status { font-size: 11px; color: var(--text); opacity: .6; margin-bottom: 12px; min-height: 16px; }
-.jira-status.ok   { opacity: .75; }
-.jira-status.erro { opacity: .5; }
+.jira-status { font-size: 11px; margin-bottom: 12px; min-height: 16px; font-weight: 500; }
+.jira-status.ok   { color: #22c55e; }
+.jira-status.erro { color: #ef4444; }
 
 /* Drop zone */
 .drop-zone {
@@ -285,23 +291,23 @@ body {
   transition: background .25s;
 }
 
-/* Cabeçalho: spinner + título + timer */
-.loading-header {
-  display: flex; align-items: center; justify-content: space-between;
-}
+/* Cabeçalho: spinner + título + timer inline */
+.loading-header { display: flex; align-items: center; }
 .loading-title-row {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 9px;
 }
 .spinner-sm {
-  width: 16px; height: 16px; flex-shrink: 0;
+  width: 15px; height: 15px; flex-shrink: 0;
   border: 2px solid var(--border); border-top-color: var(--text);
   border-radius: 50%; animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text  { font-size: 13px; font-weight: 600; color: var(--text); }
 .loading-timer {
-  font-size: 13px; font-weight: 600; color: var(--muted2);
+  font-size: 12px; font-weight: 500; color: var(--muted2);
   font-variant-numeric: tabular-nums; font-family: 'Consolas', monospace;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
 }
 
 /* Terminal */

@@ -92,17 +92,20 @@ async function carregarDadosTicket() {
     const dados = await chrome.tabs.sendMessage(tab.id, { action: 'getDadosTicket' });
     if (dados && dados.ticketId) {
       state.dadosTicket = dados;
-      document.getElementById('ticketId').textContent    = dados.ticketId;
+      document.getElementById('ticketId').textContent     = dados.ticketId;
       document.getElementById('ticketTitulo').textContent = dados.titulo || '(sem título)';
-      statusEl.textContent  = '✓ Dados carregados do Jira';
-      statusEl.className    = 'jira-status ok';
+      statusEl.textContent = '✓ Dados carregados do Jira';
+      statusEl.className   = 'jira-status ok';
+      document.getElementById('issueStrip').classList.add('ok');
     } else {
-      statusEl.textContent = 'Não foi possível carregar os dados do ticket.';
+      statusEl.textContent = '✕ Não foi possível carregar os dados do ticket';
       statusEl.className   = 'jira-status erro';
+      document.getElementById('issueStrip').classList.add('erro');
     }
   } catch {
-    statusEl.textContent = 'Não foi possível carregar os dados do ticket.';
+    statusEl.textContent = '✕ Não foi possível carregar os dados do ticket';
     statusEl.className   = 'jira-status erro';
+    document.getElementById('issueStrip').classList.add('erro');
   }
 }
 
@@ -337,11 +340,11 @@ async function analisar() {
 
 // ============================================================ POLLING
 
-function iniciarPolling(requestId, inicio) {
+function iniciarPolling(requestId, inicio, isRestore = false) {
   currentRequestId = requestId;
   pararPolling();
   mostrarTela('loading');
-  iniciarTerminal();
+  iniciarTerminal(inicio, isRestore);
   atualizarTimer(inicio);
 
   timerInterval   = setInterval(() => atualizarTimer(inicio), 1000);
@@ -383,15 +386,33 @@ function limparTerminal() {
   if (lines) lines.innerHTML = '';
 }
 
-function iniciarTerminal() {
+async function iniciarTerminal(inicio, isRestore) {
   limparTerminal();
-  TERMINAL_SCRIPT.forEach(({ delay, msg }) => {
-    const t = setTimeout(() => addTerminalLine(msg), delay);
-    terminalTimers.push(t);
-  });
+
+  if (isRestore) {
+    // Restaura linhas já exibidas antes de fechar
+    const stored = await chrome.storage.local.get('terminalLog');
+    const salvas = stored.terminalLog || [];
+    salvas.forEach(msg => addTerminalLine(msg, false));
+
+    // Agenda apenas as mensagens do script que ainda não apareceram
+    const elapsed = Date.now() - inicio;
+    TERMINAL_SCRIPT.forEach(({ delay, msg }) => {
+      if (delay > elapsed) {
+        const t = setTimeout(() => addTerminalLine(msg), delay - elapsed);
+        terminalTimers.push(t);
+      }
+    });
+  } else {
+    await chrome.storage.local.remove('terminalLog');
+    TERMINAL_SCRIPT.forEach(({ delay, msg }) => {
+      const t = setTimeout(() => addTerminalLine(msg), delay);
+      terminalTimers.push(t);
+    });
+  }
 }
 
-function addTerminalLine(msg) {
+function addTerminalLine(msg, save = true) {
   const container = document.getElementById('terminalLines');
   if (!container) return;
 
@@ -410,6 +431,14 @@ function addTerminalLine(msg) {
   line.appendChild(text);
   container.appendChild(line);
 
+  if (save) {
+    chrome.storage.local.get('terminalLog').then(s => {
+      const log = s.terminalLog || [];
+      log.push(msg);
+      chrome.storage.local.set({ terminalLog: log });
+    });
+  }
+
   const terminal = document.getElementById('terminal');
   if (terminal) terminal.scrollTop = terminal.scrollHeight;
 }
@@ -422,6 +451,12 @@ function appendTerminalLogs(logs) {
   novos.forEach(msg => addTerminalLine(msg));
 }
 
+function extrairLinhasTerminal(analise, nomeSecao) {
+  const re = new RegExp(`-{10,}\\s*\\r?\\n\\s*${nomeSecao}\\s*\\r?\\n-{10,}\\r?\\n([\\s\\S]*?)(?=\\n-{10,}|\\n={8,}|$)`, 'i');
+  const m = analise.match(re);
+  return m ? m[1].trim().split('\n').map(l => l.trim()).filter(Boolean) : [];
+}
+
 async function consultarStatus(requestId, inicio) {
   try {
     const res  = await fetch(`${SERVER_URL}/analisar/status/${requestId}`);
@@ -432,7 +467,25 @@ async function consultarStatus(requestId, inicio) {
 
     if (json.status === 'done') {
       pararPolling();
-      await chrome.storage.local.remove(['requestId', 'inicio']);
+
+      // Revela funcionalidades detectadas e arquivos no terminal
+      const funcs = extrairLinhasTerminal(json.analise, 'FUNCIONALIDADES IDENTIFICADAS');
+      if (funcs.length) {
+        addTerminalLine('Funcionalidades identificadas:');
+        funcs.forEach(l => addTerminalLine('  ' + l));
+      }
+      const arquivos = extrairLinhasTerminal(json.analise, 'ARQUIVOS ANALISADOS');
+      const totalArqs = arquivos.filter(l => l.startsWith('-')).length;
+      if (totalArqs) addTerminalLine(`Arquivos analisados: ${totalArqs} arquivo(s)`);
+
+      // Tokens (estimativa pelo tamanho do output)
+      const outChars = json.analise ? json.analise.length : 0;
+      if (outChars > 0) addTerminalLine(`Tokens saída estimados: ~${Math.round(outChars / 4).toLocaleString('pt-BR')}`);
+
+      addTerminalLine('Carregando resultado...');
+      await new Promise(r => setTimeout(r, 700));
+
+      await chrome.storage.local.remove(['requestId', 'inicio', 'terminalLog']);
       await chrome.storage.local.set({ resultado: json.analise });
       renderizarResultado(json.analise);
       mostrarTela('resultado');
@@ -484,7 +537,7 @@ async function verificarAnaliseEmAndamento() {
     await chrome.storage.local.remove(['requestId', 'inicio']);
     return false;
   }
-  iniciarPolling(requestId, inicio);
+  iniciarPolling(requestId, inicio, true);
   return true;
 }
 
@@ -785,7 +838,7 @@ function mostrarErro(mensagem) {
 
 async function resetarFormulario() {
   pararPolling();
-  chrome.storage.local.remove(['requestId', 'inicio', 'resultado']);
+  chrome.storage.local.remove(['requestId', 'inicio', 'resultado', 'terminalLog']);
   try { await fetch(`${SERVER_URL}/limpar`, { method: 'POST' }); } catch {}
 
   state.pdfFile = null;

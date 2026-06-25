@@ -55,7 +55,7 @@
       </div>
 
       <!-- Ticket strip -->
-      <div class="issue-strip">
+      <div class="issue-strip" id="issueStrip">
         <span class="issue-id" id="ticketId">—</span>
         <div class="issue-vsep"></div>
         <span class="issue-title" id="ticketTitulo">Carregando dados do Jira...</span>
@@ -132,8 +132,8 @@
       <div class="loading-title-row">
         <div class="spinner-sm"></div>
         <span class="loading-text">Agente analisando o chamado</span>
+        <span class="loading-timer" id="loadingTimer">0s</span>
       </div>
-      <span class="loading-timer" id="loadingTimer">0s</span>
     </div>
 
     <div class="terminal" id="terminal">
