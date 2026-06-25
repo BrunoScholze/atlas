@@ -45,6 +45,10 @@ function criarLogger(requestId, logPath) {
   };
 }
 
+function addLog(requestId, msg) {
+  if (analises[requestId]) analises[requestId].logs.push(msg);
+}
+
 // -------------------------------------------------------
 // Configuração do multer
 // -------------------------------------------------------
@@ -276,7 +280,7 @@ app.post('/analisar', upload.single('pdf'), (req, res) => {
   const logFile = path.join(logsDir, 'agent.log');
   fs.writeFileSync(logFile, '', 'utf8');
 
-  analises[requestId] = { status: 'running', inicio, ticketId, logPath: logFile };
+  analises[requestId] = { status: 'running', inicio, ticketId, logPath: logFile, logs: [] };
 
   res.json({ sucesso: true, requestId });
   executarAnalise(requestId, req.body, pdfPath, inicio, logFile);
@@ -355,25 +359,35 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
           claudeFile = proj.claude           || 'CLAUDE.md';
           funcFile   = proj.funcionalidades  || 'Funcionalidades.md';
           log.info(`Projeto: ${projetoSlug} → CLAUDE: ${claudeFile} | Funcionalidades: ${funcFile}`);
+          addLog(requestId, `Projeto identificado: ${proj.nome}`);
         } else {
           log.warn(`Projeto '${projetoSlug}' não encontrado em PROJETOS.md — usando arquivos padrão`);
+          addLog(requestId, 'Projeto não identificado — usando configuração padrão');
         }
       } catch (e) { log.warn(`Não leu PROJETOS.md: ${e.message}`); }
     }
 
     log.info(`Lendo ${claudeFile}...`);
+    addLog(requestId, `Carregando instruções do agente (${claudeFile})...`);
     const claudeMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, claudeFile), 'utf8');
     log.info(`${claudeFile}: ${claudeMd.length} chars`);
+    addLog(requestId, `Instruções carregadas — ${claudeMd.length.toLocaleString('pt-BR')} chars`);
 
     log.info(`Lendo ${funcFile}...`);
+    addLog(requestId, `Carregando mapa de funcionalidades (${funcFile})...`);
     const funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, funcFile), 'utf8');
     log.info(`${funcFile}: ${funcionalidadesMd.length} chars`);
+    const nFunc = (funcionalidadesMd.match(/^## /gm) || []).length;
+    addLog(requestId, `${nFunc} funcionalidades disponíveis para análise`);
 
     // Monta prompt
     const dados = { ...body, pdfPath };
     log.info('Montando prompt...');
+    addLog(requestId, 'Montando contexto completo do chamado...');
     const prompt = montarPrompt(dados, claudeMd, funcionalidadesMd);
     log.info(`Prompt montado: ${prompt.length} chars`);
+    addLog(requestId, `Contexto pronto — ${prompt.length.toLocaleString('pt-BR')} chars`);
+    if (pdfPath) addLog(requestId, 'PDF anexado — agente vai ler o documento completo');
 
     // Grava debug.txt com todos os parâmetros e prompt desta execução
     const debugPath = path.join(process.env.CONTEXT_PATH, 'debug.txt');
@@ -434,10 +448,39 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     log.debug(`Comando: ${comando}`);
     const execInicio = Date.now();
 
+    addLog(requestId, '→ Agente Claude Code inicializado');
+
+    // Mensagens de atividade enquanto o agente trabalha (a cada ~10s)
+    const mensagensAtividade = [
+      'Lendo o chamado e interpretando o PDF...',
+      'Identificando funcionalidades relacionadas ao problema...',
+      'Mapeando arquivos suspeitos no repositório...',
+      'Navegando pelos arquivos do código-fonte...',
+      'Analisando o template HTML...',
+      'Inspecionando o componente TypeScript...',
+      'Rastreando sub-componentes e dependências...',
+      'Verificando o fluxo de dados entre camadas...',
+      'Cruzando evidências com o comportamento relatado...',
+      'Consultando backend Progress OpenEdge...',
+      'Formulando diagnóstico...',
+      'Redigindo correção e diff de código...',
+    ];
+    let msgIdx = 0;
+    const actInterval = setInterval(() => {
+      if (analises[requestId] && analises[requestId].status === 'running') {
+        const msg = msgIdx < mensagensAtividade.length
+          ? mensagensAtividade[msgIdx++]
+          : `Processando... ${Math.floor((Date.now() - execInicio) / 1000)}s`;
+        addLog(requestId, msg);
+      }
+    }, 10000);
+
     const childProcess = exec(comando, { timeout: 0, env }, (err, stdout, stderr) => {
+      clearInterval(actInterval);
       const duracao = ((Date.now() - execInicio) / 1000).toFixed(1);
       log.sep();
       log.info(`PowerShell finalizado. Duração: ${duracao}s`);
+      addLog(requestId, `Análise concluída — ${duracao}s — processando resultado...`);
 
       if (stderr && stderr.trim()) log.warn(`stderr: ${stderr.trim()}`);
 

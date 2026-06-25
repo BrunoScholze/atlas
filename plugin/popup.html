@@ -127,12 +127,25 @@
 
   <!-- ============================================================ TELA LOADING -->
   <div id="telaLoading" style="display:none" class="loading-screen">
-    <div class="spinner"></div>
-    <p class="loading-text">Analisando...</p>
-    <p class="loading-etapa" id="loadingEtapa">Iniciando...</p>
-    <p class="loading-timer" id="loadingTimer">0s</p>
-    <p class="loading-hint">Pode fechar e reabrir o plugin sem perder o progresso.</p>
-    <button id="btnCancelar" class="btn btn-cancelar">Cancelar</button>
+
+    <div class="loading-header">
+      <div class="loading-title-row">
+        <div class="spinner-sm"></div>
+        <span class="loading-text">Agente analisando o chamado</span>
+      </div>
+      <span class="loading-timer" id="loadingTimer">0s</span>
+    </div>
+
+    <div class="terminal" id="terminal">
+      <div class="terminal-lines" id="terminalLines"></div>
+      <span class="terminal-cursor" id="terminalCursor">▋</span>
+    </div>
+
+    <div class="loading-footer">
+      <span class="loading-hint">Pode fechar e reabrir sem perder o progresso.</span>
+      <button id="btnCancelar" class="btn btn-cancelar">Cancelar</button>
+    </div>
+
   </div>
 
   <!-- ============================================================ TELA RESULTADO -->

@@ -17,9 +17,11 @@ const state = {
   projetoAzure: null
 };
 
-let pollingInterval = null;
-let timerInterval   = null;
+let pollingInterval  = null;
+let timerInterval    = null;
 let currentRequestId = null;
+let terminalOffset   = 0;
+let terminalTimers   = [];
 let isDark = true;
 
 // ============================================================ INIT
@@ -339,24 +341,95 @@ function iniciarPolling(requestId, inicio) {
   currentRequestId = requestId;
   pararPolling();
   mostrarTela('loading');
+  iniciarTerminal();
   atualizarTimer(inicio);
 
-  timerInterval    = setInterval(() => atualizarTimer(inicio), 1000);
-  pollingInterval  = setInterval(() => consultarStatus(requestId, inicio), 5000);
-  setTimeout(() => consultarStatus(requestId, inicio), 5000);
+  timerInterval   = setInterval(() => atualizarTimer(inicio), 1000);
+  pollingInterval = setInterval(() => consultarStatus(requestId, inicio), 5000);
+  setTimeout(() => consultarStatus(requestId, inicio), 2000);
 }
 
 function atualizarTimer(inicio) {
   const segundos = Math.floor((Date.now() - inicio) / 1000);
   document.getElementById('loadingTimer').textContent = segundos + 's';
-  const etapa = ETAPAS.find(e => segundos <= e.ate) || ETAPAS[ETAPAS.length - 1];
-  document.getElementById('loadingEtapa').textContent = etapa.texto;
+}
+
+// Mensagens que o terminal exibe em sequência, com delay em ms
+const TERMINAL_SCRIPT = [
+  { delay: 200,   msg: 'Iniciando agente Claude Code...' },
+  { delay: 1200,  msg: 'Carregando instruções do projeto...' },
+  { delay: 2400,  msg: 'Carregando mapa de funcionalidades...' },
+  { delay: 3600,  msg: 'Montando contexto completo do chamado...' },
+  { delay: 5200,  msg: 'Enviando para o agente...' },
+  { delay: 9000,  msg: 'Lendo o PDF exportado do Jira...' },
+  { delay: 14000, msg: 'Interpretando título, descrição e comentários...' },
+  { delay: 20000, msg: 'Identificando funcionalidades relacionadas ao problema...' },
+  { delay: 28000, msg: 'Mapeando arquivos suspeitos no repositório...' },
+  { delay: 36000, msg: 'Abrindo arquivos do código-fonte...' },
+  { delay: 46000, msg: 'Analisando o template HTML...' },
+  { delay: 57000, msg: 'Inspecionando o componente TypeScript...' },
+  { delay: 69000, msg: 'Rastreando sub-componentes e dependências...' },
+  { delay: 82000, msg: 'Verificando o backend Progress OpenEdge...' },
+  { delay: 96000, msg: 'Cruzando evidências com o comportamento relatado...' },
+  { delay: 110000, msg: 'Formulando diagnóstico...' },
+  { delay: 124000, msg: 'Redigindo correção e diff de código...' },
+];
+
+function limparTerminal() {
+  terminalTimers.forEach(clearTimeout);
+  terminalTimers = [];
+  terminalOffset = 0;
+  const lines = document.getElementById('terminalLines');
+  if (lines) lines.innerHTML = '';
+}
+
+function iniciarTerminal() {
+  limparTerminal();
+  TERMINAL_SCRIPT.forEach(({ delay, msg }) => {
+    const t = setTimeout(() => addTerminalLine(msg), delay);
+    terminalTimers.push(t);
+  });
+}
+
+function addTerminalLine(msg) {
+  const container = document.getElementById('terminalLines');
+  if (!container) return;
+
+  const line = document.createElement('div');
+  line.className = 'terminal-line';
+
+  const prompt = document.createElement('span');
+  prompt.className = 'terminal-prompt';
+  prompt.textContent = '›';
+
+  const text = document.createElement('span');
+  text.className = 'terminal-msg';
+  text.textContent = msg;
+
+  line.appendChild(prompt);
+  line.appendChild(text);
+  container.appendChild(line);
+
+  const terminal = document.getElementById('terminal');
+  if (terminal) terminal.scrollTop = terminal.scrollHeight;
+}
+
+function appendTerminalLogs(logs) {
+  if (!logs || !logs.length) return;
+  const novos = logs.slice(terminalOffset);
+  if (!novos.length) return;
+  terminalOffset = logs.length;
+  novos.forEach(msg => addTerminalLine(msg));
 }
 
 async function consultarStatus(requestId, inicio) {
   try {
     const res  = await fetch(`${SERVER_URL}/analisar/status/${requestId}`);
     const json = await res.json();
+
+    // Sempre atualiza o terminal com novos logs
+    if (json.logs) appendTerminalLogs(json.logs);
+
     if (json.status === 'done') {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);
@@ -380,6 +453,8 @@ async function consultarStatus(requestId, inicio) {
 function pararPolling() {
   if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
   if (timerInterval)   { clearInterval(timerInterval);   timerInterval   = null; }
+  terminalTimers.forEach(clearTimeout);
+  terminalTimers = [];
 }
 
 async function cancelarAnalise() {
@@ -726,6 +801,7 @@ async function resetarFormulario() {
   document.getElementById('fieldWrapDetalhes').style.display = 'none';
   document.getElementById('descricaoTextarea').value = '';
   esconderErroDescricao();
+  limparTerminal();
 
   mostrarTela('selecao');
 }
