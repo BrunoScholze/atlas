@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "autoCode",
+  "name": "Atlas Code",
   "version": "1.0.0",
   "description": "Analisa chamados do Jira e localiza problemas no código",
   "permissions": ["activeTab", "storage", "scripting"],

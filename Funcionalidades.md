@@ -13,7 +13,7 @@
 
 ---
 
-## Login
+## Login [app-minha-prod]
 Descrição: Tela de autenticação do app.
 Arquivos suspeitos:
 - src\app\shared\pages\login\login.page.html
@@ -24,7 +24,7 @@ Arquivos suspeitos:
 
 ---
 
-## Apontamento de ordem de produção (fluxo completo)
+## Apontamento de ordem de produção (fluxo completo) [app-minha-prod]
 Descrição: Funcionalidade mais utilizada do app. O fluxo começa na seleção do formulário e
 termina no envio do apontamento ao backend. Existem duas variantes: por cronômetro e por
 formulário manual. Dependendo da configuração do formulário, paradas de produção também
@@ -70,7 +70,7 @@ Atenção: os campos do formulário são carregados dinamicamente via field-comp
 
 ---
 
-## Configurações
+## Configurações [app-minha-prod]
 Descrição: Tela de configurações gerais do app (parâmetros de conexão, preferências do usuário, etc.).
 Arquivos suspeitos:
 - src\app\shared\pages\config\config.page.html
@@ -81,7 +81,7 @@ Arquivos suspeitos:
 
 ---
 
-## Reporte de GGF/MOB (Overhead Labor Report)
+## Reporte de GGF/MOB (Overhead Labor Report) [app-minha-prod]
 Descrição: Permite reportar horas de mão de obra indireta (GGF/MOB). O fluxo é:
 1. Usuário seleciona a ordem na tela de seleção
 2. É levado para a lista de reportes da ordem
@@ -105,7 +105,7 @@ Arquivos suspeitos:
 
 ---
 
-## Saldos do item
+## Saldos do item [app-minha-prod]
 Descrição: Consulta os saldos de estoque de um item. O usuário pode pesquisar pelo código do
 item (ou via QR Code) e navegar entre diferentes visões de estoque: por site, por depósito e
 detalhado. Também permite visualizar alocações de ordens de produção. A tela usa sub-componentes
@@ -138,7 +138,7 @@ Arquivos suspeitos:
 
 ---
 
-## Solicitação de serviço
+## Solicitação de serviço [app-minha-prod]
 Descrição: Tela para criar ou visualizar solicitações de serviço.
 Arquivos suspeitos:
 - src\app\service-request\datasul\datasul-service-request\service-request.page.html
@@ -147,7 +147,7 @@ Arquivos suspeitos:
 
 ---
 
-## Consultar OP
+## Consultar OP [app-minha-prod]
 Descrição: Tela de consulta de ordens de produção. Permite pesquisar e visualizar detalhes de uma OP.
 Arquivos suspeitos:
 - src\app\production-query\datasul\production-query-datasul.page.html
@@ -158,7 +158,7 @@ Arquivos suspeitos:
 
 ---
 
-## Requisição da OP
+## Requisição da OP [app-minha-prod]
 Descrição: Tela para visualizar e gerenciar as requisições de material de uma ordem de produção.
 Arquivos suspeitos:
 - src\app\single-requisition\datasul\datasul-single-requisition.component.html
@@ -169,7 +169,7 @@ Arquivos suspeitos:
 
 ---
 
-## Criar ordem de produção
+## Criar ordem de produção [app-minha-prod]
 Descrição: Fluxo para criação de uma nova ordem de produção. Composto por uma tela de seleção
 de formulário e uma tela de preenchimento dos dados da ordem.
 Arquivos suspeitos:
@@ -186,7 +186,7 @@ Arquivos suspeitos:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.scss
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
 
-## Motivo de refugo (ligado ao Apontamento)
+## Motivo de refugo (ligado ao Apontamento) [app-minha-prod]
 Descrição: Tela acionada dentro do fluxo de apontamento (datasul-report-v2) para registrar o
 motivo das quantidades refugadas. É uma sub-tela do reporte de produção.
 Arquivos suspeitos:
@@ -198,7 +198,7 @@ Contexto: analisar em conjunto com datasul-report-v2 (ver "Apontamento de ordem 
 
 ---
 
-## Editar MOB/GGF (ligado ao Apontamento)
+## Editar MOB/GGF (ligado ao Apontamento) [app-minha-prod]
 Descrição: Botão presente na tela de reporte de produção (datasul-report-v2) que leva o usuário
 para a tela de listagem/edição de horas de mão de obra indireta (MOB/GGF) da ordem em questão.
 Arquivos suspeitos:

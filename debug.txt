@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 0a558a0f-00b3-454f-9011-17ead4f6e6e0
-Data/Hora : 24/06/2026, 22:13:59
+RequestId : ca0dfa49-84bd-4a91-82bb-b1e18ad9754e
+Data/Hora : 25/06/2026, 00:14:18
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -13,9 +13,9 @@ descricao      : Analise bruno, na tela de informar motivos, parece que temos um
 prioridade     : Média
 tipo           : Spike
 responsavel    : Bruno Scholze_
-funcionalidades: Motivo de refugo (ligado ao Apontamento)
+funcionalidades: (vazio)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782350039453.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782357258122.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -48,7 +48,8 @@ TIPO           : <bug / manutenção / inovação>
 RESPONSAVEL    : <quem abriu>
 COMENTARIOS    : <histórico de comentários>
 HISTORICO      : <alterações anteriores no ticket>
-FUNCIONALIDADES: <funcionalidades selecionadas pelo dev no multiselect>
+PROJETO        : <slug do projeto, ex: app-minha-prod>
+FUNCIONALIDADES: <campo vazio — o agente identifica sozinho>
 OBSERVACAO     : <texto livre do dev — se preenchido, priorize. Se vazio, ignore.>
 ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia inteiro.>
 ```
@@ -63,9 +64,14 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Se OBSERVACAO estiver preenchida, priorize
 - Anote: o que o usuário faz → o que acontece de errado → o que deveria acontecer
 
-### Passo 2 — Monte os arquivos suspeitos
-- Abra Funcionalidades.md
-- Para cada funcionalidade selecionada, colete os arquivos listados
+### Passo 2 — Identifique as funcionalidades e monte os arquivos suspeitos
+- Abra Funcionalidades.md e leia TODAS as funcionalidades disponíveis
+- O campo FUNCIONALIDADES virá vazio — o dev não seleciona mais
+- Use TITULO, DESCRICAO, COMENTARIOS, PDF e OBSERVACAO para identificar
+  quais funcionalidades têm maior relação com o problema relatado
+- Escolha as funcionalidades que fazem sentido com o contexto; se houver
+  dúvida entre duas, inclua ambas
+- Para cada funcionalidade identificada, colete os arquivos listados
 - Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
   componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
   leia esses também. Só encerra quando rastreou todos os elos da cadeia.
@@ -93,6 +99,12 @@ AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 
 TICKET   : <id e título do chamado>
 DATA     : <data/hora da análise>
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- <funcionalidade 1> — motivo: <por que foi identificada a partir do problema>
+- <funcionalidade 2> — motivo: <por que foi incluída>
 
 ----------------------------------------
 LOCALIZAÇÃO DO PROBLEMA
@@ -191,6 +203,8 @@ Errado:
 8. Nunca invente — se não encontrou, diga o que analisou e por que não localizou.
 9. ARQUIVOS ANALISADOS e OBSERVAÇÕES ficam SEMPRE depois do COMO RESOLVER.
 10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
+11. FUNCIONALIDADES IDENTIFICADAS: liste apenas as que você realmente usou para investigar.
+    Inclua o motivo — o dev precisa saber se a seleção automática fez sentido.
 
 ---
 
@@ -211,6 +225,8 @@ Backend — dúvidas sobre Progress OpenEdge (.p):
 - Frontend: Angular + Ionic (.html, .ts, .scss)
 - Repositório: /front (Angular/Ionic) e /back (Progress)
 - Mapa de arquivos: Funcionalidades.md
+- Projeto ativo: informado no campo PROJETO do input
+- Funcionalidades disponíveis: apenas as do projeto ativo (já filtradas pelo servidor)
 - Público do output: desenvolvedores juniores
 
 
@@ -230,7 +246,7 @@ Backend — dúvidas sobre Progress OpenEdge (.p):
 
 ---
 
-## Login
+## Login [app-minha-prod]
 Descrição: Tela de autenticação do app.
 Arquivos suspeitos:
 - src\app\shared\pages\login\login.page.html
@@ -241,7 +257,7 @@ Arquivos suspeitos:
 
 ---
 
-## Apontamento de ordem de produção (fluxo completo)
+## Apontamento de ordem de produção (fluxo completo) [app-minha-prod]
 Descrição: Funcionalidade mais utilizada do app. O fluxo começa na seleção do formulário e
 termina no envio do apontamento ao backend. Existem duas variantes: por cronômetro e por
 formulário manual. Dependendo da configuração do formulário, paradas de produção também
@@ -287,7 +303,7 @@ Atenção: os campos do formulário são carregados dinamicamente via field-comp
 
 ---
 
-## Configurações
+## Configurações [app-minha-prod]
 Descrição: Tela de configurações gerais do app (parâmetros de conexão, preferências do usuário, etc.).
 Arquivos suspeitos:
 - src\app\shared\pages\config\config.page.html
@@ -298,7 +314,7 @@ Arquivos suspeitos:
 
 ---
 
-## Reporte de GGF/MOB (Overhead Labor Report)
+## Reporte de GGF/MOB (Overhead Labor Report) [app-minha-prod]
 Descrição: Permite reportar horas de mão de obra indireta (GGF/MOB). O fluxo é:
 1. Usuário seleciona a ordem na tela de seleção
 2. É levado para a lista de reportes da ordem
@@ -322,7 +338,7 @@ Arquivos suspeitos:
 
 ---
 
-## Saldos do item
+## Saldos do item [app-minha-prod]
 Descrição: Consulta os saldos de estoque de um item. O usuário pode pesquisar pelo código do
 item (ou via QR Code) e navegar entre diferentes visões de estoque: por site, por depósito e
 detalhado. Também permite visualizar alocações de ordens de produção. A tela usa sub-componentes
@@ -355,7 +371,7 @@ Arquivos suspeitos:
 
 ---
 
-## Solicitação de serviço
+## Solicitação de serviço [app-minha-prod]
 Descrição: Tela para criar ou visualizar solicitações de serviço.
 Arquivos suspeitos:
 - src\app\service-request\datasul\datasul-service-request\service-request.page.html
@@ -364,7 +380,7 @@ Arquivos suspeitos:
 
 ---
 
-## Consultar OP
+## Consultar OP [app-minha-prod]
 Descrição: Tela de consulta de ordens de produção. Permite pesquisar e visualizar detalhes de uma OP.
 Arquivos suspeitos:
 - src\app\production-query\datasul\production-query-datasul.page.html
@@ -375,7 +391,7 @@ Arquivos suspeitos:
 
 ---
 
-## Requisição da OP
+## Requisição da OP [app-minha-prod]
 Descrição: Tela para visualizar e gerenciar as requisições de material de uma ordem de produção.
 Arquivos suspeitos:
 - src\app\single-requisition\datasul\datasul-single-requisition.component.html
@@ -386,7 +402,7 @@ Arquivos suspeitos:
 
 ---
 
-## Criar ordem de produção
+## Criar ordem de produção [app-minha-prod]
 Descrição: Fluxo para criação de uma nova ordem de produção. Composto por uma tela de seleção
 de formulário e uma tela de preenchimento dos dados da ordem.
 Arquivos suspeitos:
@@ -403,7 +419,7 @@ Arquivos suspeitos:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.scss
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
 
-## Motivo de refugo (ligado ao Apontamento)
+## Motivo de refugo (ligado ao Apontamento) [app-minha-prod]
 Descrição: Tela acionada dentro do fluxo de apontamento (datasul-report-v2) para registrar o
 motivo das quantidades refugadas. É uma sub-tela do reporte de produção.
 Arquivos suspeitos:
@@ -415,7 +431,7 @@ Contexto: analisar em conjunto com datasul-report-v2 (ver "Apontamento de ordem 
 
 ---
 
-## Editar MOB/GGF (ligado ao Apontamento)
+## Editar MOB/GGF (ligado ao Apontamento) [app-minha-prod]
 Descrição: Botão presente na tela de reporte de produção (datasul-report-v2) que leva o usuário
 para a tela de listagem/edição de horas de mão de obra indireta (MOB/GGF) da ordem em questão.
 Arquivos suspeitos:
@@ -452,9 +468,10 @@ TIPO           : Spike
 RESPONSAVEL    : Bruno Scholze_
 COMENTARIOS    : 
 HISTORICO      : 
-FUNCIONALIDADES: Motivo de refugo (ligado ao Apontamento)
+PROJETO        : app-minha-prod
+FUNCIONALIDADES:
 OBSERVACAO     : Nenhuma observação adicional
-ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782350039453.pdf
+ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782357258122.pdf
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:

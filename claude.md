@@ -22,7 +22,8 @@ TIPO           : <bug / manutenção / inovação>
 RESPONSAVEL    : <quem abriu>
 COMENTARIOS    : <histórico de comentários>
 HISTORICO      : <alterações anteriores no ticket>
-FUNCIONALIDADES: <funcionalidades selecionadas pelo dev no multiselect>
+PROJETO        : <slug do projeto, ex: app-minha-prod>
+FUNCIONALIDADES: <campo vazio — o agente identifica sozinho>
 OBSERVACAO     : <texto livre do dev — se preenchido, priorize. Se vazio, ignore.>
 ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia inteiro.>
 ```
@@ -37,9 +38,14 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Se OBSERVACAO estiver preenchida, priorize
 - Anote: o que o usuário faz → o que acontece de errado → o que deveria acontecer
 
-### Passo 2 — Monte os arquivos suspeitos
-- Abra Funcionalidades.md
-- Para cada funcionalidade selecionada, colete os arquivos listados
+### Passo 2 — Identifique as funcionalidades e monte os arquivos suspeitos
+- Abra Funcionalidades.md e leia TODAS as funcionalidades disponíveis
+- O campo FUNCIONALIDADES virá vazio — o dev não seleciona mais
+- Use TITULO, DESCRICAO, COMENTARIOS, PDF e OBSERVACAO para identificar
+  quais funcionalidades têm maior relação com o problema relatado
+- Escolha as funcionalidades que fazem sentido com o contexto; se houver
+  dúvida entre duas, inclua ambas
+- Para cada funcionalidade identificada, colete os arquivos listados
 - Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
   componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
   leia esses também. Só encerra quando rastreou todos os elos da cadeia.
@@ -67,6 +73,12 @@ AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 
 TICKET   : <id e título do chamado>
 DATA     : <data/hora da análise>
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- <funcionalidade 1> — motivo: <por que foi identificada a partir do problema>
+- <funcionalidade 2> — motivo: <por que foi incluída>
 
 ----------------------------------------
 LOCALIZAÇÃO DO PROBLEMA
@@ -165,6 +177,8 @@ Errado:
 8. Nunca invente — se não encontrou, diga o que analisou e por que não localizou.
 9. ARQUIVOS ANALISADOS e OBSERVAÇÕES ficam SEMPRE depois do COMO RESOLVER.
 10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
+11. FUNCIONALIDADES IDENTIFICADAS: liste apenas as que você realmente usou para investigar.
+    Inclua o motivo — o dev precisa saber se a seleção automática fez sentido.
 
 ---
 
@@ -185,4 +199,6 @@ Backend — dúvidas sobre Progress OpenEdge (.p):
 - Frontend: Angular + Ionic (.html, .ts, .scss)
 - Repositório: /front (Angular/Ionic) e /back (Progress)
 - Mapa de arquivos: Funcionalidades.md
+- Projeto ativo: informado no campo PROJETO do input
+- Funcionalidades disponíveis: apenas as do projeto ativo (já filtradas pelo servidor)
 - Público do output: desenvolvedores juniores

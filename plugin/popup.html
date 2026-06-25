@@ -1,78 +1,125 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agente de Chamados</title>
+  <title>Atlas Code</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="header">
-    <span class="header-title">Agente de Chamados</span>
-    <span class="status-indicator" id="statusIndicator" title="Verificando servidor...">
-      <span class="status-dot" id="statusDot"></span>
-      <span class="status-text" id="statusText">Verificando...</span>
-    </span>
-  </header>
+  <!-- Theme toggle — fixo no canto superior direito -->
+  <button class="theme-toggle" id="themeToggle">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span class="toggle-label" id="themeLabel">Modo claro</span>
+  </button>
 
-  <!-- Tela principal (formulário) -->
-  <div id="telaFormulario">
+  <!-- ============================================================ TELA 1 — Seleção de projeto -->
+  <div id="telaSelecao" class="tela-selecao">
+    <div class="s1-card">
 
-    <section class="section">
-      <label class="section-label">Ticket</label>
-      <div class="ticket-info" id="ticketInfo">
-        <span class="ticket-id" id="ticketId">—</span>
-        <span class="ticket-titulo" id="ticketTitulo">Carregando dados do Jira...</span>
+      <img class="logo-main" id="logoMain" src="logobranco.png" alt="Atlas Code" />
+      <div class="s1-brand">Atlas Code</div>
+
+      <div class="status-pill">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Verificando...</span>
       </div>
-      <div class="jira-status" id="jiraStatus"></div>
-    </section>
 
-    <section class="section">
-      <label class="section-label">Funções afetadas <span class="required">*</span></label>
-      <div class="tags-container" id="tagsContainer"></div>
-      <div class="select-wrapper">
-        <select id="funcionalidadesSelect" class="select-input">
-          <option value="" disabled selected>Selecione as funções afetadas por esse problema</option>
-        </select>
+      <div class="s1-label">Projeto alvo</div>
+
+      <div class="proj-dropdown" id="projDropdown">
+        <button class="s1-proj-btn" id="projPill" type="button" aria-expanded="false">
+          <span id="projNome">Carregando...</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,4 6,8 10,4"/>
+          </svg>
+        </button>
+        <div class="proj-menu" id="projMenu" style="display:none"></div>
       </div>
-    </section>
 
-    <section class="section">
-      <label class="section-label">Documento de simulação do chamado <span class="required">*</span></label>
-      <div class="dropzone" id="dropzone">
-        <input type="file" id="pdfInput" accept=".pdf" class="file-input" />
-        <div class="dropzone-content" id="dropzoneContent">
-          <span class="dropzone-icon">📎</span>
-          <span class="dropzone-text">Arraste o PDF de simulação aqui ou <strong>clique para selecionar</strong></span>
-          <span class="dropzone-hint">Exportado do Jira — apenas arquivos .pdf</span>
-        </div>
-        <div class="dropzone-filename" id="dropzoneFilename" style="display:none"></div>
-      </div>
-    </section>
-
-    <section class="section">
-      <label class="checkbox-label">
-        <input type="checkbox" id="checkObservacao" />
-        Adicionar informações para o agente
-      </label>
-      <textarea
-        id="observacaoTextarea"
-        class="textarea"
-        style="display:none"
-        placeholder="Descreva o passo a passo do erro, mensagem exata, comportamento esperado vs real, versão afetada..."
-        rows="4"
-      ></textarea>
-    </section>
-
-    <div class="actions">
-      <button id="btnIniciar" class="btn btn-primary" disabled>Iniciar</button>
+      <button class="btn-primary" id="btnIniciar">Iniciar</button>
     </div>
-
   </div>
 
-  <!-- Tela de loading -->
+  <!-- ============================================================ TELA 2 — Formulário -->
+  <div id="telaFormulario" style="display:none" class="tela-formulario">
+    <div class="s2-inner">
+
+      <!-- Breadcrumb -->
+      <div class="s2-header">
+        <img class="logo-img-sm" id="logoSm" src="logobranco.png" alt="" />
+        <span class="s2-title">Atlas Code</span>
+        <span class="s2-sep">·</span>
+        <span class="s2-project" id="s2ProjectName">—</span>
+      </div>
+
+      <!-- Ticket strip -->
+      <div class="issue-strip">
+        <span class="issue-id" id="ticketId">—</span>
+        <div class="issue-vsep"></div>
+        <span class="issue-title" id="ticketTitulo">Carregando dados do Jira...</span>
+        <span class="issue-badge">Jira</span>
+      </div>
+      <div class="jira-status" id="jiraStatus"></div>
+
+      <!-- PDF dropzone -->
+      <div class="drop-zone" id="dropzone">
+        <span class="float-label">Simulação — opcional</span>
+        <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
+
+        <div id="dropzoneContent" style="display:flex;align-items:center;gap:14px;width:100%;">
+          <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <div class="drop-text">
+            <span class="drop-main">Arraste o PDF ou <span>clique para selecionar</span></span>
+            <span class="drop-sub">Exportado do Jira · apenas .pdf</span>
+          </div>
+        </div>
+
+        <div id="dropzoneFilename" style="display:none" class="attached-file">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span id="dropzoneFilenameText"></span>
+          <span class="remove-pdf" id="btnRemoverPdf">✕ remover</span>
+        </div>
+      </div>
+
+      <!-- Textarea de descrição — sempre visível -->
+      <div class="field-wrap">
+        <span class="float-label">Descrição do problema</span>
+        <textarea
+          id="descricaoTextarea"
+          class="s2-textarea"
+          placeholder="Ex: Na tela de Apontamento de Produção, ao salvar o registro, o campo Quantidade fica em branco. O valor deveria ser mantido após salvar..."
+          rows="5"
+        ></textarea>
+        <p class="descricao-erro" id="descricaoErro" style="display:none">
+          Anexe um PDF ou descreva o problema antes de continuar.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="s2-footer">
+        <button class="back-btn" id="btnVoltar">← Voltar</button>
+        <button class="btn-go" id="btnIniciarAnalise">
+          Iniciar análise
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 7h10M8 3l4 4-4 4"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ TELA LOADING -->
   <div id="telaLoading" style="display:none" class="loading-screen">
     <div class="spinner"></div>
     <p class="loading-text">Analisando...</p>
@@ -82,76 +129,71 @@
     <button id="btnCancelar" class="btn btn-cancelar">Cancelar</button>
   </div>
 
-  <!-- Tela de resultado -->
+  <!-- ============================================================ TELA RESULTADO -->
   <div id="telaResultado" style="display:none">
 
     <div class="resultado-header">
       <h2 class="resultado-titulo">Análise concluída</h2>
       <div class="download-row">
-        <button id="btnDownloadAnalise" class="btn-download">⬇ Baixar análise (.txt)</button>
-        <button id="btnDownloadLog" class="btn-download">⬇ Baixar log (.log)</button>
+        <button id="btnDownloadAnalise" class="btn-download">⬇ Análise (.txt)</button>
+        <button id="btnDownloadLog" class="btn-download">⬇ Log (.log)</button>
       </div>
     </div>
 
     <div class="resultado-scroll">
 
-      <!-- Formato estruturado (quando Claude seguiu o template) -->
       <div id="secaoEstruturada" style="display:none">
 
-        <!-- Localização — aberta por padrão -->
+        <details class="resultado-secao sanfona" id="secaoFuncionalidades">
+          <summary class="secao-titulo sanfona-titulo">🔎 FUNCIONALIDADES IDENTIFICADAS</summary>
+          <div class="secao-conteudo" id="conteudoFuncionalidades"></div>
+        </details>
+
         <div class="resultado-secao" id="secaoLocalizacao">
           <h3 class="secao-titulo">📍 LOCALIZAÇÃO DO PROBLEMA</h3>
           <div class="secao-conteudo" id="conteudoLocalizacao"></div>
         </div>
 
-        <!-- Causa Provável — aberta por padrão -->
         <div class="resultado-secao" id="secaoCausa">
-          <h3 class="secao-titulo">🔍 CAUSA PROVÁVEL</h3>
+          <h3 class="secao-titulo">⚠️ CAUSA PROVÁVEL</h3>
           <div class="secao-conteudo" id="conteudoCausa"></div>
         </div>
 
-        <!-- Como Resolver — aberto por padrão, contém os diffs -->
         <div class="resultado-secao" id="secaoResolver">
           <h3 class="secao-titulo">🔧 COMO RESOLVER</h3>
           <div class="secao-conteudo" id="conteudoResolver"></div>
         </div>
 
-        <!-- Arquivos Analisados — sanfona, fechada por padrão -->
         <details class="resultado-secao sanfona" id="secaoArquivos">
           <summary class="secao-titulo sanfona-titulo">📂 ARQUIVOS ANALISADOS</summary>
           <div class="secao-conteudo" id="conteudoArquivos"></div>
         </details>
 
-        <!-- Observações — sanfona, fechada por padrão -->
         <details class="resultado-secao sanfona" id="secaoObservacoes">
-          <summary class="secao-titulo sanfona-titulo">⚠️ OBSERVAÇÕES</summary>
+          <summary class="secao-titulo sanfona-titulo">💡 OBSERVAÇÕES</summary>
           <div class="secao-conteudo" id="conteudoObservacoes"></div>
         </details>
 
       </div>
 
-      <!-- Formato livre (fallback quando Claude não seguiu o template) -->
       <div id="secaoBruta" style="display:none">
-        <div class="aviso-formato">
-          ℹ️ O agente retornou a análise em formato livre.
-        </div>
+        <div class="aviso-formato">O agente retornou a análise em formato livre.</div>
         <div class="bruto-conteudo" id="conteudoBruto"></div>
       </div>
 
-    </div><!-- .resultado-scroll -->
+    </div>
 
     <div class="actions resultado-actions">
-      <button id="btnCopiar" class="btn btn-secondary">Copiar resultado</button>
-      <button id="btnNovaAnalise" class="btn btn-primary">Limpar</button>
+      <button id="btnNovaAnalise" class="btn btn-primary-sm">Limpar</button>
     </div>
 
   </div>
 
-  <!-- Tela de erro -->
+  <!-- ============================================================ TELA ERRO -->
   <div id="telaErro" style="display:none" class="erro-screen">
     <p class="erro-icone">❌</p>
     <p class="erro-mensagem" id="erroMensagem"></p>
-    <button id="btnTentarNovamente" class="btn btn-primary">Tentar novamente</button>
+    <button id="btnTentarNovamente" class="btn btn-primary-sm">Tentar novamente</button>
   </div>
 
   <script src="popup.js"></script>

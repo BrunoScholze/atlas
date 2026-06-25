@@ -1,5 +1,13 @@
-// Servidor do Agente de Chamados Minha Totvs Prod
-require('dotenv').config();
+// Servidor do Agente de Chamados — Atlas Code
+//
+// Arquitetura multi-projeto:
+//   PROJETOS.md  — lista projetos: slug, nome, CLAUDE.md e status
+//   Funcionalidades.md — cada ## heading tem tag [slug] indicando o projeto
+//   POST /analisar recebe campo 'projeto' (slug) e:
+//     (a) lê o CLAUDE.md correto via campo CLAUDE: do PROJETOS.md
+//     (b) filtra Funcionalidades.md pelas entradas tagadas com [slug]
+//   Adicionar novo projeto = novo bloco em PROJETOS.md + entradas tagadas em Funcionalidades.md
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -54,6 +62,43 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // -------------------------------------------------------
+// Helpers de projeto
+// -------------------------------------------------------
+function parseProjetos(conteudo) {
+  const projetos = [];
+  const blocos = conteudo.split(/\n## /);
+  for (const bloco of blocos.slice(1)) {
+    const linhas = bloco.split('\n');
+    const slug = linhas[0].trim();
+    const meta = {};
+    for (const linha of linhas.slice(1)) {
+      const m = linha.match(/^(\w+):\s*(.+)$/);
+      if (m) meta[m[1].toLowerCase()] = m[2].trim();
+    }
+    projetos.push({
+      slug,
+      nome: meta.nome || slug,
+      descricao: meta['descrição'] || meta.descricao || '',
+      status: meta.status || 'ativo',
+      claude: meta.claude || 'CLAUDE.md'
+    });
+  }
+  return projetos;
+}
+
+function filtrarFuncionalidades(conteudo, projetoSlug) {
+  if (!projetoSlug) return conteudo;
+  const tag = `[${projetoSlug}]`;
+  const partes = conteudo.split(/(?=\n## )/);
+  const preambulo = partes[0];
+  const secoes = partes.slice(1).filter(s => {
+    const primeiraLinha = s.split('\n').find(l => l.startsWith('## ')) || '';
+    return primeiraLinha.includes(tag);
+  });
+  return preambulo + secoes.join('');
+}
+
+// -------------------------------------------------------
 // Monta o prompt completo
 // -------------------------------------------------------
 function montarPrompt(dados, claudeMd, funcionalidadesMd) {
@@ -72,7 +117,8 @@ TIPO           : ${dados.tipo || ''}
 RESPONSAVEL    : ${dados.responsavel || ''}
 COMENTARIOS    : ${dados.comentarios || ''}
 HISTORICO      : ${dados.historico || ''}
-FUNCIONALIDADES: ${dados.funcionalidades || ''}
+PROJETO        : ${dados.projeto || ''}
+FUNCIONALIDADES:
 OBSERVACAO     : ${dados.observacao || 'Nenhuma observação adicional'}
 ANEXO          : ${dados.pdfPath || ''}
 
@@ -124,6 +170,22 @@ REGRAS ABSOLUTAS:
 // -------------------------------------------------------
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// -------------------------------------------------------
+// GET /projetos — lista projetos ativos do PROJETOS.md
+// -------------------------------------------------------
+app.get('/projetos', (req, res) => {
+  try {
+    const conteudo = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+    const todos = parseProjetos(conteudo);
+    const ativos = todos
+      .filter(p => p.status === 'ativo')
+      .map(p => ({ slug: p.slug, nome: p.nome, descricao: p.descricao }));
+    res.json({ projetos: ativos });
+  } catch (err) {
+    res.status(500).json({ sucesso: false, erro: 'Erro ao ler PROJETOS.md: ' + err.message });
+  }
 });
 
 // -------------------------------------------------------
@@ -207,8 +269,9 @@ app.post('/limpar', (req, res) => {
 app.post('/analisar', upload.single('pdf'), (req, res) => {
   const pdfPath = req.file ? req.file.path : null;
 
-  if (!pdfPath) {
-    return res.status(400).json({ sucesso: false, erro: 'PDF do chamado não enviado.' });
+  const observacao = req.body.observacao || '';
+  if (!pdfPath && !observacao.trim()) {
+    return res.status(400).json({ sucesso: false, erro: 'Anexe um PDF ou descreva o problema no campo de texto.' });
   }
 
   const requestId = crypto.randomUUID();
@@ -283,20 +346,37 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
   log.info(`Prioridade   : ${body.prioridade || '(vazio)'}`);
   log.info(`Tipo         : ${body.tipo || '(vazio)'}`);
   log.info(`Responsavel  : ${body.responsavel || '(vazio)'}`);
-  log.info(`Funcionalidades: ${body.funcionalidades || '(vazio)'}`);
+  log.info(`Projeto        : ${body.projeto || '(não informado)'}`);
   log.info(`Observacao   : ${body.observacao || '(não informada)'}`);
   log.info(`PDF          : ${pdfPath}`);
   log.sep();
 
   try {
-    // Lê arquivos de contexto
-    log.info('Lendo claude.md...');
-    const claudeMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'claude.md'), 'utf8');
-    log.info(`claude.md: ${claudeMd.length} chars`);
+    // Lê arquivos de contexto — resolve projeto e filtra funcionalidades
+    const projetoSlug = body.projeto || '';
+    let claudeFile = 'CLAUDE.md';
+
+    if (projetoSlug) {
+      try {
+        const projetosMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+        const proj = parseProjetos(projetosMd).find(p => p.slug === projetoSlug);
+        if (proj) { claudeFile = proj.claude || 'CLAUDE.md'; log.info(`Projeto: ${projetoSlug} → ${claudeFile}`); }
+        else log.warn(`Projeto '${projetoSlug}' não encontrado em PROJETOS.md — usando CLAUDE.md padrão`);
+      } catch (e) { log.warn(`Não leu PROJETOS.md: ${e.message}`); }
+    }
+
+    log.info(`Lendo ${claudeFile}...`);
+    const claudeMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, claudeFile), 'utf8');
+    log.info(`${claudeFile}: ${claudeMd.length} chars`);
 
     log.info('Lendo Funcionalidades.md...');
-    const funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'Funcionalidades.md'), 'utf8');
-    log.info(`Funcionalidades.md: ${funcionalidadesMd.length} chars`);
+    let funcionalidadesMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'Funcionalidades.md'), 'utf8');
+    if (projetoSlug) {
+      funcionalidadesMd = filtrarFuncionalidades(funcionalidadesMd, projetoSlug);
+      log.info(`Funcionalidades.md filtrado para [${projetoSlug}]: ${funcionalidadesMd.length} chars`);
+    } else {
+      log.info(`Funcionalidades.md: ${funcionalidadesMd.length} chars (sem filtro)`);
+    }
 
     // Monta prompt
     const dados = { ...body, pdfPath };
@@ -370,7 +450,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
       if (stderr && stderr.trim()) log.warn(`stderr: ${stderr.trim()}`);
 
-      try { fs.unlinkSync(pdfPath); log.info('PDF temp deletado'); } catch (e) { log.warn(`Não deletou PDF: ${e.message}`); }
+      if (pdfPath) { try { fs.unlinkSync(pdfPath); log.info('PDF temp deletado'); } catch (e) { log.warn(`Não deletou PDF: ${e.message}`); } }
       try { fs.unlinkSync(promptPath); log.info('prompt_temp.txt deletado'); } catch (e) { /* ignora */ }
 
       // Se foi cancelado pelo usuário, apenas encerra
@@ -407,10 +487,31 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         return;
       }
 
-      // Preview das primeiras linhas no log
-      const linhas = analise.split('\n').filter(l => l.trim());
-      log.info('Preview do resultado:');
-      linhas.slice(0, 5).forEach(l => log.info(`  | ${l}`));
+      // Extrai e loga funcionalidades identificadas e arquivos suspeitos
+      const extrairSecaoLog = (texto, secao) => {
+        const re = new RegExp(`-{2,}\\s*\\r?\\n\\s*${secao}\\s*\\r?\\n-{2,}\\r?\\n([\\s\\S]*?)(?=\\n-{10,}|\\n={8,}|$)`, 'i');
+        const m = texto.match(re);
+        return m ? m[1].trim() : '';
+      };
+
+      const funcIds = extrairSecaoLog(analise, 'FUNCIONALIDADES IDENTIFICADAS');
+      const arquivos = extrairSecaoLog(analise, 'ARQUIVOS ANALISADOS');
+
+      log.sep();
+      log.info('=== FUNCIONALIDADES IDENTIFICADAS ===');
+      if (funcIds) {
+        funcIds.split('\n').filter(l => l.trim()).forEach(l => log.info(`  ${l}`));
+      } else {
+        log.info('  (não extraído)');
+      }
+      log.sep();
+      log.info('=== ARQUIVOS ANALISADOS ===');
+      if (arquivos) {
+        arquivos.split('\n').filter(l => l.trim()).forEach(l => log.info(`  ${l}`));
+      } else {
+        log.info('  (não extraído)');
+      }
+      log.sep();
 
       analises[requestId] = { status: 'done', analise, inicio, logPath: logFile };
       log.sep();
