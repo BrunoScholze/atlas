@@ -1,84 +1,81 @@
-[2026-06-24 19:54:41.254] [-----] ----------------------------------------------------------------
-[2026-06-24 19:54:41.256] [INFO ] === NOVA ANÁLISE INICIADA ===
-[2026-06-24 19:54:41.259] [-----] ----------------------------------------------------------------
-[2026-06-24 19:54:41.262] [INFO ] RequestId    : 1372faf4-7b9f-45f8-8456-0e1231c12c93
-[2026-06-24 19:54:41.264] [INFO ] Data/Hora    : 24/06/2026, 16:54:41
-[2026-06-24 19:54:41.266] [INFO ] TicketId     : DMANUFATURA-21257
-[2026-06-24 19:54:41.268] [INFO ] Titulo       : Problema de visualizacao de botao na hora de informar motivos de refugo
-[2026-06-24 19:54:41.270] [INFO ] Prioridade   : Média
-[2026-06-24 19:54:41.271] [INFO ] Tipo         : Spike
-[2026-06-24 19:54:41.274] [INFO ] Responsavel  : Bruno Scholze_
-[2026-06-24 19:54:41.277] [INFO ] Funcionalidades: Motivo de refugo (ligado ao Apontamento)
-[2026-06-24 19:54:41.279] [INFO ] Observacao   : (não informada)
-[2026-06-24 19:54:41.281] [INFO ] PDF          : C:\azure\atlas\temp\DMANUFATURA-21257_1782330881251.pdf
-[2026-06-24 19:54:41.282] [-----] ----------------------------------------------------------------
-[2026-06-24 19:54:41.284] [INFO ] Lendo claude.md...
-[2026-06-24 19:54:41.286] [INFO ] claude.md: 6792 chars
-[2026-06-24 19:54:41.288] [INFO ] Lendo Funcionalidades.md...
-[2026-06-24 19:54:41.290] [INFO ] Funcionalidades.md: 13570 chars
-[2026-06-24 19:54:41.292] [INFO ] Montando prompt...
-[2026-06-24 19:54:41.294] [INFO ] Prompt montado: 23026 chars
-[2026-06-24 19:54:41.297] [INFO ] debug.txt atualizado
-[2026-06-24 19:54:41.301] [INFO ] prompt_temp.txt gravado: C:\azure\atlas\prompt_temp.txt
-[2026-06-24 19:54:41.303] [INFO ] PS1 path: C:\azure\atlas\scripts\run-claude.ps1
-[2026-06-24 19:54:41.304] [INFO ] Output path: C:\azure\atlas\output.txt
-[2026-06-24 19:54:41.305] [INFO ] Repo path: C:\azure\atlas\app-minha-producao
-[2026-06-24 19:54:41.307] [INFO ] Log file: C:\azure\atlas\logs\agent.log
-[2026-06-24 19:54:41.309] [-----] ----------------------------------------------------------------
-[2026-06-24 19:54:41.310] [INFO ] Iniciando PowerShell...
-[2026-06-24 19:54:41.311] [DEBUG] Comando: powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\azure\atlas\scripts\run-claude.ps1" "C:\azure\atlas\prompt_temp.txt" "C:\azure\atlas\output.txt" "C:\azure\atlas\app-minha-producao" "C:\azure\atlas\logs\agent.log"
-[2026-06-24 16:54:42.059] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:42.157] [INFO] === AGENTE DE CHAMADOS - POWERSHELL INICIADO ===
-[2026-06-24 16:54:42.159] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:42.161] [INFO] PromptFile : C:\azure\atlas\prompt_temp.txt
-[2026-06-24 16:54:42.163] [INFO] OutputFile : C:\azure\atlas\output.txt
-[2026-06-24 16:54:42.168] [INFO] RepoPath   : C:\azure\atlas\app-minha-producao
-[2026-06-24 16:54:42.172] [INFO] LogFile    : C:\azure\atlas\logs\agent.log
-[2026-06-24 16:54:42.174] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:42.176] [INFO] Lendo prompt_temp.txt...
-[2026-06-24 16:54:42.186] [INFO] Prompt lido: 23026 chars
-[2026-06-24 16:54:42.203] [INFO] Ticket         : TICKET_ID      : <id do chamado ex: DMANUFATURA-14158>
-[2026-06-24 16:54:42.206] [INFO] Funcionalidades: FUNCIONALIDADES: <funcionalidades selecionadas pelo dev no multiselect>
-[2026-06-24 16:54:42.208] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:42.210] [INFO] Mudando para repositorio: C:\azure\atlas\app-minha-producao
-[2026-06-24 16:54:42.216] [INFO] Diretorio atual: C:\azure\atlas\app-minha-producao
-[2026-06-24 16:54:42.219] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:42.223] [INFO] Chamando Claude Code via stdin...
-[2026-06-24 16:54:42.225] [INFO] Flags: --dangerously-skip-permissions --print
-[2026-06-24 16:54:42.227] [----] ----------------------------------------------------------------
-[2026-06-24 16:54:48.014] [WAIT] Claude processando... 6s decorridos
-[2026-06-24 16:54:53.852] [WAIT] Claude processando... 12s decorridos
-[2026-06-24 16:54:58.872] [WAIT] Claude processando... 17s decorridos
-[2026-06-24 16:55:03.887] [WAIT] Claude processando... 22s decorridos
-[2026-06-24 16:55:08.975] [WAIT] Claude processando... 27s decorridos
-[2026-06-24 16:55:13.992] [WAIT] Claude processando... 32s decorridos
-[2026-06-24 16:55:19.027] [WAIT] Claude processando... 37s decorridos
-[2026-06-24 16:55:24.034] [WAIT] Claude processando... 42s decorridos
-[2026-06-24 16:55:29.055] [WAIT] Claude processando... 47s decorridos
-[2026-06-24 16:55:34.066] [WAIT] Claude processando... 52s decorridos
-[2026-06-24 16:55:39.081] [WAIT] Claude processando... 57s decorridos
-[2026-06-24 16:55:44.087] [WAIT] Claude processando... 62s decorridos
-[2026-06-24 16:55:49.107] [WAIT] Claude processando... 67s decorridos
-[2026-06-24 16:55:54.123] [WAIT] Claude processando... 72s decorridos
-[2026-06-24 16:55:58.982] [----] ----------------------------------------------------------------
-[2026-06-24 16:55:58.985] [INFO] Claude finalizado. Exit code: 0 | Tempo: 77s
-[2026-06-24 16:55:59.013] [INFO] Resultado: 1778 chars
-[2026-06-24 16:55:59.017] [INFO] Preview  : ======================================== | AGENTE DE CHAMADOS — ANÁLISE DO TICKET | ========================================
-[2026-06-24 16:55:59.061] [INFO] output.txt gravado com sucesso
-[2026-06-24 16:55:59.074] [----] ----------------------------------------------------------------
-[2026-06-24 16:55:59.077] [INFO] === POWERSHELL CONCLUIDO ===
-[2026-06-24 16:55:59.079] [----] ----------------------------------------------------------------
-[2026-06-24 19:55:59.174] [-----] ----------------------------------------------------------------
-[2026-06-24 19:55:59.177] [INFO ] PowerShell finalizado. Duração: 77.9s
-[2026-06-24 19:55:59.179] [INFO ] PDF temp deletado
-[2026-06-24 19:55:59.180] [INFO ] prompt_temp.txt deletado
-[2026-06-24 19:55:59.182] [INFO ] output.txt lido: 1778 chars
-[2026-06-24 19:55:59.183] [INFO ] Preview do resultado:
-[2026-06-24 19:55:59.184] [INFO ]   | ========================================
-[2026-06-24 19:55:59.185] [INFO ]   | AGENTE DE CHAMADOS — ANÁLISE DO TICKET
-[2026-06-24 19:55:59.186] [INFO ]   | ========================================
-[2026-06-24 19:55:59.188] [INFO ]   | TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
-[2026-06-24 19:55:59.190] [INFO ]   | DATA     : 2026-06-24 (análise automática)
-[2026-06-24 19:55:59.192] [-----] ----------------------------------------------------------------
-[2026-06-24 19:55:59.194] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
-[2026-06-24 19:55:59.195] [-----] ----------------------------------------------------------------
+[2026-06-25 01:13:59.456] [-----] ----------------------------------------------------------------
+[2026-06-25 01:13:59.458] [INFO ] === NOVA ANÁLISE INICIADA ===
+[2026-06-25 01:13:59.460] [-----] ----------------------------------------------------------------
+[2026-06-25 01:13:59.462] [INFO ] RequestId    : 0a558a0f-00b3-454f-9011-17ead4f6e6e0
+[2026-06-25 01:13:59.464] [INFO ] Data/Hora    : 24/06/2026, 22:13:59
+[2026-06-25 01:13:59.466] [INFO ] TicketId     : DMANUFATURA-21257
+[2026-06-25 01:13:59.467] [INFO ] Titulo       : Problema de visualizacao de botao na hora de informar motivos de refugo
+[2026-06-25 01:13:59.468] [INFO ] Prioridade   : Média
+[2026-06-25 01:13:59.469] [INFO ] Tipo         : Spike
+[2026-06-25 01:13:59.470] [INFO ] Responsavel  : Bruno Scholze_
+[2026-06-25 01:13:59.471] [INFO ] Funcionalidades: Motivo de refugo (ligado ao Apontamento)
+[2026-06-25 01:13:59.472] [INFO ] Observacao   : (não informada)
+[2026-06-25 01:13:59.473] [INFO ] PDF          : C:\azure\atlas\temp\DMANUFATURA-21257_1782350039453.pdf
+[2026-06-25 01:13:59.474] [-----] ----------------------------------------------------------------
+[2026-06-25 01:13:59.474] [INFO ] Lendo claude.md...
+[2026-06-25 01:13:59.476] [INFO ] claude.md: 6792 chars
+[2026-06-25 01:13:59.477] [INFO ] Lendo Funcionalidades.md...
+[2026-06-25 01:13:59.479] [INFO ] Funcionalidades.md: 13570 chars
+[2026-06-25 01:13:59.481] [INFO ] Montando prompt...
+[2026-06-25 01:13:59.483] [INFO ] Prompt montado: 23026 chars
+[2026-06-25 01:13:59.487] [INFO ] debug.txt atualizado
+[2026-06-25 01:13:59.490] [INFO ] prompt_temp.txt gravado: C:\azure\atlas\prompt_temp.txt
+[2026-06-25 01:13:59.491] [INFO ] PS1 path: C:\azure\atlas\scripts\run-claude.ps1
+[2026-06-25 01:13:59.491] [INFO ] Output path: C:\azure\atlas\output.txt
+[2026-06-25 01:13:59.493] [INFO ] Repo path: C:\azure\atlas\app-minha-producao
+[2026-06-25 01:13:59.493] [INFO ] Log file: C:\azure\atlas\logs\agent.log
+[2026-06-25 01:13:59.495] [-----] ----------------------------------------------------------------
+[2026-06-25 01:13:59.496] [INFO ] Iniciando PowerShell...
+[2026-06-25 01:13:59.499] [DEBUG] Comando: powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\azure\atlas\scripts\run-claude.ps1" "C:\azure\atlas\prompt_temp.txt" "C:\azure\atlas\output.txt" "C:\azure\atlas\app-minha-producao" "C:\azure\atlas\logs\agent.log"
+[2026-06-24 22:14:00.635] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:00.736] [INFO] === AGENTE DE CHAMADOS - POWERSHELL INICIADO ===
+[2026-06-24 22:14:00.739] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:00.740] [INFO] PromptFile : C:\azure\atlas\prompt_temp.txt
+[2026-06-24 22:14:00.743] [INFO] OutputFile : C:\azure\atlas\output.txt
+[2026-06-24 22:14:00.745] [INFO] RepoPath   : C:\azure\atlas\app-minha-producao
+[2026-06-24 22:14:00.747] [INFO] LogFile    : C:\azure\atlas\logs\agent.log
+[2026-06-24 22:14:00.750] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:00.752] [INFO] Lendo prompt_temp.txt...
+[2026-06-24 22:14:00.758] [INFO] Prompt lido: 23026 chars
+[2026-06-24 22:14:00.779] [INFO] Ticket         : TICKET_ID      : <id do chamado ex: DMANUFATURA-14158>
+[2026-06-24 22:14:00.783] [INFO] Funcionalidades: FUNCIONALIDADES: <funcionalidades selecionadas pelo dev no multiselect>
+[2026-06-24 22:14:00.785] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:00.787] [INFO] Mudando para repositorio: C:\azure\atlas\app-minha-producao
+[2026-06-24 22:14:00.792] [INFO] Diretorio atual: C:\azure\atlas\app-minha-producao
+[2026-06-24 22:14:00.795] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:00.798] [INFO] Chamando Claude Code via stdin...
+[2026-06-24 22:14:00.799] [INFO] Flags: --dangerously-skip-permissions --print
+[2026-06-24 22:14:00.802] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:06.720] [WAIT] Claude processando... 6s decorridos
+[2026-06-24 22:14:11.822] [WAIT] Claude processando... 11s decorridos
+[2026-06-24 22:14:16.826] [WAIT] Claude processando... 16s decorridos
+[2026-06-24 22:14:21.836] [WAIT] Claude processando... 21s decorridos
+[2026-06-24 22:14:26.846] [WAIT] Claude processando... 26s decorridos
+[2026-06-24 22:14:31.866] [WAIT] Claude processando... 31s decorridos
+[2026-06-24 22:14:36.882] [WAIT] Claude processando... 36s decorridos
+[2026-06-24 22:14:41.895] [WAIT] Claude processando... 41s decorridos
+[2026-06-24 22:14:46.905] [WAIT] Claude processando... 46s decorridos
+[2026-06-24 22:14:51.923] [WAIT] Claude processando... 51s decorridos
+[2026-06-24 22:14:56.925] [WAIT] Claude processando... 56s decorridos
+[2026-06-24 22:14:59.831] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:59.835] [INFO] Claude finalizado. Exit code: 0 | Tempo: 59s
+[2026-06-24 22:14:59.862] [INFO] Resultado: 1813 chars
+[2026-06-24 22:14:59.867] [INFO] Preview  : ======================================== | AGENTE DE CHAMADOS — ANÁLISE DO TICKET | ========================================
+[2026-06-24 22:14:59.873] [INFO] output.txt gravado com sucesso
+[2026-06-24 22:14:59.875] [----] ----------------------------------------------------------------
+[2026-06-24 22:14:59.877] [INFO] === POWERSHELL CONCLUIDO ===
+[2026-06-24 22:14:59.879] [----] ----------------------------------------------------------------
+[2026-06-25 01:14:59.922] [-----] ----------------------------------------------------------------
+[2026-06-25 01:14:59.923] [INFO ] PowerShell finalizado. Duração: 60.4s
+[2026-06-25 01:14:59.924] [INFO ] PDF temp deletado
+[2026-06-25 01:14:59.925] [INFO ] prompt_temp.txt deletado
+[2026-06-25 01:14:59.926] [INFO ] output.txt lido: 1813 chars
+[2026-06-25 01:14:59.927] [INFO ] Preview do resultado:
+[2026-06-25 01:14:59.928] [INFO ]   | ========================================
+[2026-06-25 01:14:59.929] [INFO ]   | AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+[2026-06-25 01:14:59.929] [INFO ]   | ========================================
+[2026-06-25 01:14:59.930] [INFO ]   | TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+[2026-06-25 01:14:59.933] [INFO ]   | DATA     : 2026-06-24 09:15
+[2026-06-25 01:14:59.934] [-----] ----------------------------------------------------------------
+[2026-06-25 01:14:59.935] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
+[2026-06-25 01:14:59.937] [-----] ----------------------------------------------------------------

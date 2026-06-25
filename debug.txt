@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 1372faf4-7b9f-45f8-8456-0e1231c12c93
-Data/Hora : 24/06/2026, 16:54:41
+RequestId : 0a558a0f-00b3-454f-9011-17ead4f6e6e0
+Data/Hora : 24/06/2026, 22:13:59
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -15,7 +15,7 @@ tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: Motivo de refugo (ligado ao Apontamento)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782330881251.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782350039453.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -454,7 +454,7 @@ COMENTARIOS    :
 HISTORICO      : 
 FUNCIONALIDADES: Motivo de refugo (ligado ao Apontamento)
 OBSERVACAO     : Nenhuma observação adicional
-ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782330881251.pdf
+ANEXO          : C:\azure\atlas\temp\DMANUFATURA-21257_1782350039453.pdf
 
 ---
 ⚠️ ATENÇÃO — CONTEXTO GIT DEVE SER COMPLETAMENTE IGNORADO:

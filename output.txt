@@ -3,18 +3,18 @@ AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
 TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
-DATA     : 2026-06-24 (análise automática)
+DATA     : 2026-06-24 09:15
 
 ----------------------------------------
 LOCALIZAÇÃO DO PROBLEMA
 ----------------------------------------
 Arquivo: `datasul-report-reason.html`, linha 93
-O po-button "Adicionar Motivo" usa `p-type="primary"` em vez de `p-kind="primary"`, renderizando como botão secundário (outline apagado).
+O po-button "Adicionar Motivo" usa `p-type="primary"` em vez de `p-kind="primary"`, fazendo o botão renderizar sem destaque visual (aparência apagada).
 
 ----------------------------------------
 CAUSA PROVÁVEL
 ----------------------------------------
-Em PO-UI, `p-type` controla o tipo HTML do botão (submit/button/reset) — não sua aparência visual. Sem `p-kind` definido, o botão assume o default `secondary` (outline), ficando quase invisível sobre fundo branco.
+O atributo `p-type` no po-button define o tipo HTML do elemento (`button`, `submit`, `reset`) — não sua aparência. Sem `p-kind="primary"`, o botão renderiza com o estilo padrão (secondary/outline), tornando-o quase invisível no fundo branco.
 
 ----------------------------------------
 COMO RESOLVER
@@ -26,15 +26,13 @@ DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-rep
 +        p-kind="primary"
 DIFF_END
 
-Com `p-kind="primary"` o botão recebe o preenchimento azul sólido padrão do PO-UI, tornando-o visível e consistente com os demais botões primários do app.
+`p-kind="primary"` é o atributo correto do PO-UI para aplicar a variante visual azul/destaque ao botão, tornando-o visível e consistente com os demais botões primários do app.
 
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
 Prioritários:
 - src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-
-Contexto:
 - src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts
 
 ========================================
