@@ -1,0 +1,47 @@
+﻿========================================
+AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+========================================
+
+TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+DATA     : 2026-06-25 14:30
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- Motivo de refugo (ligado ao Apontamento) — motivo: o ticket relata o botão "Adicionar Motivo" da tela de informar motivos de refugo, que é exatamente a sub-tela datasul-report-reason acionada dentro do fluxo de apontamento.
+
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo: `datasul-report-reason.html`, linha 93
+O po-button "Adicionar Motivo" usa `p-type="primary"` em vez de `p-kind="primary"`, fazendo com que o botão renderize sem estilo visual primário (aparência apagada/secundária).
+
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+No PO-UI, `p-type` controla o tipo HTML do botão (submit/button/reset) e não a aparência visual. O atributo que define a cor/estilo é `p-kind`. Sem `p-kind="primary"`, o botão exibe o estilo padrão neutro, quase invisível.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Substituir `p-type="primary"` por `p-kind="primary"` na linha 93:
+
+DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+-        p-type="primary"
++        p-kind="primary"
+DIFF_END
+
+Com `p-kind="primary"`, o PO-UI aplica o estilo azul primário ao botão, tornando-o visualmente destacado e fácil de identificar pelo usuário.
+
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+Prioritários:
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+
+----------------------------------------
+OBSERVAÇÕES
+----------------------------------------
+- O atributo `p-type` no HTML resultante não causa erro, mas também não tem efeito visual — o PO-UI simplesmente ignora o valor "primary" para esse atributo. Por isso o botão renderizava sem destaque visual sem lançar nenhum erro no console.
+
+========================================
