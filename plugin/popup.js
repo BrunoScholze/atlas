@@ -13,7 +13,8 @@ const state = {
   pdfFile: null,
   dadosTicket: {},
   projetoSelecionado: null,
-  projetoNome: null
+  projetoNome: null,
+  projetoAzure: null
 };
 
 let pollingInterval = null;
@@ -128,13 +129,15 @@ function popularDropdownProjetos(projetos) {
   menu.innerHTML = '';
   projetos.forEach((proj, idx) => {
     const opt = document.createElement('div');
-    opt.className  = 'proj-option' + (idx === 0 ? ' selected' : '');
+    opt.className   = 'proj-option' + (idx === 0 ? ' selected' : '');
     opt.textContent = proj.nome;
-    opt.dataset.slug = proj.slug;
-    opt.addEventListener('click', () => selecionarProjeto(proj.slug, proj.nome, opt));
+    opt.dataset.slug  = proj.slug;
+    opt.dataset.azure = proj.azure || '';
+    opt.addEventListener('click', () => selecionarProjeto(proj.slug, proj.nome, proj.azure || '', opt));
     menu.appendChild(opt);
   });
-  selecionarProjeto(projetos[0].slug, projetos[0].nome, menu.firstChild);
+  const p = projetos[0];
+  selecionarProjeto(p.slug, p.nome, p.azure || '', menu.firstChild);
 }
 
 function abrirMenuProjeto() {
@@ -147,9 +150,10 @@ function fecharMenuProjeto() {
   document.getElementById('projPill').setAttribute('aria-expanded', 'false');
 }
 
-function selecionarProjeto(slug, nome, optEl) {
+function selecionarProjeto(slug, nome, azure, optEl) {
   state.projetoSelecionado = slug;
   state.projetoNome        = nome;
+  state.projetoAzure       = azure;
   document.getElementById('projNome').textContent = nome;
   document.querySelectorAll('.proj-option').forEach(o => o.classList.remove('selected'));
   if (optEl) optEl.classList.add('selected');
@@ -238,6 +242,18 @@ function configurarEventos() {
   // Voltar para tela 1
   document.getElementById('btnVoltar').addEventListener('click', voltarParaSelecao);
 
+  // Checkbox detalhes — mostra/esconde textarea
+  document.getElementById('checkDetalhes').addEventListener('change', function () {
+    const wrap = document.getElementById('fieldWrapDetalhes');
+    wrap.style.display = this.checked ? 'block' : 'none';
+    if (!this.checked) {
+      document.getElementById('descricaoTextarea').value = '';
+      esconderErroDescricao();
+    } else {
+      document.getElementById('descricaoTextarea').focus();
+    }
+  });
+
   // Limpa erro quando digita
   document.getElementById('descricaoTextarea').addEventListener('input', esconderErroDescricao);
 
@@ -253,13 +269,20 @@ function configurarEventos() {
   document.getElementById('btnDownloadLog').addEventListener('click',
     () => downloadArquivo(`${SERVER_URL}/download/log/latest`, 'log.log'));
 
-  // Fecha dropdown ao clicar fora + toggle diff view
+  // Fecha dropdown ao clicar fora + toggle diff view + links Azure
   document.addEventListener('click', e => {
     if (!document.getElementById('projDropdown').contains(e.target)) fecharMenuProjeto();
+
     const btn = e.target.closest('.btn-toggle-view');
     if (btn) {
       const block = btn.closest('.diff-block, .code-block');
       if (block) block.classList.toggle('view-dark');
+    }
+
+    const link = e.target.closest('.arquivo-link');
+    if (link && link.dataset.url) {
+      e.preventDefault();
+      chrome.tabs.create({ url: link.dataset.url });
     }
   });
 }
@@ -271,7 +294,13 @@ async function analisar() {
   const descricao = document.getElementById('descricaoTextarea').value.trim();
 
   if (!temPdf && !descricao) {
+    // Abre o checkbox e revela o campo de texto com aviso
+    const check = document.getElementById('checkDetalhes');
+    const wrap  = document.getElementById('fieldWrapDetalhes');
+    check.checked      = true;
+    wrap.style.display = 'block';
     mostrarErroDescricao();
+    document.getElementById('descricaoTextarea').scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('descricaoTextarea').focus();
     return;
   }
@@ -419,6 +448,16 @@ function renderizarResultado(texto) {
     document.getElementById('conteudoResolver').innerHTML     = renderSecao(resolver);
     document.getElementById('conteudoArquivos').innerHTML     = renderSecao(arquivos);
     document.getElementById('conteudoObservacoes').innerHTML  = renderSecao(obs);
+
+    // Arquivos alterados — extraídos dos blocos DIFF_START do texto completo
+    const alterados = extrairArquivosAlterados(texto);
+    const secaoAlt  = document.getElementById('secaoAlterados');
+    if (alterados.length) {
+      document.getElementById('conteudoAlterados').innerHTML = renderArquivosAlterados(alterados, state.projetoAzure);
+      secaoAlt.style.display = '';
+    } else {
+      secaoAlt.style.display = 'none';
+    }
   } else {
     document.getElementById('secaoEstruturada').style.display = 'none';
     document.getElementById('secaoBruta').style.display       = 'block';
@@ -520,6 +559,31 @@ function renderTexto(texto) {
     return `<p class="md-p">${bloco.replace(/\n/g, '<br>')}</p>`;
   }).join('');
   return h;
+}
+
+// ============================================================ ARQUIVOS ALTERADOS
+
+function extrairArquivosAlterados(texto) {
+  const regex = /DIFF_START\s+arquivo:\s*(.+)/gi;
+  const vistos = new Set();
+  let match;
+  while ((match = regex.exec(texto)) !== null) {
+    vistos.add(match[1].trim());
+  }
+  return [...vistos];
+}
+
+function renderArquivosAlterados(caminhos, azureBase) {
+  if (!caminhos.length) return '';
+  return caminhos.map(caminho => {
+    const nome = caminho.split('/').pop();
+    const pathAzure = '/' + caminho.replace(/^\//, '');
+    if (azureBase) {
+      const url = `${azureBase}?path=${encodeURIComponent(pathAzure)}&version=GBmaster`;
+      return `<p class="md-p"><a class="arquivo-link" data-url="${url}">📄 ${escaparHtml(caminho)}</a></p>`;
+    }
+    return `<p class="md-p">📄 ${escaparHtml(caminho)}</p>`;
+  }).join('');
 }
 
 // ============================================================ renderSecao — suporte DIFF_START/DIFF_END
@@ -658,6 +722,8 @@ async function resetarFormulario() {
   document.getElementById('dropzoneFilenameText').textContent = '';
   document.getElementById('pdfInput').value = '';
 
+  document.getElementById('checkDetalhes').checked = false;
+  document.getElementById('fieldWrapDetalhes').style.display = 'none';
   document.getElementById('descricaoTextarea').value = '';
   esconderErroDescricao();
 

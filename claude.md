@@ -39,7 +39,9 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Anote: o que o usuário faz → o que acontece de errado → o que deveria acontecer
 
 ### Passo 2 — Identifique as funcionalidades e monte os arquivos suspeitos
-- Abra Funcionalidades.md e leia TODAS as funcionalidades disponíveis
+- O Funcionalidades.md que você recebeu já está **filtrado para o projeto selecionado**.
+  Leia APENAS as funcionalidades presentes nele — não tente ler outras seções nem o
+  arquivo completo. Isso evita desperdício de tempo e contexto.
 - O campo FUNCIONALIDADES virá vazio — o dev não seleciona mais
 - Use TITULO, DESCRICAO, COMENTARIOS, PDF e OBSERVACAO para identificar
   quais funcionalidades têm maior relação com o problema relatado
@@ -49,6 +51,8 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
   componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
   leia esses também. Só encerra quando rastreou todos os elos da cadeia.
+- Liste em ARQUIVOS ANALISADOS **todos** os arquivos que você abriu e leu,
+  não apenas os que continham o bug. O dev precisa saber o que foi coberto.
 
 ### Passo 3 — Investigue o fluxo de ponta a ponta
 1. Template (.html) — qual campo ou ação está relacionada ao problema?

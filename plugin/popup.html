@@ -65,7 +65,7 @@
 
       <!-- PDF dropzone -->
       <div class="drop-zone" id="dropzone">
-        <span class="float-label">Simulação — opcional</span>
+        <span class="float-label">Simulação feita pela equipe de suporte</span>
         <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
 
         <div id="dropzoneContent" style="display:flex;align-items:center;gap:14px;width:100%;">
@@ -91,17 +91,23 @@
         </div>
       </div>
 
-      <!-- Textarea de descrição — sempre visível -->
-      <div class="field-wrap">
-        <span class="float-label">Descrição do problema</span>
+      <!-- Checkbox para revelar detalhes adicionais -->
+      <label class="check-detalhes" id="labelCheckDetalhes">
+        <input type="checkbox" id="checkDetalhes" />
+        Fornecer mais detalhes para melhor resultado (opcional)
+      </label>
+
+      <!-- Textarea de detalhes — aparece só quando checkbox marcado -->
+      <div class="field-wrap" id="fieldWrapDetalhes" style="display:none">
+        <span class="float-label">Detalhes chaves / dicas</span>
         <textarea
           id="descricaoTextarea"
           class="s2-textarea"
-          placeholder="Ex: Na tela de Apontamento de Produção, ao salvar o registro, o campo Quantidade fica em branco. O valor deveria ser mantido após salvar..."
-          rows="5"
+          placeholder="Ex: O campo Quantidade fica em branco ao salvar. O botão Confirmar some depois do segundo clique..."
+          rows="4"
         ></textarea>
         <p class="descricao-erro" id="descricaoErro" style="display:none">
-          Anexe um PDF ou descreva o problema antes de continuar.
+          Anexe um PDF ou preencha este campo para continuar.
         </p>
       </div>
 
@@ -162,6 +168,11 @@
         <div class="resultado-secao" id="secaoResolver">
           <h3 class="secao-titulo">🔧 COMO RESOLVER</h3>
           <div class="secao-conteudo" id="conteudoResolver"></div>
+        </div>
+
+        <div class="resultado-secao" id="secaoAlterados" style="display:none">
+          <h3 class="secao-titulo">🌀 LINK PARA O AZURE</h3>
+          <div class="secao-conteudo" id="conteudoAlterados"></div>
         </div>
 
         <details class="resultado-secao sanfona" id="secaoArquivos">

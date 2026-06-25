@@ -1,86 +1,86 @@
-[2026-06-25 11:26:09.953] [-----] ----------------------------------------------------------------
-[2026-06-25 11:26:09.956] [INFO ] === NOVA ANÁLISE INICIADA ===
-[2026-06-25 11:26:09.962] [-----] ----------------------------------------------------------------
-[2026-06-25 11:26:09.964] [INFO ] RequestId    : 9c00dce0-4dc6-442f-a19b-c1a53cd454fc
-[2026-06-25 11:26:09.967] [INFO ] Data/Hora    : 25/06/2026, 08:26:09
-[2026-06-25 11:26:09.968] [INFO ] TicketId     : DMANUFATURA-21257
-[2026-06-25 11:26:09.971] [INFO ] Titulo       : Problema de visualizacao de botao na hora de informar motivos de refugo
-[2026-06-25 11:26:09.972] [INFO ] Prioridade   : Média
-[2026-06-25 11:26:09.973] [INFO ] Tipo         : Spike
-[2026-06-25 11:26:09.973] [INFO ] Responsavel  : Bruno Scholze_
-[2026-06-25 11:26:09.974] [INFO ] Projeto        : app-minha-prod
-[2026-06-25 11:26:09.975] [INFO ] Observacao   : (não informada)
-[2026-06-25 11:26:09.977] [INFO ] PDF          : C:\azure\atlas\temp\DMANUFATURA-21257_1782386769948.pdf
-[2026-06-25 11:26:09.978] [-----] ----------------------------------------------------------------
-[2026-06-25 11:26:09.980] [INFO ] Projeto: app-minha-prod → CLAUDE.md
-[2026-06-25 11:26:09.981] [INFO ] Lendo CLAUDE.md...
-[2026-06-25 11:26:09.984] [INFO ] CLAUDE.md: 7780 chars
-[2026-06-25 11:26:09.986] [INFO ] Lendo Funcionalidades.md...
-[2026-06-25 11:26:09.989] [INFO ] Funcionalidades.md filtrado para [app-minha-prod]: 13757 chars
-[2026-06-25 11:26:09.990] [INFO ] Montando prompt...
-[2026-06-25 11:26:09.991] [INFO ] Prompt montado: 24192 chars
-[2026-06-25 11:26:09.996] [INFO ] debug.txt atualizado
-[2026-06-25 11:26:10.001] [INFO ] prompt_temp.txt gravado: C:\azure\atlas\prompt_temp.txt
-[2026-06-25 11:26:10.003] [INFO ] PS1 path: C:\azure\atlas\scripts\run-claude.ps1
-[2026-06-25 11:26:10.004] [INFO ] Output path: C:\azure\atlas\output.txt
-[2026-06-25 11:26:10.006] [INFO ] Repo path: C:\azure\atlas\app-minha-producao
-[2026-06-25 11:26:10.007] [INFO ] Log file: C:\azure\atlas\logs\agent.log
-[2026-06-25 11:26:10.008] [-----] ----------------------------------------------------------------
-[2026-06-25 11:26:10.010] [INFO ] Iniciando PowerShell...
-[2026-06-25 11:26:10.012] [DEBUG] Comando: powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\azure\atlas\scripts\run-claude.ps1" "C:\azure\atlas\prompt_temp.txt" "C:\azure\atlas\output.txt" "C:\azure\atlas\app-minha-producao" "C:\azure\atlas\logs\agent.log"
-[2026-06-25 08:26:12.015] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:12.247] [INFO] === AGENTE DE CHAMADOS - POWERSHELL INICIADO ===
-[2026-06-25 08:26:12.251] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:12.256] [INFO] PromptFile : C:\azure\atlas\prompt_temp.txt
-[2026-06-25 08:26:12.262] [INFO] OutputFile : C:\azure\atlas\output.txt
-[2026-06-25 08:26:12.266] [INFO] RepoPath   : C:\azure\atlas\app-minha-producao
-[2026-06-25 08:26:12.270] [INFO] LogFile    : C:\azure\atlas\logs\agent.log
-[2026-06-25 08:26:12.279] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:12.284] [INFO] Lendo prompt_temp.txt...
-[2026-06-25 08:26:12.302] [INFO] Prompt lido: 24192 chars
-[2026-06-25 08:26:12.370] [INFO] Ticket         : TICKET_ID      : <id do chamado ex: DMANUFATURA-14158>
-[2026-06-25 08:26:12.375] [INFO] Funcionalidades: FUNCIONALIDADES: <campo vazio — o agente identifica sozinho>
-[2026-06-25 08:26:12.380] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:12.384] [INFO] Mudando para repositorio: C:\azure\atlas\app-minha-producao
-[2026-06-25 08:26:12.394] [INFO] Diretorio atual: C:\azure\atlas\app-minha-producao
-[2026-06-25 08:26:12.399] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:12.404] [INFO] Chamando Claude Code via stdin...
-[2026-06-25 08:26:12.408] [INFO] Flags: --dangerously-skip-permissions --print
-[2026-06-25 08:26:12.414] [----] ----------------------------------------------------------------
-[2026-06-25 08:26:19.482] [WAIT] Claude processando... 7s decorridos
-[2026-06-25 08:26:24.728] [WAIT] Claude processando... 12s decorridos
-[2026-06-25 08:26:29.817] [WAIT] Claude processando... 17s decorridos
-[2026-06-25 08:26:34.825] [WAIT] Claude processando... 22s decorridos
-[2026-06-25 08:26:39.840] [WAIT] Claude processando... 27s decorridos
-[2026-06-25 08:26:44.854] [WAIT] Claude processando... 32s decorridos
-[2026-06-25 08:26:49.885] [WAIT] Claude processando... 37s decorridos
-[2026-06-25 08:26:54.903] [WAIT] Claude processando... 42s decorridos
-[2026-06-25 08:26:59.912] [WAIT] Claude processando... 47s decorridos
-[2026-06-25 08:27:04.924] [WAIT] Claude processando... 53s decorridos
-[2026-06-25 08:27:09.932] [WAIT] Claude processando... 58s decorridos
-[2026-06-25 08:27:14.961] [WAIT] Claude processando... 63s decorridos
-[2026-06-25 08:27:20.073] [WAIT] Claude processando... 68s decorridos
-[2026-06-25 08:27:23.949] [----] ----------------------------------------------------------------
-[2026-06-25 08:27:24.040] [INFO] Claude finalizado. Exit code: 0 | Tempo: 72s
-[2026-06-25 08:27:24.127] [INFO] Resultado: 2372 chars
-[2026-06-25 08:27:24.139] [INFO] Preview  : ======================================== | AGENTE DE CHAMADOS — ANÁLISE DO TICKET | ========================================
-[2026-06-25 08:27:24.227] [INFO] output.txt gravado com sucesso
-[2026-06-25 08:27:24.247] [----] ----------------------------------------------------------------
-[2026-06-25 08:27:24.274] [INFO] === POWERSHELL CONCLUIDO ===
-[2026-06-25 08:27:24.281] [----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.494] [-----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.505] [INFO ] PowerShell finalizado. Duração: 74.5s
-[2026-06-25 11:27:24.538] [INFO ] PDF temp deletado
-[2026-06-25 11:27:24.551] [INFO ] prompt_temp.txt deletado
-[2026-06-25 11:27:24.560] [INFO ] output.txt lido: 2372 chars
-[2026-06-25 11:27:24.565] [-----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.570] [INFO ] === FUNCIONALIDADES IDENTIFICADAS ===
-[2026-06-25 11:27:24.572] [INFO ]   - Motivo de refugo (ligado ao Apontamento) — motivo: o ticket relata o botão "Adicionar Motivo" da tela de informar motivos de refugo, que é exatamente a sub-tela datasul-report-reason acionada dentro do fluxo de apontamento.
-[2026-06-25 11:27:24.574] [-----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.576] [INFO ] === ARQUIVOS ANALISADOS ===
-[2026-06-25 11:27:24.586] [INFO ]   Prioritários:
-[2026-06-25 11:27:24.588] [INFO ]   - src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-[2026-06-25 11:27:24.590] [-----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.593] [-----] ----------------------------------------------------------------
-[2026-06-25 11:27:24.599] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
-[2026-06-25 11:27:24.605] [-----] ----------------------------------------------------------------
+[2026-06-25 13:02:51.300] [-----] ----------------------------------------------------------------
+[2026-06-25 13:02:51.302] [INFO ] === NOVA ANÁLISE INICIADA ===
+[2026-06-25 13:02:51.304] [-----] ----------------------------------------------------------------
+[2026-06-25 13:02:51.306] [INFO ] RequestId    : 70c1c451-d202-4d01-9161-b829d201aa18
+[2026-06-25 13:02:51.308] [INFO ] Data/Hora    : 25/06/2026, 10:02:51
+[2026-06-25 13:02:51.309] [INFO ] TicketId     : DMANUFATURA-21257
+[2026-06-25 13:02:51.311] [INFO ] Titulo       : Problema de visualizacao de botao na hora de informar motivos de refugo
+[2026-06-25 13:02:51.313] [INFO ] Prioridade   : Média
+[2026-06-25 13:02:51.314] [INFO ] Tipo         : Spike
+[2026-06-25 13:02:51.316] [INFO ] Responsavel  : Bruno Scholze_
+[2026-06-25 13:02:51.317] [INFO ] Projeto        : app-minha-prod
+[2026-06-25 13:02:51.319] [INFO ] Observacao   : (não informada)
+[2026-06-25 13:02:51.320] [INFO ] PDF          : C:\azure\atlas\temp\DMANUFATURA-21257_1782392571293.pdf
+[2026-06-25 13:02:51.322] [-----] ----------------------------------------------------------------
+[2026-06-25 13:02:51.323] [INFO ] Projeto: app-minha-prod → CLAUDE.md
+[2026-06-25 13:02:51.324] [INFO ] Lendo CLAUDE.md...
+[2026-06-25 13:02:51.326] [INFO ] CLAUDE.md: 8098 chars
+[2026-06-25 13:02:51.327] [INFO ] Lendo Funcionalidades.md...
+[2026-06-25 13:02:51.328] [INFO ] Funcionalidades.md filtrado para [app-minha-prod]: 13757 chars
+[2026-06-25 13:02:51.329] [INFO ] Montando prompt...
+[2026-06-25 13:02:51.330] [INFO ] Prompt montado: 24510 chars
+[2026-06-25 13:02:51.334] [INFO ] debug.txt atualizado
+[2026-06-25 13:02:51.339] [INFO ] prompt_temp.txt gravado: C:\azure\atlas\prompt_temp.txt
+[2026-06-25 13:02:51.340] [INFO ] PS1 path: C:\azure\atlas\scripts\run-claude.ps1
+[2026-06-25 13:02:51.341] [INFO ] Output path: C:\azure\atlas\output.txt
+[2026-06-25 13:02:51.342] [INFO ] Repo path: C:\azure\atlas\app-minha-producao
+[2026-06-25 13:02:51.343] [INFO ] Log file: C:\azure\atlas\logs\agent.log
+[2026-06-25 13:02:51.345] [-----] ----------------------------------------------------------------
+[2026-06-25 13:02:51.346] [INFO ] Iniciando PowerShell...
+[2026-06-25 13:02:51.347] [DEBUG] Comando: powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\azure\atlas\scripts\run-claude.ps1" "C:\azure\atlas\prompt_temp.txt" "C:\azure\atlas\output.txt" "C:\azure\atlas\app-minha-producao" "C:\azure\atlas\logs\agent.log"
+[2026-06-25 10:02:52.380] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:52.524] [INFO] === AGENTE DE CHAMADOS - POWERSHELL INICIADO ===
+[2026-06-25 10:02:52.529] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:52.532] [INFO] PromptFile : C:\azure\atlas\prompt_temp.txt
+[2026-06-25 10:02:52.537] [INFO] OutputFile : C:\azure\atlas\output.txt
+[2026-06-25 10:02:52.540] [INFO] RepoPath   : C:\azure\atlas\app-minha-producao
+[2026-06-25 10:02:52.542] [INFO] LogFile    : C:\azure\atlas\logs\agent.log
+[2026-06-25 10:02:52.546] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:52.549] [INFO] Lendo prompt_temp.txt...
+[2026-06-25 10:02:52.564] [INFO] Prompt lido: 24510 chars
+[2026-06-25 10:02:52.597] [INFO] Ticket         : TICKET_ID      : <id do chamado ex: DMANUFATURA-14158>
+[2026-06-25 10:02:52.602] [INFO] Funcionalidades: FUNCIONALIDADES: <campo vazio — o agente identifica sozinho>
+[2026-06-25 10:02:52.606] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:52.610] [INFO] Mudando para repositorio: C:\azure\atlas\app-minha-producao
+[2026-06-25 10:02:52.617] [INFO] Diretorio atual: C:\azure\atlas\app-minha-producao
+[2026-06-25 10:02:52.621] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:52.624] [INFO] Chamando Claude Code via stdin...
+[2026-06-25 10:02:52.627] [INFO] Flags: --dangerously-skip-permissions --print
+[2026-06-25 10:02:52.630] [----] ----------------------------------------------------------------
+[2026-06-25 10:02:59.205] [WAIT] Claude processando... 7s decorridos
+[2026-06-25 10:03:04.414] [WAIT] Claude processando... 12s decorridos
+[2026-06-25 10:03:09.426] [WAIT] Claude processando... 17s decorridos
+[2026-06-25 10:03:14.442] [WAIT] Claude processando... 22s decorridos
+[2026-06-25 10:03:19.456] [WAIT] Claude processando... 27s decorridos
+[2026-06-25 10:03:24.459] [WAIT] Claude processando... 32s decorridos
+[2026-06-25 10:03:29.504] [WAIT] Claude processando... 37s decorridos
+[2026-06-25 10:03:34.514] [WAIT] Claude processando... 42s decorridos
+[2026-06-25 10:03:39.531] [WAIT] Claude processando... 47s decorridos
+[2026-06-25 10:03:44.547] [WAIT] Claude processando... 52s decorridos
+[2026-06-25 10:03:49.562] [WAIT] Claude processando... 57s decorridos
+[2026-06-25 10:03:54.577] [WAIT] Claude processando... 62s decorridos
+[2026-06-25 10:03:59.597] [WAIT] Claude processando... 67s decorridos
+[2026-06-25 10:04:00.187] [----] ----------------------------------------------------------------
+[2026-06-25 10:04:00.191] [INFO] Claude finalizado. Exit code: 0 | Tempo: 68s
+[2026-06-25 10:04:00.224] [INFO] Resultado: 1926 chars
+[2026-06-25 10:04:00.228] [INFO] Preview  : ======================================== | AGENTE DE CHAMADOS — ANÁLISE DO TICKET | ========================================
+[2026-06-25 10:04:00.237] [INFO] output.txt gravado com sucesso
+[2026-06-25 10:04:00.241] [----] ----------------------------------------------------------------
+[2026-06-25 10:04:00.244] [INFO] === POWERSHELL CONCLUIDO ===
+[2026-06-25 10:04:00.247] [----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.312] [-----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.314] [INFO ] PowerShell finalizado. Duração: 69.0s
+[2026-06-25 13:04:00.317] [INFO ] PDF temp deletado
+[2026-06-25 13:04:00.319] [INFO ] prompt_temp.txt deletado
+[2026-06-25 13:04:00.321] [INFO ] output.txt lido: 1926 chars
+[2026-06-25 13:04:00.323] [-----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.324] [INFO ] === FUNCIONALIDADES IDENTIFICADAS ===
+[2026-06-25 13:04:00.326] [INFO ]   - Motivo de refugo (ligado ao Apontamento) — motivo: o ticket descreve diretamente o botão "Adicionar Motivo" na tela de informar motivos de refugo
+[2026-06-25 13:04:00.327] [-----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.329] [INFO ] === ARQUIVOS ANALISADOS ===
+[2026-06-25 13:04:00.330] [INFO ]   Prioritários:
+[2026-06-25 13:04:00.332] [INFO ]   - src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+[2026-06-25 13:04:00.333] [-----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.335] [-----] ----------------------------------------------------------------
+[2026-06-25 13:04:00.336] [INFO ] === ANÁLISE CONCLUÍDA COM SUCESSO ===
+[2026-06-25 13:04:00.337] [-----] ----------------------------------------------------------------

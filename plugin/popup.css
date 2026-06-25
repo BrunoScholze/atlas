@@ -10,6 +10,7 @@
   --text:      #F0F0F0;
   --muted:     #555555;
   --muted2:    #888888;
+  --code-bg:   rgba(240, 240, 240, 0.18);
 }
 
 [data-theme="light"] {
@@ -23,6 +24,7 @@
   --text:      #111111;
   --muted:     #AAAAAA;
   --muted2:    #666666;
+  --code-bg:   rgba(17, 17, 17, 0.12);
 }
 
 /* ============================================================ BASE */
@@ -196,17 +198,19 @@ body {
   border: 1px dashed var(--text); border-radius: 8px;
   padding: 20px; cursor: pointer;
   transition: border-color .2s, background .2s;
-  margin-bottom: 12px; position: relative;
+  margin-top: 14px; margin-bottom: 12px; position: relative;
   background: var(--surface); opacity: 1;
 }
 .drop-zone:hover, .drop-zone.dragover { background: var(--accent-lo); }
 .drop-zone.attached { border-style: solid; background: var(--accent-lo); }
 
 .float-label {
-  position: absolute; top: -8px; left: 12px;
-  font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--text); background: var(--bg); padding: 0 5px;
-  opacity: .7; transition: color .25s, background .25s; pointer-events: none;
+  position: absolute; top: 0; left: 12px;
+  transform: translateY(-50%);
+  font-size: 9px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text); background: var(--bg); padding: 2px 6px;
+  opacity: .85; transition: color .25s, background .25s; pointer-events: none;
+  white-space: nowrap;
 }
 
 .drop-icon   { width: 26px; height: 26px; flex-shrink: 0; color: var(--text); opacity: .5; transition: opacity .2s; }
@@ -222,8 +226,21 @@ body {
 .remove-pdf:hover { color: var(--text); }
 
 /* Field wrap — textarea com float label */
-.field-wrap { position: relative; margin-bottom: 8px; }
+.field-wrap { position: relative; margin-top: 14px; margin-bottom: 8px; }
 .field-wrap .float-label { background: var(--bg); }
+
+/* Checkbox detalhes adicionais */
+.check-detalhes {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 0 6px; cursor: pointer;
+  font-size: 12px; color: var(--text); opacity: .7;
+  user-select: none; transition: opacity .2s;
+}
+.check-detalhes:hover { opacity: 1; }
+.check-detalhes input[type="checkbox"] {
+  width: 15px; height: 15px; accent-color: var(--text);
+  cursor: pointer; flex-shrink: 0;
+}
 
 .s2-textarea {
   width: 100%; background: var(--surface); border: 1px solid var(--text);
@@ -341,6 +358,20 @@ details.sanfona > summary:hover { background: var(--border); }
 .actions { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; }
 .resultado-actions { border-top: 1px solid var(--border); background: var(--surface); }
 
+/* Links de arquivo Azure */
+.arquivo-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Consolas', 'Monaco', monospace; font-size: 12px;
+  color: var(--text); text-decoration: none;
+  border: 1px solid var(--border2); border-radius: 6px;
+  padding: 5px 10px; margin: 3px 0;
+  background: var(--accent-lo); cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.arquivo-link:hover {
+  background: var(--accent-md); border-color: var(--text);
+}
+
 /* ============================================================ MARKDOWN */
 .md-h1 { font-size: 14px; font-weight: 600; color: var(--text); margin: 10px 0 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 .md-h2 { font-size: 13px; font-weight: 600; color: var(--text); margin: 10px 0 4px; }
@@ -353,9 +384,11 @@ details.sanfona > summary:hover { background: var(--border); }
 .li-bullet { display: inline; color: var(--muted2); margin-right: 5px; }
 
 .inline-code {
-  background: var(--border); border: 1px solid var(--border2);
-  padding: 1px 5px; border-radius: 4px;
-  font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; color: var(--muted2);
+  background: var(--code-bg);
+  border: 1px solid var(--text);
+  color: var(--text);
+  padding: 2px 7px; border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; font-weight: 500;
 }
 
 /* ============================================================ CODE BLOCK */

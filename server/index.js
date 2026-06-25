@@ -80,7 +80,8 @@ function parseProjetos(conteudo) {
       nome: meta.nome || slug,
       descricao: meta['descrição'] || meta.descricao || '',
       status: meta.status || 'ativo',
-      claude: meta.claude || 'CLAUDE.md'
+      claude: meta.claude || 'CLAUDE.md',
+      azure: meta.azure || ''
     });
   }
   return projetos;
@@ -181,7 +182,7 @@ app.get('/projetos', (req, res) => {
     const todos = parseProjetos(conteudo);
     const ativos = todos
       .filter(p => p.status === 'ativo')
-      .map(p => ({ slug: p.slug, nome: p.nome, descricao: p.descricao }));
+      .map(p => ({ slug: p.slug, nome: p.nome, descricao: p.descricao, azure: p.azure }));
     res.json({ projetos: ativos });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: 'Erro ao ler PROJETOS.md: ' + err.message });
