@@ -498,6 +498,22 @@ details.sanfona > summary:hover { background: var(--border); }
 .btn-toggle-view:hover { background: #eaeef2; color: #24292f; }
 
 .diff-lines { font-size: 12px; line-height: 1.5; }
+
+/* ============================================================ TREE BLOCK — ARQUIVOS ANALISADOS */
+.tree-block {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+}
 .diff-add, .diff-rem, .diff-ctx, .diff-hunk, .diff-meta {
   display: flex; align-items: flex-start; min-height: 20px; width: 100%;
 }

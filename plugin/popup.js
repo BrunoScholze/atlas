@@ -725,6 +725,12 @@ function renderArquivosAlterados(caminhos, azureBase) {
 
 function renderSecao(texto) {
   if (!texto) return '';
+
+  // Seção inteira é uma árvore de arquivos — renderiza como bloco único
+  if (texto.includes('└─')) {
+    return `<pre class="tree-block">${escapeHtml(texto)}</pre>`;
+  }
+
   let html = '';
   const linhas = texto.split('\n');
   let i = 0;
