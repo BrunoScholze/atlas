@@ -109,12 +109,10 @@ DIFF_END
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
-Prioritários:
 - src/caminho/arquivo1.html
-- src/caminho/arquivo1.ts
-
-Contexto:
-- src/caminho/outro.ts
+  └─ src/caminho/arquivo1.ts (componente)
+     └─ src/caminho/servico.service.ts (serviço injetado)
+        └─ src/caminho/backend.p (backend chamado)
 
 ----------------------------------------
 OBSERVAÇÕES
@@ -139,6 +137,12 @@ OBSERVAÇÕES
 7. Use context7 se tiver dúvida de comportamento de componente PO-UI ou sintaxe Progress.
 8. Nunca invente — se não encontrou, diga o que analisou e por que não localizou.
 9. ARQUIVOS ANALISADOS e OBSERVAÇÕES ficam SEMPRE depois do COMO RESOLVER.
+   ARQUIVOS ANALISADOS: lista TODOS os arquivos abertos em formato de árvore.
+   - Primeira linha: arquivo raiz (ex: `- src/app/page.html`)
+   - Cada dependência em nova linha com recuo de 2 espaços e prefixo `└─`
+   - Acrescente 2 espaços de recuo por nível adicional
+   - Sem subseções "Prioritários" ou "Contexto" — apenas a árvore
+   - Inclua TODOS os arquivos que abriu, mesmo os que não continham o bug
 10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
 11. FUNCIONALIDADES IDENTIFICADAS: liste apenas as que você realmente usou. Inclua o motivo.
 
