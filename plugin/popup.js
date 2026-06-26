@@ -284,6 +284,19 @@ function configurarEventos() {
       if (block) block.classList.toggle('view-dark');
     }
 
+    const btnCopy = e.target.closest('.btn-copiar-arquivo');
+    if (btnCopy) {
+      const filepath = btnCopy.dataset.filepath || '';
+      navigator.clipboard.writeText(filepath).then(() => {
+        btnCopy.textContent = '✓';
+        btnCopy.classList.add('copiado');
+        setTimeout(() => {
+          btnCopy.textContent = '⎘';
+          btnCopy.classList.remove('copiado');
+        }, 1500);
+      });
+    }
+
     const link = e.target.closest('.arquivo-link');
     if (link && link.dataset.url) {
       e.preventDefault();
@@ -755,7 +768,7 @@ function renderSecao(texto) {
         i++;
       }
 
-      html += construirDiffBlock(nomeArq, itens, linhaRef, false);
+      html += construirDiffBlock(nomeArq, itens, linhaRef, false, caminho);
 
     // Formato fallback: ```diff ... ``` (markdown padrão)
     } else if (linha.trim() === '```diff') {
@@ -795,7 +808,8 @@ function renderSecao(texto) {
 // itens: [{ tipo: 'rem'|'add'|'ctx', conteudo: string }]
 // linhaRef: número da linha do 1º change (DIFF_START) ou início do bloco (```diff com @@)
 // linhaRefIsBlockStart: true quando linhaRef vem do @@  (já inclui linhas de contexto antes)
-function construirDiffBlock(nomeArquivo, itens, linhaRef, linhaRefIsBlockStart) {
+function construirDiffBlock(nomeArquivo, itens, linhaRef, linhaRefIsBlockStart, caminhoArquivo) {
+  const pathParaCopiar = caminhoArquivo || nomeArquivo;
   // Calcula o número da 1ª linha exibida
   let lineNo = null;
   if (linhaRef !== null) {
@@ -835,6 +849,7 @@ function construirDiffBlock(nomeArquivo, itens, linhaRef, linhaRefIsBlockStart) 
       <div class="diff-header">
         <span class="diff-file-icon">▣</span>
         <span class="diff-filename">${escapeHtml(nomeArquivo)}</span>
+        <button class="btn-copiar-arquivo" data-filepath="${escapeHtml(pathParaCopiar)}" title="Copiar caminho do arquivo">⎘</button>
         <div class="diff-header-right">
           <span class="diff-legend">
             <span class="leg-rem">- removido</span>
