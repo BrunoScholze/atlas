@@ -110,6 +110,7 @@ function parseProjetos(conteudo) {
       status: meta.status || 'ativo',
       claude: meta.claude || 'CLAUDE.md',
       funcionalidades: meta.funcionalidades || 'Funcionalidades.md',
+      repositorio: meta.repositorio || '',
       azure: meta.azure || ''
     });
   }
@@ -527,7 +528,18 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     log.info(`prompt_temp.txt gravado: ${promptPath}`);
 
     const outputPath = process.env.OUTPUT_PATH;
-    const repoPath = process.env.REPO_PATH;
+    const repoPath = (() => {
+      if (projetoSlug) {
+        try {
+          const projetosMd2 = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+          const proj2 = parseProjetos(projetosMd2).find(p => p.slug === projetoSlug);
+          if (proj2 && proj2.repositorio) {
+            return path.join(process.env.CONTEXT_PATH, proj2.repositorio);
+          }
+        } catch (e) { /* fallback abaixo */ }
+      }
+      return process.env.REPO_PATH;
+    })();
     const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');
 
     log.info(`PS1 path: ${ps1Path}`);
