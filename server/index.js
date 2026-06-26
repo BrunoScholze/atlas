@@ -15,7 +15,7 @@ const path = require('path');
 const multer = require('multer');
 const { exec } = require('child_process');
 const crypto = require('crypto');
-let pdfParse; try { pdfParse = require('pdf-parse'); } catch (e) { pdfParse = null; }
+let PDFParse; try { PDFParse = require('pdf-parse').PDFParse; } catch (e) { PDFParse = null; }
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -58,10 +58,11 @@ function truncar(texto, max) {
 
 // Extrai texto de um PDF — retorna null se falhar ou pdf-parse não estiver disponível
 async function extrairTextoPDF(pdfPath) {
-  if (!pdfParse || !pdfPath) return null;
+  if (!PDFParse || !pdfPath) return null;
   try {
-    const buffer = fs.readFileSync(pdfPath);
-    const data   = await pdfParse(buffer);
+    const url = 'file:///' + pdfPath.replace(/\\/g, '/');
+    const parser = new PDFParse({ url });
+    const data   = await parser.getText();
     const texto  = (data.text || '').trim().replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
     if (!texto) return null;
     const MAX = 8000;
