@@ -1,0 +1,75 @@
+﻿Tenho tudo que preciso. Dois bugs: (1) `p-type` em vez de `p-kind` no botão de refugo, (2) `plannedQuantity` sem valor default no componente de criação rápida.
+
+========================================
+AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+========================================
+
+TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
+DATA     : 2026-06-26
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- Motivo de refugo — motivo: botão "Adicionar" na tela de informar motivos é o ponto de falha relatado no ticket
+- Apontamento de ordem de produção (criar rápida) — motivo: "criar uma ordem de producao pelo criar rapida" corresponde ao componente CreateProductionOrder identificado no codebase
+
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo: `datasul-report-reason.html`, linha 93
+O botão "Adicionar" usa `p-type="primary"` (tipo HTML) em vez de `p-kind="primary"` (estilo PO-UI) e aparece quase invisível.
+
+Arquivo: `create-production-order.component.ts`, linha 85
+O campo de quantidade abre vazio porque `plannedQuantity` não tem valor inicial definido no `ngOnInit`.
+
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+`p-type` define o tipo HTML do elemento button (submit/reset/button) — não aplica estilo visual; o atributo correto do PO-UI para estilo primário é `p-kind`.
+A propriedade `plannedQuantity` em `DatasulProductionOrder` é opcional sem default, e o componente não a inicializa, deixando o campo em branco.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Substituir `p-type="primary"` por `p-kind="primary"` no botão da tela de refugo:
+
+DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html linha: 93
+          p-label="{{literals.addWithIcon}}"
+          (p-click)="openModalNewReason(false)"
+-         p-type="primary"
++         p-kind="primary"
+      >
+      </po-button>
+DIFF_END
+
+Adicionar `this.newOrder.plannedQuantity = 100` ao final do `ngOnInit()` do componente de criação de OP:
+
+DIFF_START arquivo: src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts linha: 85
+        { label: this.literals.description, property: "productDescription" },
+      ];
++     this.newOrder.plannedQuantity = 100;
+  }
+
+DIFF_END
+
+A troca de `p-type` por `p-kind` aplica o estilo primário correto ao `po-button`. A inicialização de `plannedQuantity = 100` garante que o campo de quantidade exiba 100 ao abrir o formulário de criação rápida de OP.
+
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts (componente)
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html (contexto)
+  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts (componente)
+- src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.html
+  └─ src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts (componente)
+     └─ src/app/shared/model/order/datasul-production-order.model.ts (modelo)
+- src/app/report-process/datasul/datasul-select-po/datasul-select-po.page.ts (investigação fluxo)
+
+----------------------------------------
+OBSERVAÇÕES
+----------------------------------------
+- O PDF anexado descreve outra funcionalidade (pré-preencher horas de GGF com intervalo de produção) e não corresponde ao ticket DMANUFATURA-21257 — foi desconsiderado na análise.
+- Ao selecionar um item no formulário, `getNewOrderDefaultData()` substitui `this.newOrder` pelo retorno do backend; se o backend não retornar `plannedQuantity`, o valor 100 pode ser sobrescrito por `undefined` nesse momento.
+
+========================================
