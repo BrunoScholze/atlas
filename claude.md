@@ -51,6 +51,12 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
   componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
   leia esses também. Só encerra quando rastreou todos os elos da cadeia.
+- Regra .ts/.html: para cada arquivo `.ts` Angular listado, leia o `.html` do
+  mesmo componente (mesmo diretório, mesmo nome base) **antes** de ler o `.ts`.
+  Enquanto lê o `.html`, mapeie todos os bindings de campos interativos:
+  `[(ngModel)]`, `[ngModel]`, `formControlName`, `[value]`. Esse mapa é
+  obrigatório — você só pode propor um diff no `.ts` depois de ter lido e
+  compreendido o `.html` correspondente.
 - Liste em ARQUIVOS ANALISADOS **todos** os arquivos que você abriu e leu,
   não apenas os que continham o bug. O dev precisa saber o que foi coberto.
 
@@ -59,14 +65,6 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 2. Componente (.ts) — o payload montado usa o campo certo?
 3. Backend (.p) — o parâmetro recebido é usado ou recalculado internamente?
 4. Confirme com o PDF — seu achado explica o comportamento nos prints?
-
-**Regra de binding — obrigatória antes de qualquer diff no .ts:**
-Antes de propor qualquer atribuição de valor em um componente .ts, volte ao .html
-e localize exatamente qual propriedade está ligada ao input via `[(ngModel)]`,
-`[ngModel]`, `formControlName` ou `[value]`. O diff DEVE atribuir o valor a essa
-propriedade existente — nunca criar uma variável nova. Se o HTML tem
-`[(ngModel)]="report.reportedHours"`, o diff deve ser `this.report.reportedHours = valor`,
-não `this.calculatedHours = valor` ou qualquer outro nome inventado.
 
 ---
 
@@ -153,10 +151,9 @@ OBSERVAÇÕES
    - Inclua TODOS os arquivos que abriu, mesmo os que não continham o bug
 10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
 11. FUNCIONALIDADES IDENTIFICADAS: liste apenas as que você realmente usou. Inclua o motivo.
-12. BINDING ANTES DO DIFF: toda vez que o diff alterar um .ts para atribuir um valor
-    a um campo de formulário, releia o .html correspondente e confirme o nome exato
-    da propriedade usada no `[(ngModel)]` / `formControlName`. O diff usa essa
-    propriedade — jamais inventa um nome novo.
+12. PARIDADE .ts/.html: nunca proponha diff em um arquivo `.ts` Angular sem ter
+    lido e compreendido o `.html` do mesmo componente. O `.html` é lido primeiro,
+    sempre — sem exceção.
 
 ---
 
