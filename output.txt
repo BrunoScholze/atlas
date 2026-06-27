@@ -1,75 +1,80 @@
-﻿Tenho tudo que preciso. Dois bugs: (1) `p-type` em vez de `p-kind` no botão de refugo, (2) `plannedQuantity` sem valor default no componente de criação rápida.
-
-========================================
+﻿========================================
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
-TICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo
-DATA     : 2026-06-26
+TICKET   : DMANUFATURA-21274 — facilitar adicionar ggf em apontamento de ordem
+DATA     : 2026-06-26 16:00
 
 ----------------------------------------
 FUNCIONALIDADES IDENTIFICADAS
 ----------------------------------------
-- Motivo de refugo — motivo: botão "Adicionar" na tela de informar motivos é o ponto de falha relatado no ticket
-- Apontamento de ordem de produção (criar rápida) — motivo: "criar uma ordem de producao pelo criar rapida" corresponde ao componente CreateProductionOrder identificado no codebase
+- Editar MOB/GGF (ligado ao Apontamento) — motivo: o botão "editar MOB/GGF" da tela de apontamento é o ponto de entrada do fluxo descrito no ticket
+- Apontamento de ordem de produção (fluxo completo) — motivo: é a origem dos horários de início/fim do período de produção que precisam ser passados adiante
+- Reporte de GGF/MOB (Overhead Labor Report) — motivo: a tela de criação de GGF é onde o campo `reportedHours` precisa chegar pré-preenchido
 
 ----------------------------------------
 LOCALIZAÇÃO DO PROBLEMA
 ----------------------------------------
-Arquivo: `datasul-report-reason.html`, linha 93
-O botão "Adicionar" usa `p-type="primary"` (tipo HTML) em vez de `p-kind="primary"` (estilo PO-UI) e aparece quase invisível.
-
-Arquivo: `create-production-order.component.ts`, linha 85
-O campo de quantidade abre vazio porque `plannedQuantity` não tem valor inicial definido no `ngOnInit`.
+Arquivo: `overhead-labor-create.component.ts`, linha 175
+O método `initReport()` não atribui valor a `_report.reportedHours`, e nenhum dado de hora é passado pelo fluxo de navegação datasul-report-v2 → datasul-overhead-labor-list → overhead-labor-create.
 
 ----------------------------------------
 CAUSA PROVÁVEL
 ----------------------------------------
-`p-type` define o tipo HTML do elemento button (submit/reset/button) — não aplica estilo visual; o atributo correto do PO-UI para estilo primário é `p-kind`.
-A propriedade `plannedQuantity` em `DatasulProductionOrder` é opcional sem default, e o componente não a inicializa, deixando o campo em branco.
+A cadeia de navegação entre os três componentes não inclui os horários de início/fim do apontamento (`startTime`/`endTime`). Sem esses dados chegando ao `overhead-labor-create`, o campo de horas reportadas não pode ser pré-calculado.
 
 ----------------------------------------
 COMO RESOLVER
 ----------------------------------------
-Substituir `p-type="primary"` por `p-kind="primary"` no botão da tela de refugo:
+Calcular `defaultReportedHours` no método `goToOverheadLaborReportPage()` de `datasul-report-v2` e propagar o valor até `initReport()` em `overhead-labor-create`.
 
-DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html linha: 93
-          p-label="{{literals.addWithIcon}}"
-          (p-click)="openModalNewReason(false)"
--         p-type="primary"
-+         p-kind="primary"
-      >
-      </po-button>
+DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts linha: 1033
+            ttFormularioOrdem: this.ttFormularioOrdem,
+            operationCode: this.isSFC ? this.selectedSplit.split('/')[0] : 0,
++           defaultReportedHours: (() => {
++               const ini = (this.startTime || '').replace(':', '');
++               const fim = (this.endTime || '').replace(':', '');
++               if (ini.length < 4 || fim.length < 4) return undefined;
++               const h1 = Number(ini.slice(0, 2)) + Number(ini.slice(2)) / 60;
++               const h2 = Number(fim.slice(0, 2)) + Number(fim.slice(2)) / 60;
++               return h2 > h1 ? h2 - h1 : 1 / 60;
++           })(),
+        },
+    });
 DIFF_END
 
-Adicionar `this.newOrder.plannedQuantity = 100` ao final do `ngOnInit()` do componente de criação de OP:
-
-DIFF_START arquivo: src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts linha: 85
-        { label: this.literals.description, property: "productDescription" },
-      ];
-+     this.newOrder.plannedQuantity = 100;
-  }
-
+DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts linha: 511
+            operationCode: this.operationCode,
+            routingCode: this.routingCode ? this.routingCode : "",
++           defaultReportedHours: this.defaultReportedHours,
+        },
+    });
 DIFF_END
 
-A troca de `p-type` por `p-kind` aplica o estilo primário correto ao `po-button`. A inicialização de `plannedQuantity = 100` garante que o campo de quantidade exiba 100 ao abrir o formulário de criação rápida de OP.
+DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts linha: 180
+        this._report.referenceCode = this.productionOrder.referenceCode;
+        this._report.transactionDate = new Date().toISOString().split('T')[0];
++       if (this.defaultReportedHours) this._report.reportedHours = this.defaultReportedHours;
+    }
+DIFF_END
+
+Os dois primeiros diffs criam e propagam o valor calculado; o terceiro aplica o valor no momento em que o formulário de criação é inicializado, eliminando a necessidade de preenchimento manual pelo usuário.
 
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
-- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
-  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts (componente)
-- src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html (contexto)
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html
   └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts (componente)
-- src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.html
-  └─ src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts (componente)
-     └─ src/app/shared/model/order/datasul-production-order.model.ts (modelo)
-- src/app/report-process/datasul/datasul-select-po/datasul-select-po.page.ts (investigação fluxo)
+- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.html
+  └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts (componente)
+- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.html
+  └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts (componente)
 
 ----------------------------------------
 OBSERVAÇÕES
 ----------------------------------------
-- O PDF anexado descreve outra funcionalidade (pré-preencher horas de GGF com intervalo de produção) e não corresponde ao ticket DMANUFATURA-21257 — foi desconsiderado na análise.
-- Ao selecionar um item no formulário, `getNewOrderDefaultData()` substitui `this.newOrder` pelo retorno do backend; se o backend não retornar `plannedQuantity`, o valor 100 pode ser sobrescrito por `undefined` nesse momento.
+- `datasul-overhead-labor-list.component.ts` requer duas alterações de suporte: (a) declarar `public defaultReportedHours: number | undefined;` como propriedade da classe (após linha 54); (b) dentro do bloco `if (!this.fromMenu)` em `ngOnInit()` (após linha 145), adicionar `if (extras.defaultReportedHours !== undefined) this.defaultReportedHours = extras.defaultReportedHours;`.
+- `overhead-labor-create.component.ts` requer duas alterações de suporte: (a) declarar `public defaultReportedHours: number | undefined;` como propriedade da classe; (b) dentro do bloco `if (!this.fromMenu)` no construtor (após linha 122), adicionar `if (nav.defaultReportedHours !== undefined) this.defaultReportedHours = nav.defaultReportedHours;`.
+- Para o fluxo SFC, `startTime`/`endTime` correspondem ao horário do timer; se necessário cobrir SFC com os campos do formulário, substituir pelas leituras de `hraInicReporte`/`hraFimReporte` de `overheadLaborSFCParameters` (já disponível na mesma função).
 
 ========================================
