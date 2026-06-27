@@ -541,19 +541,23 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
       return process.env.REPO_PATH;
     })();
+    const isWin   = process.platform === 'win32';
     const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');
+    const shPath  = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.sh');
 
-    log.info(`PS1 path: ${ps1Path}`);
+    log.info(`Script path: ${isWin ? ps1Path : shPath}`);
     log.info(`Output path: ${outputPath}`);
     log.info(`Repo path: ${repoPath}`);
     log.info(`Log file: ${logFile}`);
     log.sep();
-    log.info('Iniciando PowerShell...');
+    log.info(`Iniciando ${isWin ? 'PowerShell' : 'Bash'}...`);
 
     const env = { ...process.env };
 
     const esc = (p) => `"${p}"`;
-    const comando = `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(promptPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`;
+    const comando = isWin
+      ? `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(promptPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`
+      : `bash ${esc(shPath)} ${esc(promptPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`;
 
     log.debug(`Comando: ${comando}`);
     const execInicio = Date.now();

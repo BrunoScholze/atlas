@@ -1,80 +1,105 @@
-﻿========================================
+Tenho todos os dados necessários. Agora vou escrever a análise.
+
+========================================
 AGENTE DE CHAMADOS — ANÁLISE DO TICKET
 ========================================
 
-TICKET   : DMANUFATURA-21274 — facilitar adicionar ggf em apontamento de ordem
-DATA     : 2026-06-26 16:00
+TICKET   : DMANUFATURA-21274 — Facilitar adicionar GGF em apontamento de ordem
+DATA     : 2026-06-27 10:00
 
 ----------------------------------------
 FUNCIONALIDADES IDENTIFICADAS
 ----------------------------------------
-- Editar MOB/GGF (ligado ao Apontamento) — motivo: o botão "editar MOB/GGF" da tela de apontamento é o ponto de entrada do fluxo descrito no ticket
-- Apontamento de ordem de produção (fluxo completo) — motivo: é a origem dos horários de início/fim do período de produção que precisam ser passados adiante
-- Reporte de GGF/MOB (Overhead Labor Report) — motivo: a tela de criação de GGF é onde o campo `reportedHours` precisa chegar pré-preenchido
+- Editar MOB/GGF (ligado ao Apontamento) — motivo: o ticket descreve exatamente o botão "Editar MOB/GGF" presente na tela de apontamento que leva à lista/criação de GGF
+- Reporte de GGF/MOB (Overhead Labor Report) — motivo: a tela de criação (`overhead-labor-create`) é onde o campo de horas deve ser pré-preenchido
 
 ----------------------------------------
 LOCALIZAÇÃO DO PROBLEMA
 ----------------------------------------
 Arquivo: `overhead-labor-create.component.ts`, linha 175
-O método `initReport()` não atribui valor a `_report.reportedHours`, e nenhum dado de hora é passado pelo fluxo de navegação datasul-report-v2 → datasul-overhead-labor-list → overhead-labor-create.
+O método `initReport()` inicializa o relatório sem preencher `_report.reportedHours`, e `onClickAdd()` em `datasul-overhead-labor-list` não repassa `overheadLaborSFCParameters` (que contém os horários de início/fim do reporte SFC) para a tela de criação.
 
 ----------------------------------------
 CAUSA PROVÁVEL
 ----------------------------------------
-A cadeia de navegação entre os três componentes não inclui os horários de início/fim do apontamento (`startTime`/`endTime`). Sem esses dados chegando ao `overhead-labor-create`, o campo de horas reportadas não pode ser pré-calculado.
+`datasul-overhead-labor-list.component.ts` recebe `overheadLaborSFCParameters` (com `datInicReporte`, `hraInicReporte`, `datFimReporte`, `hraFimReporte`) via navegação, mas `onClickAdd()` omite esse objeto ao navegar para `overhead-labor-create`.
+Sem esses dados, `initReport()` não tem como calcular o intervalo e deixa `reportedHours` indefinido.
 
 ----------------------------------------
 COMO RESOLVER
 ----------------------------------------
-Calcular `defaultReportedHours` no método `goToOverheadLaborReportPage()` de `datasul-report-v2` e propagar o valor até `initReport()` em `overhead-labor-create`.
-
-DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts linha: 1033
-            ttFormularioOrdem: this.ttFormularioOrdem,
-            operationCode: this.isSFC ? this.selectedSplit.split('/')[0] : 0,
-+           defaultReportedHours: (() => {
-+               const ini = (this.startTime || '').replace(':', '');
-+               const fim = (this.endTime || '').replace(':', '');
-+               if (ini.length < 4 || fim.length < 4) return undefined;
-+               const h1 = Number(ini.slice(0, 2)) + Number(ini.slice(2)) / 60;
-+               const h2 = Number(fim.slice(0, 2)) + Number(fim.slice(2)) / 60;
-+               return h2 > h1 ? h2 - h1 : 1 / 60;
-+           })(),
-        },
-    });
-DIFF_END
+Repassar `overheadLaborSFCParameters` no `onClickAdd()` e calcular `reportedHours` em `initReport()` usando as datas de início e fim do reporte.
 
 DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts linha: 511
-            operationCode: this.operationCode,
-            routingCode: this.routingCode ? this.routingCode : "",
-+           defaultReportedHours: this.defaultReportedHours,
-        },
-    });
+                fromMenu: this.fromMenu,
+                operationCode: this.operationCode,
+                routingCode: this.routingCode ? this.routingCode : "",
++               overheadLaborSFCParameters: this.overheadLaborSFCParameters,
+            },
+        });
+DIFF_END
+
+DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts linha: 21
+  import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
++ import { OverheadLaborSFCParameters } from 'src/app/shared/model/report/datasul/OberheadLaborSFCParameters.model';
+  
+  @Component({
+      selector: 'app-overhead-labor-create',
+DIFF_END
+
+DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts linha: 61
+    public laborSubscription: Subscription;
+    public path: string = ''
++   public overheadLaborSFCParameters: OverheadLaborSFCParameters;
+  
+    public onClickConfirmModal: PoModalAction = {
+DIFF_END
+
+DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts linha: 123
+                    if (nav.routingCode !== undefined && nav.routingCode !== '') {
+                        this._report.routingCode = nav.routingCode;
+                    }
++                   if (nav.overheadLaborSFCParameters !== undefined) this.overheadLaborSFCParameters = nav.overheadLaborSFCParameters;
+                }
+            }
 DIFF_END
 
 DIFF_START arquivo: src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts linha: 180
         this._report.referenceCode = this.productionOrder.referenceCode;
         this._report.transactionDate = new Date().toISOString().split('T')[0];
-+       if (this.defaultReportedHours) this._report.reportedHours = this.defaultReportedHours;
++       if (this.overheadLaborSFCParameters?.datInicReporte && this.overheadLaborSFCParameters?.datFimReporte) {
++           const start = new Date(`${this.overheadLaborSFCParameters.datInicReporte}T${this.overheadLaborSFCParameters.hraInicReporte}`);
++           const end = new Date(`${this.overheadLaborSFCParameters.datFimReporte}T${this.overheadLaborSFCParameters.hraFimReporte}`);
++           const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
++           this._report.reportedHours = Math.max(diffHours, 1 / 60);
++       }
     }
+  
+    setLabels() {
 DIFF_END
 
-Os dois primeiros diffs criam e propagam o valor calculado; o terceiro aplica o valor no momento em que o formulário de criação é inicializado, eliminando a necessidade de preenchimento manual pelo usuário.
+`onClickAdd()` agora passa `overheadLaborSFCParameters` para `overhead-labor-create`; `initReport()` calcula a diferença em horas entre `datFimReporte - datInicReporte` e garante o mínimo de 1 minuto (`1/60`), conforme solicitado no ticket.
 
 ----------------------------------------
 ARQUIVOS ANALISADOS
 ----------------------------------------
 - src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html
-  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts (componente)
-- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.html
-  └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts (componente)
-- src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.html
-  └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts (componente)
+  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts
+     └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.html
+        └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/datasul-overhead-labor-list.component.ts
+           └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.html
+              └─ src/app/overhead-labor-report/datasul/datasul-overhead-labor-list/components/overhead-labor-create/overhead-labor-create.component.ts
+                 └─ src/app/shared/model/overheadLabor/datasul-overhead-labor-create-model.ts (modelo do reporte)
+                    └─ src/app/shared/model/overheadLabor/datasul-hours-report-model.ts (campo reportedHours: number)
+                       └─ src/app/shared/model/report/datasul/OberheadLaborSFCParameters.model.ts (datInicReporte/datFimReporte)
+- src/app/report-process/datasul/datasul-select-po/datasul-select-po.page.ts (verificação do fluxo de navegação)
+- src/app/report-process/datasul/datasul-report-timer/datasul-report-timer.page.ts (verificação de como startDate/endDate são passados)
 
 ----------------------------------------
 OBSERVAÇÕES
 ----------------------------------------
-- `datasul-overhead-labor-list.component.ts` requer duas alterações de suporte: (a) declarar `public defaultReportedHours: number | undefined;` como propriedade da classe (após linha 54); (b) dentro do bloco `if (!this.fromMenu)` em `ngOnInit()` (após linha 145), adicionar `if (extras.defaultReportedHours !== undefined) this.defaultReportedHours = extras.defaultReportedHours;`.
-- `overhead-labor-create.component.ts` requer duas alterações de suporte: (a) declarar `public defaultReportedHours: number | undefined;` como propriedade da classe; (b) dentro do bloco `if (!this.fromMenu)` no construtor (após linha 122), adicionar `if (nav.defaultReportedHours !== undefined) this.defaultReportedHours = nav.defaultReportedHours;`.
-- Para o fluxo SFC, `startTime`/`endTime` correspondem ao horário do timer; se necessário cobrir SFC com os campos do formulário, substituir pelas leituras de `hraInicReporte`/`hraFimReporte` de `overheadLaborSFCParameters` (já disponível na mesma função).
+- A solução cobre o fluxo SFC (cronômetro), que é o caso primário de uso do botão "Editar MOB/GGF"; para apontamento não-SFC manual, os horários não chegam na cadeia de navegação atual e o campo continuará vazio.
+- O cálculo usa `Math.max(diffHours, 1/60)` para garantir o mínimo de 1 minuto (≈ 0,0167 horas), conforme especificado no PDF.
+- As datas `datInicReporte` e `datFimReporte` em `OverheadLaborSFCParameters` vêm do `po-datepicker` em formato ISO (`YYYY-MM-DD`), e as horas `hraInicReporte`/`hraFimReporte` vêm da máscara `99:99` em formato `HH:mm` — ambos compatíveis com `new Date('YYYY-MM-DDTHH:mm')`.
 
 ========================================
