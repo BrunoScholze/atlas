@@ -22,7 +22,7 @@ let timerInterval    = null;
 let currentRequestId = null;
 let terminalOffset   = 0;
 let terminalTimers   = [];
-let isDark = true;
+let isDark = false;
 
 // ============================================================ INIT
 
