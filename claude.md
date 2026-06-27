@@ -60,6 +60,14 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 3. Backend (.p) — o parâmetro recebido é usado ou recalculado internamente?
 4. Confirme com o PDF — seu achado explica o comportamento nos prints?
 
+**Regra de binding — obrigatória antes de qualquer diff no .ts:**
+Antes de propor qualquer atribuição de valor em um componente .ts, volte ao .html
+e localize exatamente qual propriedade está ligada ao input via `[(ngModel)]`,
+`[ngModel]`, `formControlName` ou `[value]`. O diff DEVE atribuir o valor a essa
+propriedade existente — nunca criar uma variável nova. Se o HTML tem
+`[(ngModel)]="report.reportedHours"`, o diff deve ser `this.report.reportedHours = valor`,
+não `this.calculatedHours = valor` ou qualquer outro nome inventado.
+
 ---
 
 ### Passo 4 — Escreva o output
@@ -145,6 +153,10 @@ OBSERVAÇÕES
    - Inclua TODOS os arquivos que abriu, mesmo os que não continham o bug
 10. OBSERVAÇÕES: omita a seção inteira se não houver nada relevante a dizer.
 11. FUNCIONALIDADES IDENTIFICADAS: liste apenas as que você realmente usou. Inclua o motivo.
+12. BINDING ANTES DO DIFF: toda vez que o diff alterar um .ts para atribuir um valor
+    a um campo de formulário, releia o .html correspondente e confirme o nome exato
+    da propriedade usada no `[(ngModel)]` / `formControlName`. O diff usa essa
+    propriedade — jamais inventa um nome novo.
 
 ---
 
