@@ -669,9 +669,17 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
       log.sep();
 
-      analises[requestId] = { status: 'done', analise, inicio, logPath: logFile };
+      const temTemplate      = analise.trim().startsWith('========');
+      const temFuncionalidade = funcIds.trim().length > 0;
+      const statusFinal      = (temTemplate && temFuncionalidade) ? 'done' : 'no_subject';
+
+      if (statusFinal === 'no_subject') {
+        log.warn('Nenhuma funcionalidade identificada — retornando no_subject');
+      }
+
+      analises[requestId] = { status: statusFinal, analise, inicio, logPath: logFile };
       log.sep();
-      log.info('=== ANÁLISE CONCLUÍDA COM SUCESSO ===');
+      log.info(`=== ANÁLISE CONCLUÍDA — status: ${statusFinal} ===`);
       log.sep();
     });
 

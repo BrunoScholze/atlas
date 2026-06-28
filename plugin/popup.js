@@ -44,10 +44,12 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   document.getElementById('themeLabel').textContent = isDark ? 'Modo claro' : 'Modo escuro';
   const src = isDark ? 'logobranco.png' : 'logoPreto.png';
-  const logoMain = document.getElementById('logoMain');
-  const logoSm   = document.getElementById('logoSm');
-  if (logoMain) logoMain.src = src;
-  if (logoSm)   logoSm.src   = src;
+  const logoMain       = document.getElementById('logoMain');
+  const logoSm         = document.getElementById('logoSm');
+  const logoSemAssunto = document.getElementById('logoSemAssunto');
+  if (logoMain)       logoMain.src       = src;
+  if (logoSm)         logoSm.src         = src;
+  if (logoSemAssunto) logoSemAssunto.src = src;
 }
 
 // ============================================================ NAVEGAÇÃO
@@ -269,6 +271,7 @@ function configurarEventos() {
   document.getElementById('btnCancelar').addEventListener('click', cancelarAnalise);
   document.getElementById('btnNovaAnalise').addEventListener('click', resetarFormulario);
   document.getElementById('btnTentarNovamente').addEventListener('click', resetarFormulario);
+  document.getElementById('btnTentarNovamenteSemAssunto').addEventListener('click', resetarFormulario);
   document.getElementById('btnDownloadAnalise').addEventListener('click',
     () => downloadArquivo(`${SERVER_URL}/download/output`, 'analise.txt'));
   document.getElementById('btnDownloadLog').addEventListener('click',
@@ -509,6 +512,10 @@ async function consultarStatus(requestId, inicio) {
       await chrome.storage.local.set({ resultado: json.analise });
       renderizarResultado(json.analise);
       mostrarTela('resultado');
+    } else if (json.status === 'no_subject') {
+      pararPolling();
+      await chrome.storage.local.remove(['requestId', 'inicio']);
+      mostrarTela('semAssunto');
     } else if (json.status === 'error') {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);
@@ -914,11 +921,12 @@ function copiarResultado() {
 // ============================================================ CONTROLE DE TELAS
 
 function mostrarTela(tela) {
-  document.getElementById('telaSelecao').style.display    = tela === 'selecao'   ? 'flex'  : 'none';
-  document.getElementById('telaFormulario').style.display = tela === 'formulario'? 'flex'  : 'none';
-  document.getElementById('telaLoading').style.display    = tela === 'loading'   ? 'flex'  : 'none';
-  document.getElementById('telaResultado').style.display  = tela === 'resultado' ? 'block' : 'none';
-  document.getElementById('telaErro').style.display       = tela === 'erro'      ? 'flex'  : 'none';
+  document.getElementById('telaSelecao').style.display              = tela === 'selecao'    ? 'flex'  : 'none';
+  document.getElementById('telaFormulario').style.display           = tela === 'formulario' ? 'flex'  : 'none';
+  document.getElementById('telaLoading').style.display              = tela === 'loading'    ? 'flex'  : 'none';
+  document.getElementById('telaResultado').style.display            = tela === 'resultado'  ? 'block' : 'none';
+  document.getElementById('telaErro').style.display                 = tela === 'erro'       ? 'flex'  : 'none';
+  document.getElementById('telaAssuntoNaoEncontrado').style.display = tela === 'semAssunto' ? 'flex'  : 'none';
   document.body.style.minHeight = tela === 'resultado' ? '660px' : '';
 }
 
