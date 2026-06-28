@@ -35,7 +35,7 @@ html {
 }
 
 body {
-  width: 580px;
+  width: 760px;
   border-radius: 12px; overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
   font-size: 13px;
@@ -80,7 +80,7 @@ body {
 /* ============================================================ TELA 1 — seleção de projeto */
 .tela-selecao {
   display: flex; align-items: center; justify-content: center;
-  min-height: 440px; flex-direction: column; padding: 40px 24px;
+  min-height: 560px; flex-direction: column; padding: 40px 24px;
   transition: background .25s;
 }
 
@@ -154,12 +154,12 @@ body {
 /* ============================================================ TELA 2 — formulário */
 .tela-formulario {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 32px 40px; min-height: 440px;
+  padding: 32px 40px; min-height: 560px;
   transition: background .25s;
 }
 
 .s2-inner {
-  width: 100%; max-width: 500px;
+  width: 100%; max-width: 660px;
   display: flex; flex-direction: column;
 }
 

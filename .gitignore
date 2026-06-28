@@ -1,6 +1,21 @@
+# Dependências
 server/node_modules/
-temp/*.pdf
-app-minha-producao/
+
+# Ambiente
 server/.env
 .env
 *.env
+
+# Repositórios clonados
+app-minha-producao/
+repos/
+
+# Arquivos gerados em runtime
+debug.txt
+output.txt
+prompt_temp.txt
+temp/*.pdf
+logs/
+
+# macOS
+.DS_Store
