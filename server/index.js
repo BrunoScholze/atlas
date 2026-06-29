@@ -300,6 +300,104 @@ app.get('/download/log/latest', (req, res) => {
 });
 
 // -------------------------------------------------------
+// POST /feedback — salva resultado de uma análise
+// -------------------------------------------------------
+app.post('/feedback', (req, res) => {
+  const { ticketId, titulo, projeto, status, tempoAnalise, analiseTexto, observacao } = req.body || {};
+
+  const VALID_STATUS = ['resolved', 'unresolved', 'unresolved_refined'];
+  if (!VALID_STATUS.includes(status)) {
+    return res.status(400).json({ sucesso: false, erro: 'status inválido' });
+  }
+
+  // Extrai funcionalidades e arquivos analisados do texto da análise
+  const extrairSecao = (texto, secao) => {
+    const re = new RegExp(`-{2,}\\s*\\r?\\n\\s*${secao}\\s*\\r?\\n-{2,}\\r?\\n([\\s\\S]*?)(?=\\n-{10,}|\\n={8,}|$)`, 'i');
+    const m = (texto || '').match(re);
+    return m ? m[1].trim() : '';
+  };
+
+  const funcText = extrairSecao(analiseTexto, 'FUNCIONALIDADES IDENTIFICADAS');
+  const arqText  = extrairSecao(analiseTexto, 'ARQUIVOS ANALISADOS');
+
+  const funcionalidades    = funcText ? funcText.split('\n').filter(l => l.trim().startsWith('-')).map(l => l.replace(/^-\s*/, '').split(' —')[0].trim()) : [];
+  const arquivosAnalisados = arqText  ? [...arqText.matchAll(/`([^`]+\.\w+)`/g)].map(m => m[1]) : [];
+
+  const slugProjeto = (projeto || 'sem-projeto').replace(/[^a-z0-9\-]/gi, '-');
+  const feedbackDir = path.join(process.env.CONTEXT_PATH, 'feedback', slugProjeto);
+  if (!fs.existsSync(feedbackDir)) fs.mkdirSync(feedbackDir, { recursive: true });
+
+  const timestamp = Date.now();
+  const nomeArq   = `${(ticketId || 'sem-ticket').replace(/[^a-z0-9\-]/gi, '-')}-${timestamp}.json`;
+  const dados = {
+    ticketId:         ticketId         || '',
+    titulo:           titulo           || '',
+    projeto:          projeto          || '',
+    funcionalidades,
+    arquivosAnalisados,
+    observacao:       (observacao || '').slice(0, 500),
+    tempoAnalise:     Number(tempoAnalise) || 0,
+    timestamp,
+    status
+  };
+
+  try {
+    fs.writeFileSync(path.join(feedbackDir, nomeArq), JSON.stringify(dados, null, 2), 'utf8');
+    res.json({ sucesso: true });
+  } catch (e) {
+    res.status(500).json({ sucesso: false, erro: e.message });
+  }
+});
+
+// -------------------------------------------------------
+// GET /feedback/stats — métricas agregadas
+// -------------------------------------------------------
+app.get('/feedback/stats', (req, res) => {
+  const feedbackBase = path.join(process.env.CONTEXT_PATH, 'feedback');
+  if (!fs.existsSync(feedbackBase)) {
+    return res.json({ total: 0, resolvidos: 0, naoResolvidos: 0, tempoMedio: 0, porSemana: [], execucoes: [] });
+  }
+
+  const todos = [];
+  for (const dir of fs.readdirSync(feedbackBase)) {
+    const dirPath = path.join(feedbackBase, dir);
+    if (!fs.statSync(dirPath).isDirectory()) continue;
+    for (const arq of fs.readdirSync(dirPath)) {
+      if (!arq.endsWith('.json')) continue;
+      try {
+        todos.push(JSON.parse(fs.readFileSync(path.join(dirPath, arq), 'utf8')));
+      } catch { /* ignora arquivo corrompido */ }
+    }
+  }
+
+  todos.sort((a, b) => b.timestamp - a.timestamp);
+
+  const total         = todos.length;
+  const resolvidos    = todos.filter(t => t.status === 'resolved').length;
+  const naoResolvidos = total - resolvidos;
+
+  const comTempo = todos.filter(t => t.tempoAnalise > 0);
+  const tempoMedio = comTempo.length > 0
+    ? Math.round(comTempo.reduce((s, t) => s + t.tempoAnalise, 0) / comTempo.length)
+    : 0;
+
+  // Últimas 6 semanas
+  const agora = Date.now();
+  const porSemana = Array.from({ length: 6 }, (_, i) => {
+    const ini   = agora - (i + 1) * 7 * 24 * 3600 * 1000;
+    const fim   = agora - i * 7 * 24 * 3600 * 1000;
+    const label = new Date(fim).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return {
+      label,
+      total:      todos.filter(t => t.timestamp >= ini && t.timestamp < fim).length,
+      resolvidos: todos.filter(t => t.timestamp >= ini && t.timestamp < fim && t.status === 'resolved').length
+    };
+  }).reverse();
+
+  res.json({ total, resolvidos, naoResolvidos, tempoMedio, porSemana, execucoes: todos.slice(0, 100) });
+});
+
+// -------------------------------------------------------
 // POST /cancelar/:requestId — cancela análise em andamento
 // -------------------------------------------------------
 app.post('/cancelar/:requestId', (req, res) => {
