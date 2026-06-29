@@ -321,6 +321,28 @@ app.post('/cancelar/:requestId', (req, res) => {
 });
 
 // -------------------------------------------------------
+// POST /refinar — refinamento usando --continue
+// -------------------------------------------------------
+app.post('/refinar', (req, res) => {
+  const { refinamento, projeto } = req.body;
+  if (!refinamento || !refinamento.trim()) {
+    return res.status(400).json({ sucesso: false, erro: 'Texto de refinamento obrigatório.' });
+  }
+
+  const requestId = crypto.randomUUID();
+  const inicio = Date.now();
+
+  const logsDir = path.join(process.env.CONTEXT_PATH, 'logs');
+  if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+  const logFile = path.join(logsDir, 'agent.log');
+
+  analises[requestId] = { status: 'running', inicio, logPath: logFile, logs: [] };
+  res.json({ sucesso: true, requestId });
+
+  executarRefinamento(requestId, refinamento, projeto || '', inicio, logFile);
+});
+
+// -------------------------------------------------------
 // POST /limpar — limpa output.txt e storage de resultado
 // -------------------------------------------------------
 app.post('/limpar', (req, res) => {
@@ -694,6 +716,98 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     log.sep();
     log.error('=== ANÁLISE ENCERRADA COM EXCEÇÃO ===');
   }
+}
+
+// -------------------------------------------------------
+// Refinamento em background (--continue)
+// -------------------------------------------------------
+async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, logFile) {
+  const log = criarLogger(requestId, logFile);
+  log.sep();
+  log.info('=== REFINAMENTO INICIADO (--continue) ===');
+  log.sep();
+  log.info(`RequestId  : ${requestId}`);
+  log.info(`Refinamento: ${refinamento.slice(0, 80)}${refinamento.length > 80 ? '...' : ''}`);
+  log.sep();
+
+  addLog(requestId, 'Retomando sessão de análise anterior...');
+
+  const refinamentoPath = path.join(process.env.CONTEXT_PATH, 'refinamento_temp.txt');
+  fs.writeFileSync(refinamentoPath, refinamento, 'utf8');
+
+  let repoPath = process.env.REPO_PATH;
+  if (projetoSlug) {
+    try {
+      const projetosMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+      const proj = parseProjetos(projetosMd).find(p => p.slug === projetoSlug);
+      if (proj && proj.repositorio) repoPath = path.join(process.env.CONTEXT_PATH, proj.repositorio);
+    } catch (e) { /* usa default */ }
+  }
+
+  const isWin  = process.platform === 'win32';
+  const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');
+  const shPath  = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.sh');
+  const outputPath = process.env.OUTPUT_PATH;
+  const esc = (p) => `"${p}"`;
+
+  const comando = isWin
+    ? `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)} continue`
+    : `bash ${esc(shPath)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)} continue`;
+
+  log.debug(`Comando: ${comando}`);
+  addLog(requestId, 'Enviando contexto adicional ao agente...');
+
+  const execInicio = Date.now();
+  const msgs = ['Aguardando resposta refinada...', 'Processando contexto adicional...', 'Elaborando análise atualizada...'];
+  let msgIdx = 0;
+  const actInterval = setInterval(() => {
+    if (analises[requestId] && analises[requestId].status === 'running' && msgIdx < msgs.length) {
+      addLog(requestId, msgs[msgIdx++]);
+    }
+  }, 10000);
+
+  const env = { ...process.env };
+  exec(comando, { timeout: 0, env }, (err, stdout, stderr) => {
+    clearInterval(actInterval);
+    const duracao = ((Date.now() - execInicio) / 1000).toFixed(1);
+    log.sep();
+    log.info(`Refinamento finalizado. Duração: ${duracao}s`);
+    addLog(requestId, `Refinamento concluído em ${duracao}s`);
+
+    if (stderr && stderr.trim()) log.warn(`stderr: ${stderr.trim()}`);
+
+    try { fs.unlinkSync(refinamentoPath); log.info('refinamento_temp.txt deletado'); } catch (e) { /* ignora */ }
+
+    if (analises[requestId] && analises[requestId].status === 'cancelled') {
+      log.info('Refinamento cancelado pelo usuário');
+      return;
+    }
+
+    if (err && err.code !== 0) {
+      log.error(`Erro no refinamento. code=${err.code} | msg=${err.message}`);
+      analises[requestId] = { status: 'session_expired', inicio, logPath: logFile };
+      return;
+    }
+
+    let analise = '';
+    try {
+      analise = fs.readFileSync(outputPath, 'utf8');
+      if (analise.charCodeAt(0) === 0xFEFF) analise = analise.slice(1);
+      log.info(`output.txt lido: ${analise.length} chars`);
+    } catch (e) {
+      log.error(`Erro ao ler output.txt: ${e.message}`);
+    }
+
+    if (!analise.trim()) {
+      log.warn('Output vazio — sessão provavelmente expirada');
+      analises[requestId] = { status: 'session_expired', inicio, logPath: logFile };
+      return;
+    }
+
+    analises[requestId] = { status: 'done', analise, inicio, logPath: logFile };
+    log.info('=== REFINAMENTO CONCLUÍDO ===');
+    log.sep();
+  });
 }
 
 app.listen(PORT, () => {

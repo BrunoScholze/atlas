@@ -270,6 +270,11 @@ function configurarEventos() {
   // Botões de resultado / erro / loading
   document.getElementById('btnCancelar').addEventListener('click', cancelarAnalise);
   document.getElementById('btnNovaAnalise').addEventListener('click', resetarFormulario);
+  document.getElementById('btnAindaNaoResolveu').addEventListener('click', toggleRefinamento);
+  document.getElementById('btnReenviarAnalise').addEventListener('click', reenviarAnalise);
+  document.getElementById('refinamentoTexto').addEventListener('input', () => {
+    document.getElementById('refinamentoTexto').classList.remove('atencao');
+  });
   document.getElementById('btnTentarNovamente').addEventListener('click', resetarFormulario);
   document.getElementById('btnTentarNovamenteSemAssunto').addEventListener('click', resetarFormulario);
   document.getElementById('btnDownloadAnalise').addEventListener('click',
@@ -516,6 +521,10 @@ async function consultarStatus(requestId, inicio) {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);
       mostrarTela('semAssunto');
+    } else if (json.status === 'session_expired') {
+      pararPolling();
+      await chrome.storage.local.remove(['requestId', 'inicio']);
+      mostrarErro('Sessão expirada. Faça uma nova análise completa.');
     } else if (json.status === 'error') {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);
@@ -928,11 +937,60 @@ function mostrarTela(tela) {
   document.getElementById('telaErro').style.display                 = tela === 'erro'       ? 'flex'  : 'none';
   document.getElementById('telaAssuntoNaoEncontrado').style.display = tela === 'semAssunto' ? 'flex'  : 'none';
   document.body.style.minHeight = tela === 'resultado' ? '660px' : '';
+  if (tela === 'resultado') {
+    document.getElementById('refinamentoWrap').style.display = 'none';
+    document.getElementById('refinamentoTexto').value = '';
+    document.getElementById('refinamentoTexto').classList.remove('atencao');
+  }
 }
 
 function mostrarErro(mensagem) {
   document.getElementById('erroMensagem').textContent = mensagem;
   mostrarTela('erro');
+}
+
+function toggleRefinamento() {
+  const wrap = document.getElementById('refinamentoWrap');
+  const visivel = wrap.style.display !== 'none';
+  wrap.style.display = visivel ? 'none' : 'block';
+  if (!visivel) document.getElementById('refinamentoTexto').focus();
+}
+
+async function reenviarAnalise() {
+  const texto = document.getElementById('refinamentoTexto').value.trim();
+  if (!texto) {
+    document.getElementById('refinamentoTexto').classList.add('atencao');
+    document.getElementById('refinamentoTexto').focus();
+    return;
+  }
+
+  mostrarTela('loading');
+  limparTerminal();
+  addTerminalLine('Retomando sessão de análise anterior...');
+  setTimeout(() => addTerminalLine('Enviando contexto adicional ao agente...'), 2000);
+  setTimeout(() => addTerminalLine('Aguardando resposta refinada...'), 6000);
+  setTimeout(() => addTerminalLine('Processando contexto adicional...'), 18000);
+  setTimeout(() => addTerminalLine('Elaborando análise atualizada...'), 32000);
+
+  try {
+    const res = await fetch(`${SERVER_URL}/refinar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refinamento: texto, projeto: state.projetoSelecionado || '' })
+    });
+    const json = await res.json();
+    if (!json.sucesso) { mostrarErro(json.erro || 'Erro ao iniciar refinamento.'); return; }
+
+    const inicio = Date.now();
+    currentRequestId = json.requestId;
+    await chrome.storage.local.set({ requestId: json.requestId, inicio });
+    atualizarTimer(inicio);
+    timerInterval   = setInterval(() => atualizarTimer(inicio), 1000);
+    pollingInterval = setInterval(() => consultarStatus(json.requestId, inicio), 5000);
+    setTimeout(() => consultarStatus(json.requestId, inicio), 2000);
+  } catch {
+    mostrarErro('Não foi possível conectar ao servidor. Verifique se está rodando em localhost:3000.');
+  }
 }
 
 async function resetarFormulario() {

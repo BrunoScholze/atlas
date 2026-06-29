@@ -39,6 +39,7 @@
       </div>
 
       <button class="btn-primary" id="btnIniciar">Iniciar</button>
+
     </div>
   </div>
 
@@ -207,8 +208,18 @@
 
     </div>
 
-    <div class="actions resultado-actions">
-      <button id="btnNovaAnalise" class="btn btn-primary-sm">Limpar</button>
+    <div class="resultado-actions">
+      <div id="refinamentoWrap" style="display:none" class="refinamento-wrap">
+        <textarea id="refinamentoTexto" class="s2-textarea"
+          placeholder="Descreva o que ainda não funcionou..." rows="3"></textarea>
+        <div class="refinamento-btn-row">
+          <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar análise</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnNovaAnalise" class="btn btn-secondary">Voltar para o início</button>
+        <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda não resolveu</button>
+      </div>
     </div>
 
   </div>

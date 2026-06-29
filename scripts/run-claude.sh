@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Args: <PromptFile> <OutputFile> <RepoPath> <LogFile>
+# Args: <PromptFile> <OutputFile> <RepoPath> <LogFile> [modo]
 PROMPT_FILE="$1"
 OUTPUT_FILE="$2"
 REPO_PATH="$3"
 LOG_FILE="$4"
+MODO="${5:-}"
 
 log() {
   local level="$1"
@@ -40,12 +41,20 @@ log "INFO" "Diretório atual: $(pwd)"
 
 sep
 log "INFO" "Chamando Claude Code via stdin..."
-log "INFO" "Flags: --dangerously-skip-permissions --print"
+if [ "$MODO" = "continue" ]; then
+  log "INFO" "Flags: --dangerously-skip-permissions --print --continue"
+else
+  log "INFO" "Flags: --dangerously-skip-permissions --print"
+fi
 sep
 
 START=$(date +%s)
 
-RESULT=$(claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>>"$LOG_FILE")
+if [ "$MODO" = "continue" ]; then
+  RESULT=$(claude --dangerously-skip-permissions --print --continue < "$PROMPT_FILE" 2>>"$LOG_FILE")
+else
+  RESULT=$(claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>>"$LOG_FILE")
+fi
 EXIT_CODE=$?
 
 END=$(date +%s)
