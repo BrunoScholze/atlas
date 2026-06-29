@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : bdfce191-8377-4b23-a930-cb5aa4ba4e9f
-Data/Hora : 28/06/2026, 01:38:12
+RequestId : 50ab6586-8be3-4013-9282-62a1b93d1b78
+Data/Hora : 29/06/2026, 16:35:29
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -15,7 +15,7 @@ tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: (vazio)
 observacao     : (não informada)
-pdf            : /Users/brunoscholze/Documents/GitHub/atlas/temp/DMANUFATURA-21274_1782621492884.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21274_1782761729654.pdf
 comentarios    :
 (vazio)
 historico      :
