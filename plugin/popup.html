@@ -211,14 +211,17 @@
     <div class="resultado-actions">
       <div id="refinamentoWrap" style="display:none" class="refinamento-wrap">
         <textarea id="refinamentoTexto" class="s2-textarea"
-          placeholder="Descreva o que ainda não funcionou..." rows="3"></textarea>
+          placeholder="Descreva o que ainda não funcionou. Pode citar arquivos com @caminho/do/arquivo.ts"
+          rows="3"></textarea>
+        <div id="mencaoDropdownRefinamento" class="mencao-dropdown" style="display:none"></div>
         <div class="refinamento-btn-row">
           <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar análise</button>
         </div>
       </div>
-      <div class="actions">
-        <button id="btnNovaAnalise" class="btn btn-secondary">Voltar para o início</button>
+      <div class="actions-row">
+        <button id="btnInicioConfirm" class="btn btn-ghost-sm">← Início</button>
         <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda não resolveu</button>
+        <button id="btnResolvido" class="btn btn-success">✓ Resolvido!</button>
       </div>
     </div>
 
@@ -238,6 +241,19 @@
     <button id="btnTentarNovamenteSemAssunto" class="btn btn-primary-sm">Tentar novamente</button>
   </div>
 
+  <!-- Modal: confirmação ao ir para o início -->
+  <div id="modalResolucao" class="modal-overlay" style="display:none" aria-modal="true" role="dialog">
+    <div class="modal-box">
+      <p class="modal-msg">O chamado foi resolvido?</p>
+      <div class="modal-btns">
+        <button id="modalSim" class="btn btn-success-sm">Sim</button>
+        <button id="modalNao" class="btn btn-danger-sm">Não</button>
+        <button id="modalCancelar" class="btn btn-ghost-sm">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/confetti.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

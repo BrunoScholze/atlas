@@ -622,3 +622,72 @@ details.sanfona > summary:hover { background: var(--border); }
   display: flex; justify-content: flex-end;
   padding: 8px 0 4px;
 }
+
+/* ============================================================ BOTÕES RESULTADO — 3 colunas */
+.actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  transition: background .25s;
+}
+
+.btn-success {
+  background: #16a34a; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+  white-space: nowrap;
+}
+.btn-success:hover { background: #15803d; }
+
+.btn-ghost-sm {
+  background: transparent; color: var(--muted2);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 12px; font-size: 12px;
+  cursor: pointer; transition: border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.btn-ghost-sm:hover { border-color: var(--border2); color: var(--text); }
+
+/* ============================================================ MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 18px;
+  min-width: 280px; max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  transition: background .25s;
+}
+.modal-msg {
+  font-size: 14px; font-weight: 600;
+  color: var(--text); text-align: center;
+}
+.modal-btns {
+  display: flex; gap: 8px; justify-content: center;
+}
+.btn-success-sm {
+  background: #16a34a; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 7px 18px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.btn-success-sm:hover { background: #15803d; }
+
+.btn-danger-sm {
+  background: transparent; color: #dc2626;
+  border: 1px solid #dc2626; border-radius: 8px;
+  padding: 7px 18px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.btn-danger-sm:hover { background: #dc2626; color: #fff; }

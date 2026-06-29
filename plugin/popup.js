@@ -269,8 +269,12 @@ function configurarEventos() {
 
   // Botões de resultado / erro / loading
   document.getElementById('btnCancelar').addEventListener('click', cancelarAnalise);
-  document.getElementById('btnNovaAnalise').addEventListener('click', resetarFormulario);
+  document.getElementById('btnInicioConfirm').addEventListener('click', abrirModalResolucao);
   document.getElementById('btnAindaNaoResolveu').addEventListener('click', toggleRefinamento);
+  document.getElementById('btnResolvido').addEventListener('click', () => resolverChamado('resolved'));
+  document.getElementById('modalSim').addEventListener('click', () => resolverChamado('resolved', true));
+  document.getElementById('modalNao').addEventListener('click', () => resolverChamado('unresolved', true));
+  document.getElementById('modalCancelar').addEventListener('click', fecharModal);
   document.getElementById('btnReenviarAnalise').addEventListener('click', reenviarAnalise);
   document.getElementById('refinamentoTexto').addEventListener('input', () => {
     document.getElementById('refinamentoTexto').classList.remove('atencao');
@@ -1014,4 +1018,59 @@ async function resetarFormulario() {
   limparTerminal();
 
   mostrarTela('selecao');
+}
+
+// ============================================================ FEEDBACK / MODAL / CONFETTI
+
+function abrirModalResolucao() {
+  document.getElementById('modalResolucao').style.display = 'flex';
+}
+
+function fecharModal() {
+  document.getElementById('modalResolucao').style.display = 'none';
+}
+
+async function resolverChamado(status, viaModal = false) {
+  if (viaModal) fecharModal();
+  await salvarFeedback(status);
+  if (status === 'resolved') {
+    dispararConfetti();
+    setTimeout(resetarFormulario, 2200);
+  } else {
+    resetarFormulario();
+  }
+}
+
+async function salvarFeedback(status) {
+  // Stub — implementado de verdade na Task 2
+  try {
+    const stored = await chrome.storage.local.get(['inicio', 'resultado']);
+    const tempoAnalise = stored.inicio ? Math.round((Date.now() - stored.inicio) / 1000) : 0;
+    const analiseTexto = stored.resultado?.analise || '';
+    await fetch(`${SERVER_URL}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticketId:    state.dadosTicket?.ticketId || '',
+        titulo:      state.dadosTicket?.titulo   || '',
+        projeto:     state.projetoSelecionado    || '',
+        status,
+        tempoAnalise,
+        analiseTexto,
+        observacao:  document.getElementById('descricaoTextarea')?.value || ''
+      })
+    });
+  } catch { /* falha silenciosa — não bloqueia o fluxo */ }
+}
+
+function dispararConfetti() {
+  if (typeof confetti !== 'function') return;
+  const colors = ['#22c55e', '#16a34a', '#4ade80', '#bbf7d0', '#ffffff'];
+  const end = Date.now() + 2000;
+  const frame = () => {
+    confetti({ particleCount: 4, angle: 60,  spread: 55, origin: { x: 0 }, colors });
+    confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 }, colors });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  };
+  frame();
 }
