@@ -691,6 +691,10 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
       log.sep();
 
+      // Remove qualquer texto que o agente escreva antes do separador do template
+      const idxTemplate = analise.indexOf('========================================');
+      if (idxTemplate > 0) analise = analise.slice(idxTemplate);
+
       const temTemplate      = analise.trim().startsWith('========');
       const temFuncionalidade = funcIds.trim().length > 0;
       const statusFinal      = (temTemplate && temFuncionalidade) ? 'done' : 'no_subject';
