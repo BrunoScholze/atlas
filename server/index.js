@@ -408,7 +408,7 @@ app.get('/feedback/stats', (req, res) => {
 // -------------------------------------------------------
 app.get('/feedback/list', (req, res) => {
   const feedbackBase = path.join(process.env.CONTEXT_PATH, 'feedback');
-  if (!fs.existsSync(feedbackBase)) return res.json({ execucoes: [] });
+  if (!fs.existsSync(feedbackBase)) return res.json({ total: 0, page: 1, limit: 50, execucoes: [] });
 
   const todos = [];
   for (const dir of fs.readdirSync(feedbackBase)) {
