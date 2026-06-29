@@ -734,10 +734,23 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, 
   log.info(`Refinamento: ${refinamento.slice(0, 80)}${refinamento.length > 80 ? '...' : ''}`);
   log.sep();
 
-  addLog(requestId, 'Retomando sessão de análise anterior...');
+  addLog(requestId, 'Preparando contexto de acompanhamento...');
+
+  // Lê análise anterior para incluir como contexto no prompt
+  let analiseAnterior = '';
+  try {
+    analiseAnterior = fs.readFileSync(process.env.OUTPUT_PATH, 'utf8');
+    if (analiseAnterior.charCodeAt(0) === 0xFEFF) analiseAnterior = analiseAnterior.slice(1);
+    analiseAnterior = analiseAnterior.trim();
+  } catch (e) { /* sem contexto anterior */ }
+
+  const promptRefinamento = analiseAnterior
+    ? `Você é o agente de chamados que acabou de gerar a análise abaixo.\nO desenvolvedor tem uma pergunta de acompanhamento sobre a mesma análise.\n\nRegras:\n- Use o contexto da análise anterior para responder diretamente\n- Só leia arquivos do repositório se for estritamente necessário para a nova pergunta\n- Se atualizar a análise, mantenha o mesmo formato de output com separadores ---\n- Se a resposta for simples, responda em texto livre objetivo\n\n=== ANÁLISE ANTERIOR ===\n${analiseAnterior}\n\n=== PERGUNTA DO DESENVOLVEDOR ===\n${refinamento}`
+    : refinamento;
 
   const refinamentoPath = path.join(process.env.CONTEXT_PATH, 'refinamento_temp.txt');
-  fs.writeFileSync(refinamentoPath, refinamento, 'utf8');
+  fs.writeFileSync(refinamentoPath, promptRefinamento, 'utf8');
+  log.info(`Prompt de acompanhamento: ${promptRefinamento.length} chars`);
 
   let repoPath = process.env.REPO_PATH;
   if (projetoSlug) {
@@ -755,8 +768,8 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, 
   const esc = (p) => `"${p}"`;
 
   const comando = isWin
-    ? `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)} continue`
-    : `bash ${esc(shPath)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)} continue`;
+    ? `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File ${esc(ps1Path)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`
+    : `bash ${esc(shPath)} ${esc(refinamentoPath)} ${esc(outputPath)} ${esc(repoPath)} ${esc(logFile)}`;
 
   log.debug(`Comando: ${comando}`);
   addLog(requestId, 'Enviando contexto adicional ao agente...');
