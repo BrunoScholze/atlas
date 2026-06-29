@@ -625,7 +625,7 @@ function renderizarResultado(texto) {
   } else {
     document.getElementById('secaoEstruturada').style.display = 'none';
     document.getElementById('secaoBruta').style.display       = 'block';
-    document.getElementById('conteudoBruto').innerHTML        = renderMarkdown(texto);
+    document.getElementById('conteudoBruto').innerHTML        = renderSecao(texto);
   }
 }
 
