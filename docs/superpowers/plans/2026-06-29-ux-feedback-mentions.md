@@ -1,23 +1,22 @@
-# UX — Feedback, Botões e @Menção de Arquivos — Implementation Plan
+﻿# UX â€” Feedback, BotÃµes e @MenÃ§Ã£o de Arquivos â€” Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Adicionar redesign de botões com confetti, sistema de feedback persistente com tela de estatísticas, e `@` menção de arquivos nos campos de texto.
+**Goal:** Redesign de botÃµes com confetti, endpoints de feedback persistente, e `@` menÃ§Ã£o de arquivos nos campos de texto. Tela de estatÃ­sticas Ã© um React app separado â€” implementado em outra rodada.
 
-**Architecture:** Quatro tarefas independentes e sequenciais: (1) botões + confetti no plugin, (2) endpoints de feedback no servidor, (3) tela de stats no plugin, (4) `@` menção nos textareas e injeção de conteúdo no servidor. Cada tarefa é auto-suficiente e testável individualmente.
+**Architecture:** TrÃªs tarefas ativas + uma adiada: (1) botÃµes + confetti no plugin, (2) endpoints de feedback no servidor, (3) â¸ ADIADA â€” dashboard React em URL separada, (4) `@` menÃ§Ã£o nos textareas e injeÃ§Ã£o de conteÃºdo no servidor. Cada tarefa Ã© auto-suficiente e testÃ¡vel individualmente.
 
 **Tech Stack:** Chrome Extension MV3, Vanilla JS, CSS (vars de tema existentes), Express.js, `canvas-confetti` (browser bundle local, ~7 KB)
 
 ## Global Constraints
 
-- Sem frameworks externos além de `canvas-confetti` (um único arquivo .js local em `plugin/vendor/confetti.js`)
-- Gráficos em SVG puro — sem Chart.js, sem D3
-- Todas as cores usam as CSS vars do tema: `var(--text)`, `var(--surface)`, `var(--border)`, `var(--accent)` etc.
+- Sem frameworks externos alÃ©m de `canvas-confetti` (um Ãºnico arquivo .js local em `plugin/vendor/confetti.js`)
 - Chrome MV3: scripts locais apenas; nada carregado de CDN em runtime
 - Dados de feedback salvos em `C:\azure\atlas\feedback\<projeto>\<ticket>-<ts>.json` (via servidor)
-- Máximo 3 arquivos por `@` menção; limite 2000 chars por arquivo injetado
-- `plugin/popup.js` tem 1017 linhas; `plugin/popup.css` tem 624 linhas; `server/index.js` tem 835 linhas — não reorganizar nem dividir arquivos
-- Nenhuma alteração em `manifest.json`, `content.js` ou scripts de injeção Jira
+- MÃ¡ximo 3 arquivos por `@` menÃ§Ã£o; limite 2000 chars por arquivo injetado
+- `plugin/popup.js` tem 1017 linhas; `plugin/popup.css` tem 624 linhas; `server/index.js` tem 835 linhas â€” nÃ£o reorganizar nem dividir arquivos
+- Nenhuma alteraÃ§Ã£o em `manifest.json`, `content.js` ou scripts de injeÃ§Ã£o Jira
+- **Sem botÃ£o ðŸ“Š no plugin** â€” o acesso Ã s stats serÃ¡ via URL do dashboard React (Task 3, adiada)
 
 ---
 
@@ -25,15 +24,15 @@
 
 | Arquivo | O que muda |
 |---|---|
-| `plugin/vendor/confetti.js` | **Criar** — bundle do canvas-confetti (baixar via PowerShell) |
-| `plugin/popup.html` | Substituir `.actions` por 3 botões; adicionar modal; adicionar `<script vendor/confetti.js>`; adicionar tela stats; botão stats fixo; dropdown de menção nos textareas |
-| `plugin/popup.js` | Novos handlers de botões + modal + confetti + salvarFeedback + tela stats + SVG chart + @menção |
+| `plugin/vendor/confetti.js` | **Criar** â€” bundle do canvas-confetti (baixar via PowerShell) |
+| `plugin/popup.html` | Substituir `.actions` por 3 botÃµes; adicionar modal; adicionar `<script vendor/confetti.js>`; dropdown de menÃ§Ã£o nos textareas |
+| `plugin/popup.js` | Novos handlers de botÃµes + modal + confetti + salvarFeedback + @menÃ§Ã£o |
 | `plugin/popup.css` | Estilos: btn-success, modal-overlay, tela-stats, stat-card, stats-chart, stats-table, mencao-dropdown |
-| `server/index.js` | Endpoints: `POST /feedback`, `GET /feedback/stats`, `GET /arquivos`; injeção de @menção em `montarPrompt()` |
+| `server/index.js` | Endpoints: `POST /feedback`, `GET /feedback/stats`, `GET /arquivos`; injeÃ§Ã£o de @menÃ§Ã£o em `montarPrompt()` |
 
 ---
 
-## Task 1 — Botões redesign + confetti
+## Task 1 â€” BotÃµes redesign + confetti
 
 **Files:**
 - Create: `plugin/vendor/confetti.js`
@@ -42,7 +41,7 @@
 - Modify: `plugin/popup.css` (final do arquivo, linha 625+)
 
 **Interfaces:**
-- Produces: `salvarFeedback(status)` (função JS global — Task 2 vai implementá-la de verdade; aqui apenas esqueleto stub), `dispararConfetti()`, `mostrarModal()`, `fecharModal()`
+- Produces: `salvarFeedback(status)` (funÃ§Ã£o JS global â€” Task 2 vai implementÃ¡-la de verdade; aqui apenas esqueleto stub), `dispararConfetti()`, `mostrarModal()`, `fecharModal()`
 
 ---
 
@@ -63,7 +62,7 @@ Verificar que o arquivo existe e tem > 5 KB:
 
 ---
 
-- [ ] **Step 2: Atualizar `plugin/popup.html` — botões e modal**
+- [ ] **Step 2: Atualizar `plugin/popup.html` â€” botÃµes e modal**
 
 Localizar e substituir o bloco `.resultado-actions` existente (linhas 211-223):
 
@@ -72,14 +71,14 @@ Localizar e substituir o bloco `.resultado-actions` existente (linhas 211-223):
     <div class="resultado-actions">
       <div id="refinamentoWrap" style="display:none" class="refinamento-wrap">
         <textarea id="refinamentoTexto" class="s2-textarea"
-          placeholder="Descreva o que ainda não funcionou..." rows="3"></textarea>
+          placeholder="Descreva o que ainda nÃ£o funcionou..." rows="3"></textarea>
         <div class="refinamento-btn-row">
-          <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar análise</button>
+          <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar anÃ¡lise</button>
         </div>
       </div>
       <div class="actions">
-        <button id="btnNovaAnalise" class="btn btn-secondary">Voltar para o início</button>
-        <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda não resolveu</button>
+        <button id="btnNovaAnalise" class="btn btn-secondary">Voltar para o inÃ­cio</button>
+        <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda nÃ£o resolveu</button>
       </div>
     </div>
 ```
@@ -90,31 +89,31 @@ Substituir por:
     <div class="resultado-actions">
       <div id="refinamentoWrap" style="display:none" class="refinamento-wrap">
         <textarea id="refinamentoTexto" class="s2-textarea"
-          placeholder="Descreva o que ainda não funcionou. Pode citar arquivos com @caminho/do/arquivo.ts"
+          placeholder="Descreva o que ainda nÃ£o funcionou. Pode citar arquivos com @caminho/do/arquivo.ts"
           rows="3"></textarea>
         <div id="mencaoDropdownRefinamento" class="mencao-dropdown" style="display:none"></div>
         <div class="refinamento-btn-row">
-          <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar análise</button>
+          <button id="btnReenviarAnalise" class="btn btn-primary-sm">Reenviar anÃ¡lise</button>
         </div>
       </div>
       <div class="actions-row">
-        <button id="btnInicioConfirm" class="btn btn-ghost-sm">← Início</button>
-        <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda não resolveu</button>
-        <button id="btnResolvido" class="btn btn-success">✓ Resolvido!</button>
+        <button id="btnInicioConfirm" class="btn btn-ghost-sm">â† InÃ­cio</button>
+        <button id="btnAindaNaoResolveu" class="btn btn-primary-sm">Ainda nÃ£o resolveu</button>
+        <button id="btnResolvido" class="btn btn-success">âœ“ Resolvido!</button>
       </div>
     </div>
 ```
 
-Adicionar o modal de confirmação ANTES de `<script src="popup.js"></script>`:
+Adicionar o modal de confirmaÃ§Ã£o ANTES de `<script src="popup.js"></script>`:
 
 ```html
-  <!-- Modal: confirmação ao ir para o início -->
+  <!-- Modal: confirmaÃ§Ã£o ao ir para o inÃ­cio -->
   <div id="modalResolucao" class="modal-overlay" style="display:none" aria-modal="true" role="dialog">
     <div class="modal-box">
       <p class="modal-msg">O chamado foi resolvido?</p>
       <div class="modal-btns">
         <button id="modalSim" class="btn btn-success-sm">Sim</button>
-        <button id="modalNao" class="btn btn-danger-sm">Não</button>
+        <button id="modalNao" class="btn btn-danger-sm">NÃ£o</button>
         <button id="modalCancelar" class="btn btn-ghost-sm">Cancelar</button>
       </div>
     </div>
@@ -126,7 +125,7 @@ Adicionar o modal de confirmação ANTES de `<script src="popup.js"></script>`:
 
 ---
 
-- [ ] **Step 3: Atualizar `plugin/popup.js` — remover referência a `btnNovaAnalise` e adicionar novos handlers**
+- [ ] **Step 3: Atualizar `plugin/popup.js` â€” remover referÃªncia a `btnNovaAnalise` e adicionar novos handlers**
 
 Em `configurarEventos()` (linha ~270), localizar e substituir:
 
@@ -149,9 +148,9 @@ Substituir por:
 
 ---
 
-- [ ] **Step 4: Adicionar funções novas ao final de `plugin/popup.js` (antes da última linha)**
+- [ ] **Step 4: Adicionar funÃ§Ãµes novas ao final de `plugin/popup.js` (antes da Ãºltima linha)**
 
-Adicionar antes do último `}` ou após `resetarFormulario`:
+Adicionar antes do Ãºltimo `}` ou apÃ³s `resetarFormulario`:
 
 ```js
 // ============================================================ FEEDBACK / MODAL / CONFETTI
@@ -176,7 +175,7 @@ async function resolverChamado(status, viaModal = false) {
 }
 
 async function salvarFeedback(status) {
-  // Stub — implementado de verdade na Task 2
+  // Stub â€” implementado de verdade na Task 2
   try {
     const stored = await chrome.storage.local.get(['inicio', 'resultado']);
     const tempoAnalise = stored.inicio ? Math.round((Date.now() - stored.inicio) / 1000) : 0;
@@ -194,7 +193,7 @@ async function salvarFeedback(status) {
         observacao:  document.getElementById('descricaoTextarea')?.value || ''
       })
     });
-  } catch { /* falha silenciosa — não bloqueia o fluxo */ }
+  } catch { /* falha silenciosa â€” nÃ£o bloqueia o fluxo */ }
 }
 
 function dispararConfetti() {
@@ -214,10 +213,10 @@ function dispararConfetti() {
 
 - [ ] **Step 5: Adicionar estilos ao final de `plugin/popup.css`**
 
-Acrescentar após a última linha (624):
+Acrescentar apÃ³s a Ãºltima linha (624):
 
 ```css
-/* ============================================================ BOTÕES RESULTADO — 3 colunas */
+/* ============================================================ BOTÃ•ES RESULTADO â€” 3 colunas */
 .actions-row {
   display: flex;
   align-items: center;
@@ -291,13 +290,13 @@ Acrescentar após a última linha (624):
 
 - [ ] **Step 6: Verificar visualmente**
 
-1. Recarregar extensão em `chrome://extensions`
-2. Abrir popup, iniciar análise com um ticket de teste, aguardar resultado
-3. Confirmar 3 botões: `← Início` à esquerda, `Ainda não resolveu` no centro, `✓ Resolvido!` à direita
-4. Clicar `← Início` → modal aparece com "O chamado foi resolvido?" + 3 botões
-5. Cancelar modal → permanece na tela resultado
-6. Clicar `✓ Resolvido!` → confetti dispara + volta para tela inicial após ~2s
-7. Verificar que o console mostra erro de rede em `/feedback` (endpoint não existe ainda — Task 2)
+1. Recarregar extensÃ£o em `chrome://extensions`
+2. Abrir popup, iniciar anÃ¡lise com um ticket de teste, aguardar resultado
+3. Confirmar 3 botÃµes: `â† InÃ­cio` Ã  esquerda, `Ainda nÃ£o resolveu` no centro, `âœ“ Resolvido!` Ã  direita
+4. Clicar `â† InÃ­cio` â†’ modal aparece com "O chamado foi resolvido?" + 3 botÃµes
+5. Cancelar modal â†’ permanece na tela resultado
+6. Clicar `âœ“ Resolvido!` â†’ confetti dispara + volta para tela inicial apÃ³s ~2s
+7. Verificar que o console mostra erro de rede em `/feedback` (endpoint nÃ£o existe ainda â€” Task 2)
 
 ---
 
@@ -310,34 +309,34 @@ git commit -m "feat: botoes resultado redesign + confetti + modal resolucao"
 
 ---
 
-## Task 2 — Endpoints de feedback no servidor
+## Task 2 â€” Endpoints de feedback no servidor
 
 **Files:**
-- Modify: `server/index.js` (adicionar após linha 301 — após `GET /download/log/latest`)
+- Modify: `server/index.js` (adicionar apÃ³s linha 301 â€” apÃ³s `GET /download/log/latest`)
 
 **Interfaces:**
 - Consumes: `POST /feedback` body: `{ ticketId, titulo, projeto, status, tempoAnalise, analiseTexto, observacao }`
-- Produces: `POST /feedback` → `{ sucesso: true }`, `GET /feedback/stats` → objeto com métricas, `GET /feedback/list` → lista de execuções
+- Produces: `POST /feedback` â†’ `{ sucesso: true }`, `GET /feedback/stats` â†’ objeto com mÃ©tricas, `GET /feedback/list` â†’ lista de execuÃ§Ãµes
 
 ---
 
 - [ ] **Step 1: Adicionar `POST /feedback` em `server/index.js`**
 
-Adicionar após o bloco `GET /download/log/latest` (depois da linha `});` que fecha esse handler, em torno da linha 300):
+Adicionar apÃ³s o bloco `GET /download/log/latest` (depois da linha `});` que fecha esse handler, em torno da linha 300):
 
 ```js
 // -------------------------------------------------------
-// POST /feedback — salva resultado de uma análise
+// POST /feedback â€” salva resultado de uma anÃ¡lise
 // -------------------------------------------------------
 app.post('/feedback', (req, res) => {
   const { ticketId, titulo, projeto, status, tempoAnalise, analiseTexto, observacao } = req.body || {};
 
   const VALID_STATUS = ['resolved', 'unresolved', 'unresolved_refined'];
   if (!VALID_STATUS.includes(status)) {
-    return res.status(400).json({ sucesso: false, erro: 'status inválido' });
+    return res.status(400).json({ sucesso: false, erro: 'status invÃ¡lido' });
   }
 
-  // Extrai funcionalidades e arquivos analisados do texto da análise
+  // Extrai funcionalidades e arquivos analisados do texto da anÃ¡lise
   const extrairSecao = (texto, secao) => {
     const re = new RegExp(`-{2,}\\s*\\r?\\n\\s*${secao}\\s*\\r?\\n-{2,}\\r?\\n([\\s\\S]*?)(?=\\n-{10,}|\\n={8,}|$)`, 'i');
     const m = (texto || '').match(re);
@@ -347,7 +346,7 @@ app.post('/feedback', (req, res) => {
   const funcText = extrairSecao(analiseTexto, 'FUNCIONALIDADES IDENTIFICADAS');
   const arqText  = extrairSecao(analiseTexto, 'ARQUIVOS ANALISADOS');
 
-  const funcionalidades    = funcText ? funcText.split('\n').filter(l => l.trim().startsWith('-')).map(l => l.replace(/^-\s*/, '').split(' —')[0].trim()) : [];
+  const funcionalidades    = funcText ? funcText.split('\n').filter(l => l.trim().startsWith('-')).map(l => l.replace(/^-\s*/, '').split(' â€”')[0].trim()) : [];
   const arquivosAnalisados = arqText  ? [...arqText.matchAll(/`([^`]+\.\w+)`/g)].map(m => m[1]) : [];
 
   const slugProjeto = (projeto || 'sem-projeto').replace(/[^a-z0-9\-]/gi, '-');
@@ -377,7 +376,7 @@ app.post('/feedback', (req, res) => {
 });
 
 // -------------------------------------------------------
-// GET /feedback/stats — métricas agregadas
+// GET /feedback/stats â€” mÃ©tricas agregadas
 // -------------------------------------------------------
 app.get('/feedback/stats', (req, res) => {
   const feedbackBase = path.join(process.env.CONTEXT_PATH, 'feedback');
@@ -408,7 +407,7 @@ app.get('/feedback/stats', (req, res) => {
     ? Math.round(comTempo.reduce((s, t) => s + t.tempoAnalise, 0) / comTempo.length)
     : 0;
 
-  // Últimas 6 semanas
+  // Ãšltimas 6 semanas
   const agora = Date.now();
   const porSemana = Array.from({ length: 6 }, (_, i) => {
     const ini   = agora - (i + 1) * 7 * 24 * 3600 * 1000;
@@ -464,358 +463,36 @@ git commit -m "feat: endpoints POST /feedback e GET /feedback/stats"
 
 ---
 
-## Task 3 — Tela de estatísticas no plugin
+## Task 3 â€” â¸ ADIADA â€” Dashboard de EstatÃ­sticas (React, URL separada)
+
+> **Esta task nÃ£o serÃ¡ implementada agora.** O dashboard de estatÃ­sticas serÃ¡ uma aplicaÃ§Ã£o React separada, servida pelo mesmo servidor Express em uma rota dedicada (ex: `http://localhost:3000/dashboard`). Implementar em rodada futura com seu prÃ³prio spec.
+>
+> **O que serÃ¡ construÃ­do no futuro:**
+> - React app em `C:\azure\atlas\dashboard\` (Vite + React + Recharts ou Tremor)
+> - Rota `GET /dashboard` no servidor servindo o build estÃ¡tico
+> - PÃ¡ginas: KPIs, grÃ¡fico de tendÃªncia, tabela completa com todos os campos do feedback (ticketId, tÃ­tulo, projeto, funcionalidades, arquivos, observaÃ§Ã£o, tempo, status)
+> - Filtros por projeto, perÃ­odo, status
+> - Design minimalista com paleta consistente com o plugin
+
+**O `GET /feedback/stats` e `GET /feedback/list` implementados na Task 2 jÃ¡ servem os dados para esse dashboard.**
+
+---
+
+## Task 4 â€” `@` MenÃ§Ã£o de arquivo
 
 **Files:**
-- Modify: `plugin/popup.html` (adicionar `#telaStats` e botão de stats fixo)
-- Modify: `plugin/popup.js` (adicionar navegação, `carregarStats()`, SVG chart, render tabela)
-- Modify: `plugin/popup.css` (estilos da tela de stats)
+- Modify: `plugin/popup.html` â€” placeholder do textarea de detalhes (linha 107)
+- Modify: `plugin/popup.js` â€” `carregarArquivosProjeto()`, `configurarMencaoArquivo()`, chamar em `configurarEventos()`
+- Modify: `plugin/popup.css` â€” estilos do dropdown de menÃ§Ã£o
+- Modify: `server/index.js` â€” endpoint `GET /arquivos`, `injetarArquivosReferenciados()`, chamada em `montarPrompt()`
 
 **Interfaces:**
-- Consumes: `GET /feedback/stats` da Task 2
-- Produces: nova tela acessível via botão `📊` fixo no canto superior esquerdo
+- Consumes: `GET /arquivos?projeto=<slug>` â†’ `{ arquivos: string[] }`
+- Produces: dropdown de menÃ§Ã£o nos dois textareas; servidor injeta conteÃºdo de arquivos referenciados no prompt
 
 ---
 
-- [ ] **Step 1: Adicionar botão de stats fixo e tela `#telaStats` em `plugin/popup.html`**
-
-Logo após `<button class="theme-toggle" ...>...</button>` (linha ~12), adicionar:
-
-```html
-  <!-- Botão de estatísticas — fixo no canto superior esquerdo -->
-  <button class="stats-toggle" id="btnAbrirStats" title="Ver histórico de análises">📊</button>
-```
-
-Antes do bloco `<script src="vendor/confetti.js">`, adicionar a nova tela:
-
-```html
-  <!-- ============================================================ TELA STATS -->
-  <div id="telaStats" style="display:none" class="tela-stats">
-    <div class="stats-header">
-      <button id="btnFecharStats" class="btn-ghost-sm">← Voltar</button>
-      <span class="stats-titulo">Histórico de Análises</span>
-    </div>
-    <div class="stats-scroll">
-
-      <div class="stats-cards">
-        <div class="stat-card">
-          <span class="stat-num" id="statTotal">—</span>
-          <span class="stat-label">Total</span>
-        </div>
-        <div class="stat-card stat-card-green">
-          <span class="stat-num" id="statPct">—</span>
-          <span class="stat-label">Resolvidos</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="statTempo">—</span>
-          <span class="stat-label">Tempo médio</span>
-        </div>
-      </div>
-
-      <div class="stats-chart-wrap">
-        <div class="stats-chart-titulo">Análises por semana</div>
-        <svg id="statsChart" class="stats-chart" viewBox="0 0 540 120" preserveAspectRatio="none"></svg>
-      </div>
-
-      <div class="stats-table-wrap">
-        <table class="stats-table">
-          <thead>
-            <tr>
-              <th>Ticket</th>
-              <th>Título</th>
-              <th>Data</th>
-              <th>Tempo</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="statsTableBody"></tbody>
-        </table>
-      </div>
-
-    </div>
-  </div>
-```
-
----
-
-- [ ] **Step 2: Atualizar `mostrarTela()` em `plugin/popup.js` para incluir `telaStats`**
-
-Localizar `function mostrarTela(tela)` (linha 932) e adicionar uma linha antes de `document.body.style.minHeight`:
-
-```js
-  document.getElementById('telaStats').style.display = tela === 'stats' ? 'block' : 'none';
-```
-
----
-
-- [ ] **Step 3: Adicionar eventos do botão de stats em `configurarEventos()` em `plugin/popup.js`**
-
-No final de `configurarEventos()` (antes do fechamento `}`), adicionar:
-
-```js
-  document.getElementById('btnAbrirStats').addEventListener('click', abrirStats);
-  document.getElementById('btnFecharStats').addEventListener('click', () => mostrarTela('selecao'));
-```
-
----
-
-- [ ] **Step 4: Adicionar funções de stats ao final de `plugin/popup.js`**
-
-Após as funções de confetti (Task 1), adicionar:
-
-```js
-// ============================================================ TELA STATS
-
-async function abrirStats() {
-  mostrarTela('stats');
-  document.getElementById('statTotal').textContent = '...';
-  document.getElementById('statPct').textContent   = '...';
-  document.getElementById('statTempo').textContent = '...';
-  document.getElementById('statsTableBody').innerHTML = '';
-  document.getElementById('statsChart').innerHTML     = '';
-
-  try {
-    const res  = await fetch(`${SERVER_URL}/feedback/stats`);
-    const data = await res.json();
-    renderStats(data);
-  } catch {
-    document.getElementById('statTotal').textContent = 'Erro';
-  }
-}
-
-function renderStats(data) {
-  // Cards
-  document.getElementById('statTotal').textContent =
-    data.total || '0';
-  document.getElementById('statPct').textContent =
-    data.total > 0 ? Math.round((data.resolvidos / data.total) * 100) + '%' : '—';
-  document.getElementById('statTempo').textContent =
-    data.tempoMedio > 0 ? formatarTempo(data.tempoMedio) : '—';
-
-  // SVG bar chart
-  renderBarChart(data.porSemana || []);
-
-  // Tabela
-  const tbody  = document.getElementById('statsTableBody');
-  const linhas = (data.execucoes || []).slice(0, 50);
-  if (!linhas.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="stats-empty">Nenhuma análise registrada ainda.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = linhas.map(e => {
-    const data_ = new Date(e.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-    const tempo = e.tempoAnalise > 0 ? formatarTempo(e.tempoAnalise) : '—';
-    const badge = e.status === 'resolved'
-      ? '<span class="badge badge-ok">Resolvido</span>'
-      : '<span class="badge badge-no">Não resolvido</span>';
-    return `<tr>
-      <td class="stats-id">${escaparHtml(e.ticketId || '—')}</td>
-      <td class="stats-titulo-cel">${escaparHtml((e.titulo || '—').slice(0, 45))}</td>
-      <td>${data_}</td>
-      <td>${tempo}</td>
-      <td>${badge}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderBarChart(semanas) {
-  const svg    = document.getElementById('statsChart');
-  if (!semanas.length) { svg.innerHTML = ''; return; }
-  const max    = Math.max(...semanas.map(s => s.total), 1);
-  const W      = 540;
-  const H      = 120;
-  const padL   = 8;
-  const padR   = 8;
-  const padTop = 12;
-  const padBot = 28;
-  const n      = semanas.length;
-  const barW   = Math.floor((W - padL - padR) / n) - 6;
-  const chartH = H - padTop - padBot;
-
-  const barras = semanas.map((s, i) => {
-    const x       = padL + i * ((W - padL - padR) / n) + 3;
-    const hTotal  = s.total   > 0 ? Math.max(4, Math.round((s.total   / max) * chartH)) : 0;
-    const hResolv = s.resolvidos > 0 ? Math.round((s.resolvidos / max) * chartH) : 0;
-    const yTotal  = padTop + chartH - hTotal;
-    const yResolv = padTop + chartH - hResolv;
-
-    return `
-      <rect x="${x}" y="${yTotal}" width="${barW}" height="${hTotal}" rx="3" fill="var(--border2)" />
-      <rect x="${x}" y="${yResolv}" width="${barW}" height="${hResolv}" rx="3" fill="#16a34a" />
-      <text x="${x + barW / 2}" y="${H - 6}" text-anchor="middle" class="chart-label">${escaparHtml(s.label)}</text>
-      ${s.total > 0 ? `<text x="${x + barW / 2}" y="${yTotal - 3}" text-anchor="middle" class="chart-num">${s.total}</text>` : ''}
-    `;
-  }).join('');
-
-  svg.innerHTML = `
-    <style>
-      .chart-label { font-size: 9px; fill: var(--muted2); font-family: inherit; }
-      .chart-num   { font-size: 9px; fill: var(--muted2); font-family: inherit; }
-    </style>
-    ${barras}
-  `;
-}
-
-function formatarTempo(seg) {
-  if (seg < 60) return seg + 's';
-  return Math.floor(seg / 60) + 'm' + (seg % 60 > 0 ? (seg % 60) + 's' : '');
-}
-```
-
----
-
-- [ ] **Step 5: Adicionar estilos da tela stats em `plugin/popup.css`**
-
-Após os estilos da Task 1, adicionar:
-
-```css
-/* ============================================================ BOTÃO STATS FIXO */
-.stats-toggle {
-  position: fixed; top: 16px; left: 16px; z-index: 9999;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 999px; width: 36px; height: 36px;
-  font-size: 16px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .25s, border-color .25s;
-}
-.stats-toggle:hover { border-color: var(--border2); }
-
-/* ============================================================ TELA STATS */
-.tela-stats {
-  background: var(--bg); min-height: 400px;
-  transition: background .25s;
-}
-
-.stats-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  transition: background .25s;
-  position: sticky; top: 0; z-index: 10;
-}
-
-.stats-titulo {
-  font-size: 13px; font-weight: 600; color: var(--text);
-}
-
-.stats-scroll {
-  overflow-y: auto; max-height: 560px;
-  display: flex; flex-direction: column; gap: 16px;
-  padding: 16px;
-}
-
-/* Cards */
-.stats-cards {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-}
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  transition: background .25s;
-}
-.stat-card-green .stat-num { color: #16a34a; }
-.stat-num   { font-size: 24px; font-weight: 700; color: var(--text); }
-.stat-label { font-size: 11px; color: var(--muted2); }
-
-/* Chart */
-.stats-chart-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 12px 8px;
-  transition: background .25s;
-}
-.stats-chart-titulo {
-  font-size: 11px; font-weight: 600; color: var(--muted2);
-  margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em;
-}
-.stats-chart {
-  width: 100%; height: 120px; display: block;
-  overflow: visible;
-}
-
-/* Tabela */
-.stats-table-wrap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: background .25s;
-}
-.stats-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 12px; color: var(--text);
-}
-.stats-table th {
-  padding: 8px 10px; text-align: left;
-  font-size: 10px; font-weight: 600; color: var(--muted2);
-  text-transform: uppercase; letter-spacing: .04em;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-.stats-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-.stats-table tr:last-child td { border-bottom: none; }
-.stats-id { font-weight: 600; font-size: 11px; color: var(--muted2); white-space: nowrap; }
-.stats-titulo-cel { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.stats-empty { text-align: center; color: var(--muted2); padding: 24px; }
-
-.badge {
-  display: inline-block; padding: 2px 8px;
-  border-radius: 999px; font-size: 10px; font-weight: 600;
-  white-space: nowrap;
-}
-.badge-ok  { background: #dcfce7; color: #16a34a; }
-.badge-no  { background: #fee2e2; color: #dc2626; }
-[data-theme="dark"] .badge-ok { background: #14532d44; color: #4ade80; }
-[data-theme="dark"] .badge-no { background: #7f1d1d44; color: #f87171; }
-```
-
----
-
-- [ ] **Step 6: Verificar visualmente**
-
-1. Recarregar extensão
-2. Verificar que o botão `📊` aparece fixo no canto superior esquerdo (sem sobreposição com o toggle de tema)
-3. Clicar `📊` → tela de stats abre
-4. Se houver feedback salvo (Task 2), os cards e a tabela preenchem com dados reais
-5. Se não houver dados, cards mostram `0` e a tabela mostra "Nenhuma análise registrada ainda"
-6. Clicar `← Voltar` → retorna para tela de seleção
-7. Verificar que o botão `📊` aparece em TODAS as telas (é `position: fixed`)
-
----
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add plugin/popup.html plugin/popup.js plugin/popup.css
-git commit -m "feat: tela de estatisticas com cards, grafico SVG e tabela"
-```
-
----
-
-## Task 4 — `@` Menção de arquivo
-
-**Files:**
-- Modify: `plugin/popup.html` — placeholder do textarea de detalhes (linha 107)
-- Modify: `plugin/popup.js` — `carregarArquivosProjeto()`, `configurarMencaoArquivo()`, chamar em `configurarEventos()`
-- Modify: `plugin/popup.css` — estilos do dropdown de menção
-- Modify: `server/index.js` — endpoint `GET /arquivos`, `injetarArquivosReferenciados()`, chamada em `montarPrompt()`
-
-**Interfaces:**
-- Consumes: `GET /arquivos?projeto=<slug>` → `{ arquivos: string[] }`
-- Produces: dropdown de menção nos dois textareas; servidor injeta conteúdo de arquivos referenciados no prompt
-
----
-
-- [ ] **Step 1: Adicionar dropdown de menção no textarea de detalhes em `plugin/popup.html`**
+- [ ] **Step 1: Adicionar dropdown de menÃ§Ã£o no textarea de detalhes em `plugin/popup.html`**
 
 Localizar (linha ~102):
 ```html
@@ -824,7 +501,7 @@ Localizar (linha ~102):
         <textarea
           id="descricaoTextarea"
           class="s2-textarea"
-          placeholder="Ex: O campo Quantidade fica em branco ao salvar. O botão Confirmar some depois do segundo clique..."
+          placeholder="Ex: O campo Quantidade fica em branco ao salvar. O botÃ£o Confirmar some depois do segundo clique..."
           rows="4"
         ></textarea>
 ```
@@ -836,23 +513,23 @@ Substituir pelo bloco:
         <textarea
           id="descricaoTextarea"
           class="s2-textarea"
-          placeholder="Detalhe o mais profundo possível. Pode citar arquivos com @caminho/do/arquivo.ts"
+          placeholder="Detalhe o mais profundo possÃ­vel. Pode citar arquivos com @caminho/do/arquivo.ts"
           rows="4"
         ></textarea>
         <div id="mencaoDropdownDetalhes" class="mencao-dropdown" style="display:none"></div>
 ```
 
-(Atenção: manter o `</div>` de fechamento do `field-wrap` que vem depois do `<p class="descricao-erro">`.)
+(AtenÃ§Ã£o: manter o `</div>` de fechamento do `field-wrap` que vem depois do `<p class="descricao-erro">`.)
 
 ---
 
 - [ ] **Step 2: Adicionar endpoint `GET /arquivos` em `server/index.js`**
 
-Adicionar após o endpoint `GET /funcionalidades` (após linha ~275):
+Adicionar apÃ³s o endpoint `GET /funcionalidades` (apÃ³s linha ~275):
 
 ```js
 // -------------------------------------------------------
-// GET /arquivos?projeto=<slug> — lista arquivos do projeto para @menção
+// GET /arquivos?projeto=<slug> â€” lista arquivos do projeto para @menÃ§Ã£o
 // -------------------------------------------------------
 app.get('/arquivos', (req, res) => {
   const projetoSlug = req.query.projeto || '';
@@ -881,12 +558,12 @@ app.get('/arquivos', (req, res) => {
 
 ---
 
-- [ ] **Step 3: Adicionar função `injetarArquivosReferenciados` e chamar em `montarPrompt` em `server/index.js`**
+- [ ] **Step 3: Adicionar funÃ§Ã£o `injetarArquivosReferenciados` e chamar em `montarPrompt` em `server/index.js`**
 
-Adicionar a função auxiliar logo antes de `function montarPrompt(...)` (linha ~171):
+Adicionar a funÃ§Ã£o auxiliar logo antes de `function montarPrompt(...)` (linha ~171):
 
 ```js
-// Detecta @caminho/arquivo.ext no texto e injeta conteúdo (máx 3 arquivos, 2000 chars cada)
+// Detecta @caminho/arquivo.ext no texto e injeta conteÃºdo (mÃ¡x 3 arquivos, 2000 chars cada)
 function injetarArquivosReferenciados(texto, repoPath) {
   if (!texto || !repoPath) return '';
   const MAX_ARQUIVOS = 3;
@@ -903,7 +580,7 @@ function injetarArquivosReferenciados(texto, repoPath) {
     try {
       const conteudo = fs.readFileSync(path.join(repoPath, rel), 'utf8').slice(0, MAX_CHARS);
       secoes.push(`=== ARQUIVO REFERENCIADO: ${rel} ===\n${conteudo}\n${'='.repeat(42)}`);
-    } catch { /* arquivo não existe — ignora */ }
+    } catch { /* arquivo nÃ£o existe â€” ignora */ }
   }
   return secoes.length ? '\n\n' + secoes.join('\n\n') : '';
 }
@@ -911,30 +588,30 @@ function injetarArquivosReferenciados(texto, repoPath) {
 
 Dentro de `function montarPrompt(dados, claudeMd, funcionalidadesMd)`, localizar a linha:
 ```js
-OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}
+OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observaÃ§Ã£o adicional'}
 ```
 
 Substituir por:
 ```js
-OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}${injetarArquivosReferenciados(dados.observacao, dados.repoPath || '')}
+OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observaÃ§Ã£o adicional'}${injetarArquivosReferenciados(dados.observacao, dados.repoPath || '')}
 ```
 
-Em `executarAnalise`, o `repoPath` é calculado DEPOIS de `montarPrompt()` ser chamado (bug na ordem atual). É necessário mover o bloco de cálculo de `repoPath` para ANTES da chamada `montarPrompt`.
+Em `executarAnalise`, o `repoPath` Ã© calculado DEPOIS de `montarPrompt()` ser chamado (bug na ordem atual). Ã‰ necessÃ¡rio mover o bloco de cÃ¡lculo de `repoPath` para ANTES da chamada `montarPrompt`.
 
-Localizar em `executarAnalise` a sequência (em torno da linha 506-510):
+Localizar em `executarAnalise` a sequÃªncia (em torno da linha 506-510):
 ```js
     // Monta prompt
     log.info('Montando prompt...');
     addLog(requestId, 'Montando contexto completo do chamado...');
     const prompt = montarPrompt(dados, claudeMd, funcionalidadesMd);
     log.info(`Prompt montado: ${prompt.length} chars`);
-    addLog(requestId, `Contexto pronto — ${prompt.length.toLocaleString('pt-BR')} chars`);
+    addLog(requestId, `Contexto pronto â€” ${prompt.length.toLocaleString('pt-BR')} chars`);
 ```
 
 Substituir por:
 
 ```js
-    // Resolve repoPath antes de montar o prompt (necessário para injeção de @menções)
+    // Resolve repoPath antes de montar o prompt (necessÃ¡rio para injeÃ§Ã£o de @menÃ§Ãµes)
     const repoPath = (() => {
       if (projetoSlug) {
         try {
@@ -952,10 +629,10 @@ Substituir por:
     addLog(requestId, 'Montando contexto completo do chamado...');
     const prompt = montarPrompt(dados, claudeMd, funcionalidadesMd);
     log.info(`Prompt montado: ${prompt.length} chars`);
-    addLog(requestId, `Contexto pronto — ${prompt.length.toLocaleString('pt-BR')} chars`);
+    addLog(requestId, `Contexto pronto â€” ${prompt.length.toLocaleString('pt-BR')} chars`);
 ```
 
-Depois, localizar o bloco original de cálculo de `repoPath` (em torno da linha 554-565, APÓS a gravação do debug.txt):
+Depois, localizar o bloco original de cÃ¡lculo de `repoPath` (em torno da linha 554-565, APÃ“S a gravaÃ§Ã£o do debug.txt):
 ```js
     const outputPath = process.env.OUTPUT_PATH;
     const repoPath = (() => {
@@ -972,19 +649,19 @@ Depois, localizar o bloco original de cálculo de `repoPath` (em torno da linha 
     })();
 ```
 
-Substituir por (sem a declaração `const repoPath`, pois já foi declarada acima):
+Substituir por (sem a declaraÃ§Ã£o `const repoPath`, pois jÃ¡ foi declarada acima):
 ```js
     const outputPath = process.env.OUTPUT_PATH;
 ```
 
 ---
 
-- [ ] **Step 4: Adicionar função `carregarArquivosProjeto` e `configurarMencaoArquivo` em `plugin/popup.js`**
+- [ ] **Step 4: Adicionar funÃ§Ã£o `carregarArquivosProjeto` e `configurarMencaoArquivo` em `plugin/popup.js`**
 
-Adicionar após `// ============================================================ FEEDBACK / MODAL / CONFETTI` (após as funções da Task 1):
+Adicionar apÃ³s `// ============================================================ FEEDBACK / MODAL / CONFETTI` (apÃ³s as funÃ§Ãµes da Task 1):
 
 ```js
-// ============================================================ @MENÇÃO DE ARQUIVO
+// ============================================================ @MENÃ‡ÃƒO DE ARQUIVO
 
 let _arquivosProjeto = [];
 
@@ -1056,7 +733,7 @@ function configurarMencaoArquivo(textarea, dropdownEl) {
 
 - [ ] **Step 5: Chamar `carregarArquivosProjeto` e `configurarMencaoArquivo` em `popup.js`**
 
-Em `irParaFormulario()` (linha ~57), após a linha `mostrarTela('formulario');`, adicionar:
+Em `irParaFormulario()` (linha ~57), apÃ³s a linha `mostrarTela('formulario');`, adicionar:
 
 ```js
   carregarArquivosProjeto();
@@ -1065,7 +742,7 @@ Em `irParaFormulario()` (linha ~57), após a linha `mostrarTela('formulario');`,
 Em `configurarEventos()`, no final (antes do `}`), adicionar:
 
 ```js
-  // @menção nos dois textareas
+  // @menÃ§Ã£o nos dois textareas
   configurarMencaoArquivo(
     document.getElementById('descricaoTextarea'),
     document.getElementById('mencaoDropdownDetalhes')
@@ -1080,10 +757,10 @@ Em `configurarEventos()`, no final (antes do `}`), adicionar:
 
 - [ ] **Step 6: Adicionar estilos do dropdown em `plugin/popup.css`**
 
-Após os estilos da Task 3, adicionar:
+ApÃ³s os estilos da Task 3, adicionar:
 
 ```css
-/* ============================================================ @MENÇÃO */
+/* ============================================================ @MENÃ‡ÃƒO */
 .mencao-dropdown {
   position: absolute; left: 0; right: 0;
   background: var(--surface);
@@ -1110,17 +787,17 @@ Após os estilos da Task 3, adicionar:
 
 ---
 
-- [ ] **Step 7: Verificar funcionalidade de @menção**
+- [ ] **Step 7: Verificar funcionalidade de @menÃ§Ã£o**
 
-1. Recarregar extensão
+1. Recarregar extensÃ£o
 2. Selecionar um projeto e clicar Iniciar
 3. Marcar checkbox "Fornecer mais detalhes"
-4. Digitar `@create` no textarea → dropdown deve aparecer com arquivos que contenham "create"
-5. Clicar num item → caminho inserido no texto como `@src/app/...`
-6. Testar também no campo "Ainda não resolveu" (tela resultado)
-7. Testar endpoint: `GET http://localhost:3000/arquivos?projeto=<seu-slug>` → deve retornar lista de arquivos
+4. Digitar `@create` no textarea â†’ dropdown deve aparecer com arquivos que contenham "create"
+5. Clicar num item â†’ caminho inserido no texto como `@src/app/...`
+6. Testar tambÃ©m no campo "Ainda nÃ£o resolveu" (tela resultado)
+7. Testar endpoint: `GET http://localhost:3000/arquivos?projeto=<seu-slug>` â†’ deve retornar lista de arquivos
 
-Para verificar injeção no prompt: iniciar uma análise com `@src/app/algum/arquivo.ts` na observação, depois verificar o `debug.txt` em `C:\azure\atlas\debug.txt` e confirmar que o conteúdo do arquivo aparece sob `=== ARQUIVO REFERENCIADO ===`.
+Para verificar injeÃ§Ã£o no prompt: iniciar uma anÃ¡lise com `@src/app/algum/arquivo.ts` na observaÃ§Ã£o, depois verificar o `debug.txt` em `C:\azure\atlas\debug.txt` e confirmar que o conteÃºdo do arquivo aparece sob `=== ARQUIVO REFERENCIADO ===`.
 
 ---
 
@@ -1133,11 +810,10 @@ git commit -m "feat: @mencao de arquivo nos textareas com injecao de conteudo no
 
 ---
 
-## Sequência de execução
+## SequÃªncia de execuÃ§Ã£o
 
 ```
-Task 1 (botões + confetti) → reiniciar extensão → testar 3 botões + modal + confetti
-Task 2 (endpoints feedback) → reiniciar servidor → testar POST /feedback e GET /feedback/stats
-Task 3 (tela stats) → reiniciar extensão → testar botão 📊 e tela de stats
-Task 4 (@menção) → reiniciar extensão + servidor → testar dropdown e injeção no prompt
+Task 1 (botÃµes + confetti) â†’ reiniciar extensÃ£o â†’ testar 3 botÃµes + modal + confetti
+Task 2 (endpoints feedback) â†’ reiniciar servidor â†’ testar POST /feedback e GET /feedback/stats
+Task 4 (@menÃ§Ã£o) â†’ reiniciar extensÃ£o + servidor â†’ testar dropdown e injeÃ§Ã£o no prompt
 ```
