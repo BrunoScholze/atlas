@@ -355,7 +355,13 @@ app.post('/feedback', (req, res) => {
 app.get('/feedback/stats', (req, res) => {
   const feedbackBase = path.join(process.env.CONTEXT_PATH, 'feedback');
   if (!fs.existsSync(feedbackBase)) {
-    return res.json({ total: 0, resolvidos: 0, naoResolvidos: 0, tempoMedio: 0, porSemana: [], execucoes: [] });
+    const agora = Date.now();
+    const porSemana = Array.from({ length: 6 }, (_, i) => {
+      const fim   = agora - i * 7 * 24 * 3600 * 1000;
+      const label = new Date(fim).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      return { label, total: 0, resolvidos: 0 };
+    }).reverse();
+    return res.json({ total: 0, resolvidos: 0, naoResolvidos: 0, tempoMedio: 0, porSemana, execucoes: [] });
   }
 
   const todos = [];
@@ -395,6 +401,29 @@ app.get('/feedback/stats', (req, res) => {
   }).reverse();
 
   res.json({ total, resolvidos, naoResolvidos, tempoMedio, porSemana, execucoes: todos.slice(0, 100) });
+});
+
+// -------------------------------------------------------
+// GET /feedback/list — lista completa de execuções (paginado opcionalmente)
+// -------------------------------------------------------
+app.get('/feedback/list', (req, res) => {
+  const feedbackBase = path.join(process.env.CONTEXT_PATH, 'feedback');
+  if (!fs.existsSync(feedbackBase)) return res.json({ execucoes: [] });
+
+  const todos = [];
+  for (const dir of fs.readdirSync(feedbackBase)) {
+    const dirPath = path.join(feedbackBase, dir);
+    if (!fs.statSync(dirPath).isDirectory()) continue;
+    for (const arq of fs.readdirSync(dirPath)) {
+      if (!arq.endsWith('.json')) continue;
+      try { todos.push(JSON.parse(fs.readFileSync(path.join(dirPath, arq), 'utf8'))); } catch { /* ignora */ }
+    }
+  }
+  todos.sort((a, b) => b.timestamp - a.timestamp);
+  const page  = Math.max(1, parseInt(req.query.page)  || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 50));
+  const start = (page - 1) * limit;
+  res.json({ total: todos.length, page, limit, execucoes: todos.slice(start, start + limit) });
 });
 
 // -------------------------------------------------------
