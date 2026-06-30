@@ -1139,10 +1139,14 @@ app.get('/dashboard/overview', (req, res) => {
     const ini = d.getTime();
     const fim = ini + 24 * 3600 * 1000;
     const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const execDia = todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length;
+    const fbDia   = feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim);
     return {
       data,
-      total:     todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length,
-      resolvidos: feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim && f.status === 'resolved').length
+      total:      execDia > 0 ? execDia : fbDia.length,
+      resolvidos: execDia > 0
+        ? todos.filter(e => e.timestamp >= ini && e.timestamp < fim && e.statusFinal === 'done').length
+        : fbDia.filter(f => f.status === 'resolved').length
     };
   });
 
