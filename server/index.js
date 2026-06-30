@@ -26,6 +26,45 @@ app.use(express.json());
 // Mapa em memória: requestId -> { status, analise, erro, inicio, ticketId, logPath }
 const analises = {};
 
+function lerTodasExecucoes() {
+  const base = path.join(process.env.CONTEXT_PATH, 'execucoes');
+  if (!fs.existsSync(base)) return [];
+  const todos = [];
+  for (const dir of fs.readdirSync(base)) {
+    const dirPath = path.join(base, dir);
+    if (!fs.statSync(dirPath).isDirectory()) continue;
+    for (const arq of fs.readdirSync(dirPath)) {
+      if (!arq.endsWith('.json')) continue;
+      try { todos.push(JSON.parse(fs.readFileSync(path.join(dirPath, arq), 'utf8'))); } catch { /* ignora */ }
+    }
+  }
+  return todos.sort((a, b) => b.timestamp - a.timestamp);
+}
+
+function lerTodosFeedbacks() {
+  const base = path.join(process.env.CONTEXT_PATH, 'feedback');
+  if (!fs.existsSync(base)) return [];
+  const todos = [];
+  for (const dir of fs.readdirSync(base)) {
+    const dirPath = path.join(base, dir);
+    if (!fs.statSync(dirPath).isDirectory()) continue;
+    for (const arq of fs.readdirSync(dirPath)) {
+      if (!arq.endsWith('.json')) continue;
+      try { todos.push(JSON.parse(fs.readFileSync(path.join(dirPath, arq), 'utf8'))); } catch { /* ignora */ }
+    }
+  }
+  return todos;
+}
+
+function salvarExecucao(dados) {
+  try {
+    const dir = path.join(process.env.CONTEXT_PATH, 'execucoes', dados.projeto || 'sem-projeto');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const nome = `${(dados.ticketId || 'sem-ticket').replace(/[^a-z0-9\-]/gi, '-')}-${dados.timestamp}.json`;
+    fs.writeFileSync(path.join(dir, nome), JSON.stringify(dados, null, 2), 'utf8');
+  } catch { /* silencioso */ }
+}
+
 // -------------------------------------------------------
 // Logger — escreve no console E no arquivo de log da execução
 // -------------------------------------------------------
@@ -501,7 +540,7 @@ app.post('/cancelar/:requestId', (req, res) => {
 // POST /refinar — refinamento usando --continue
 // -------------------------------------------------------
 app.post('/refinar', (req, res) => {
-  const { refinamento, projeto } = req.body;
+  const { refinamento, projeto, ticketId, titulo } = req.body;
   if (!refinamento || !refinamento.trim()) {
     return res.status(400).json({ sucesso: false, erro: 'Texto de refinamento obrigatório.' });
   }
@@ -516,7 +555,7 @@ app.post('/refinar', (req, res) => {
   analises[requestId] = { status: 'running', inicio, logPath: logFile, logs: [] };
   res.json({ sucesso: true, requestId });
 
-  executarRefinamento(requestId, refinamento, projeto || '', inicio, logFile);
+  executarRefinamento(requestId, refinamento, projeto || '', ticketId || '', titulo || '', inicio, logFile);
 });
 
 // -------------------------------------------------------
@@ -882,6 +921,37 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
 
       analises[requestId] = { status: statusFinal, analise, inicio, logPath: logFile };
+
+      // Salva registro da execução para o dashboard
+      // Nota: funcIds e arquivos já foram extraídos nas linhas anteriores do mesmo callback
+      const execTokensOut = Math.round(analise.length / 4);
+      salvarExecucao({
+        requestId,
+        ticketId:          body.ticketId || '',
+        titulo:            body.titulo || '',
+        projeto:           projetoSlug || '',
+        prioridade:        body.prioridade || '',
+        tipo:              body.tipo || '',
+        tempoAnalise:      Math.round((Date.now() - execInicio) / 1000),
+        tokensEntrada:     promptTokens,
+        tokensSaida:       execTokensOut,
+        tokensTotal:       promptTokens + execTokensOut,
+        funcionalidades:   funcIds
+          ? funcIds.split('\n').filter(l => l.trim().startsWith('-'))
+              .map(l => l.replace(/^[-\s]+/, '').split(' —')[0].trim()).filter(Boolean)
+          : [],
+        arquivosAnalisados: arquivos
+          ? [...arquivos.matchAll(/\b((?:src|back)[\\/][\w.\-\\/]+\.\w+)/g)].map(m => m[1])
+          : [],
+        temPdf:            !!pdfPath,
+        temObservacao:     !!(body.observacao && body.observacao.trim()),
+        observacao:        (body.observacao || '').slice(0, 500),
+        isRefinamento:     false,
+        textoRefinamento:  null,
+        statusFinal,
+        timestamp:         Date.now()
+      });
+
       log.sep();
       log.info(`=== ANÁLISE CONCLUÍDA — status: ${statusFinal} ===`);
       log.sep();
@@ -903,7 +973,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 // -------------------------------------------------------
 // Refinamento em background (--continue)
 // -------------------------------------------------------
-async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, logFile) {
+async function executarRefinamento(requestId, refinamento, projetoSlug, ticketId, titulo, inicio, logFile) {
   const log = criarLogger(requestId, logFile);
   log.sep();
   log.info('=== REFINAMENTO INICIADO (--continue) ===');
@@ -1000,10 +1070,173 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, 
     }
 
     analises[requestId] = { status: 'done', analise, inicio, logPath: logFile };
+
+    const refTokensIn  = Math.round(promptRefinamento.length / 4);
+    const refTokensOut = Math.round(analise.length / 4);
+    const extrairSecaoRefArr = (texto, secao) => {
+      const re = new RegExp(`-{2,}\\s*\\r?\\n\\s*${secao}\\s*\\r?\\n-{2,}\\r?\\n([\\s\\S]*?)(?=\\n-{10,}|\\n={8,}|$)`, 'i');
+      const m = texto.match(re);
+      return m ? m[1].trim() : '';
+    };
+    const funcRaw = extrairSecaoRefArr(analise, 'FUNCIONALIDADES IDENTIFICADAS');
+    const arqRaw  = extrairSecaoRefArr(analise, 'ARQUIVOS ANALISADOS');
+    salvarExecucao({
+      requestId,
+      ticketId:          ticketId || '',
+      titulo:            titulo || '',
+      projeto:           projetoSlug || '',
+      prioridade:        '',
+      tipo:              '',
+      tempoAnalise:      Math.round((Date.now() - execInicio) / 1000),
+      tokensEntrada:     refTokensIn,
+      tokensSaida:       refTokensOut,
+      tokensTotal:       refTokensIn + refTokensOut,
+      funcionalidades:   funcRaw
+        ? funcRaw.split('\n').filter(l => l.trim().startsWith('-'))
+            .map(l => l.replace(/^[-\s]+/, '').split(' —')[0].trim()).filter(Boolean)
+        : [],
+      arquivosAnalisados: arqRaw
+        ? [...arqRaw.matchAll(/\b((?:src|back)[\\/][\w.\-\\/]+\.\w+)/g)].map(m => m[1])
+        : [],
+      temPdf:            false,
+      temObservacao:     false,
+      observacao:        '',
+      isRefinamento:     true,
+      textoRefinamento:  refinamento,
+      statusFinal:       'done',
+      timestamp:         Date.now()
+    });
+
     log.info('=== REFINAMENTO CONCLUÍDO ===');
     log.sep();
   });
 }
+
+// -------------------------------------------------------
+// Dashboard — endpoints de dados
+// -------------------------------------------------------
+app.get('/dashboard/overview', (req, res) => {
+  const todos     = lerTodasExecucoes();
+  const feedbacks = lerTodosFeedbacks();
+
+  const total          = todos.length;
+  const resolvidos     = feedbacks.filter(f => f.status === 'resolved').length;
+  const totalFeedback  = feedbacks.length;
+  const taxaResolucao  = totalFeedback > 0 ? Math.round((resolvidos / totalFeedback) * 1000) / 10 : 0;
+  const comTempo       = todos.filter(e => e.tempoAnalise > 0);
+  const tempoMedio     = comTempo.length > 0
+    ? Math.round(comTempo.reduce((s, e) => s + e.tempoAnalise, 0) / comTempo.length)
+    : 0;
+  const tokensTotal = todos.reduce((s, e) => s + (e.tokensTotal || 0), 0);
+
+  const agora = Date.now();
+  const porDia = Array.from({ length: 28 }, (_, i) => {
+    const d = new Date(agora - (27 - i) * 24 * 3600 * 1000);
+    d.setHours(0, 0, 0, 0);
+    const ini = d.getTime();
+    const fim = ini + 24 * 3600 * 1000;
+    const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return {
+      data,
+      total:     todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length,
+      resolvidos: feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim && f.status === 'resolved').length
+    };
+  });
+
+  const statusCounts = {};
+  todos.forEach(e => { statusCounts[e.statusFinal] = (statusCounts[e.statusFinal] || 0) + 1; });
+  const porStatus = Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
+
+  const projCounts = {};
+  todos.forEach(e => { projCounts[e.projeto || 'sem-projeto'] = (projCounts[e.projeto || 'sem-projeto'] || 0) + 1; });
+  const porProjeto = Object.entries(projCounts)
+    .map(([projeto, total]) => ({ projeto, total }))
+    .sort((a, b) => b.total - a.total);
+
+  res.json({ kpis: { totalAnalises: total, taxaResolucao, tempoMedio, tokensTotal }, porDia, porStatus, porProjeto });
+});
+
+app.get('/dashboard/execucoes', (req, res) => {
+  const { page = '1', limit = '50', projeto, status, busca, periodo } = req.query;
+  let todos = lerTodasExecucoes();
+
+  if (projeto) todos = todos.filter(e => e.projeto === projeto);
+  if (status)  todos = todos.filter(e => e.statusFinal === status);
+  if (busca) {
+    const q = busca.toLowerCase();
+    todos = todos.filter(e =>
+      (e.ticketId || '').toLowerCase().includes(q) ||
+      (e.titulo || '').toLowerCase().includes(q)
+    );
+  }
+  if (periodo && periodo !== 'tudo') {
+    if (periodo === 'hoje') {
+      const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+      todos = todos.filter(e => e.timestamp >= hoje.getTime());
+    } else {
+      const dias  = periodo === '7d' ? 7 : 30;
+      const limite = Date.now() - dias * 24 * 3600 * 1000;
+      todos = todos.filter(e => e.timestamp >= limite);
+    }
+  }
+
+  const total  = todos.length;
+  const pg     = Math.max(1, parseInt(page));
+  const lim    = Math.min(200, Math.max(1, parseInt(limit)));
+  const inicio = (pg - 1) * lim;
+  res.json({ total, page: pg, limit: lim, execucoes: todos.slice(inicio, inicio + lim) });
+});
+
+app.get('/dashboard/efetividade', (req, res) => {
+  const todos     = lerTodasExecucoes();
+  const feedbacks = lerTodosFeedbacks();
+
+  const agora = Date.now();
+  const taxaPorSemana = Array.from({ length: 8 }, (_, i) => {
+    const ini = agora - (8 - i) * 7 * 24 * 3600 * 1000;
+    const fim = agora - (7 - i) * 7 * 24 * 3600 * 1000;
+    const label = new Date(fim).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return {
+      semana:     label,
+      total:      todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length,
+      resolvidos: feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim && f.status === 'resolved').length
+    };
+  });
+
+  const comRefinamento  = todos.filter(e => e.isRefinamento).length;
+  const semRefinamento  = todos.filter(e => !e.isRefinamento).length;
+
+  const funcCounts = {};
+  todos.forEach(e => (e.funcionalidades || []).forEach(f => { funcCounts[f] = (funcCounts[f] || 0) + 1; }));
+  const topFuncionalidades = Object.entries(funcCounts)
+    .map(([nome, total]) => ({ nome, total }))
+    .sort((a, b) => b.total - a.total).slice(0, 10);
+
+  const arqCounts = {};
+  todos.forEach(e => (e.arquivosAnalisados || []).forEach(a => {
+    const nome = a.split(/[\\/]/).pop();
+    arqCounts[nome] = (arqCounts[nome] || 0) + 1;
+  }));
+  const topArquivos = Object.entries(arqCounts)
+    .map(([arquivo, total]) => ({ arquivo, total }))
+    .sort((a, b) => b.total - a.total).slice(0, 10);
+
+  const refinamentos = todos
+    .filter(e => e.isRefinamento && e.textoRefinamento)
+    .slice(0, 20)
+    .map(e => ({ ticketId: e.ticketId, titulo: e.titulo, textoRefinamento: e.textoRefinamento, statusFinal: e.statusFinal, timestamp: e.timestamp }));
+
+  res.json({ taxaPorSemana, refinamentoStats: { comRefinamento, semRefinamento }, topFuncionalidades, topArquivos, refinamentos });
+});
+
+// Dashboard — serve build React
+app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'dist')));
+app.get('/dashboard', (req, res) =>
+  res.sendFile(path.join(__dirname, '..', 'dashboard', 'dist', 'index.html'))
+);
+app.get('/dashboard/*', (req, res) =>
+  res.sendFile(path.join(__dirname, '..', 'dashboard', 'dist', 'index.html'))
+);
 
 app.listen(PORT, () => {
   console.log(`[Servidor] Rodando em http://localhost:${PORT}`);
