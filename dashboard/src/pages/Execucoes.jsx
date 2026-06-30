@@ -83,13 +83,46 @@ function DetalheDrawer({ requestId, onClose }) {
               </div>
             )}
 
-            {/* Observação do dev */}
-            {exec.observacao && (
-              <div>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 8, fontWeight: 600 }}>Observação do dev</div>
-                <pre style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{exec.observacao}</pre>
+            {/* Inputs do ticket */}
+            <details open style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+              <summary style={{ padding: '10px 14px', cursor: 'pointer', fontWeight: 600, fontSize: 12, userSelect: 'none', letterSpacing: '.02em' }}>
+                Inputs do ticket
+              </summary>
+              <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+                {exec.descricao && (
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 4 }}>Descrição (Jira)</div>
+                    <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 180, overflowY: 'auto', lineHeight: 1.6 }}>{exec.descricao}</pre>
+                  </div>
+                )}
+
+                {exec.comentarios && (
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 4 }}>Comentários (Jira)</div>
+                    <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 140, overflowY: 'auto', lineHeight: 1.6 }}>{exec.comentarios}</pre>
+                  </div>
+                )}
+
+                {exec.observacao && (
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 4 }}>Observação adicional (dev)</div>
+                    <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, lineHeight: 1.6 }}>{exec.observacao}</pre>
+                  </div>
+                )}
+
+                {exec.pdfTexto && (
+                  <div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 4 }}>Conteúdo do PDF</div>
+                    <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 200, overflowY: 'auto', lineHeight: 1.6 }}>{exec.pdfTexto}</pre>
+                  </div>
+                )}
+
+                {!exec.descricao && !exec.comentarios && !exec.observacao && !exec.pdfTexto && (
+                  <div style={{ color: 'var(--muted2)', fontSize: 12 }}>Inputs não capturados nesta execução (disponível a partir da próxima análise).</div>
+                )}
               </div>
-            )}
+            </details>
 
             {/* Texto do refinamento */}
             {exec.isRefinamento && exec.textoRefinamento && (

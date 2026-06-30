@@ -949,6 +949,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         observacao:        (body.observacao || '').slice(0, 500),
         descricao:         (body.descricao || '').slice(0, 2000),
         comentarios:       (body.comentarios || '').slice(0, 1000),
+        pdfTexto:          (dados.pdfTexto || '').slice(0, 8000),
         isRefinamento:     false,
         textoRefinamento:  null,
         analise:           analise.slice(0, 30000),
