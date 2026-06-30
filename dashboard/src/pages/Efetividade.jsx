@@ -59,7 +59,7 @@ export default function Efetividade() {
           </ResponsiveContainer>
           <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted2)', marginTop: 8 }}>
             {totalRef > 0
-              ? `${Math.round((refinamentoStats.comRefinamento / totalRef) * 100)}% precisavam de refinamento`
+              ? `${Math.round((refinamentoStats.comRefinamento / totalRef) * 100)}% precisaram de refinamento`
               : 'Sem dados ainda'}
           </div>
         </div>
