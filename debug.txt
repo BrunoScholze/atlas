@@ -1,21 +1,25 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : 50ab6586-8be3-4013-9282-62a1b93d1b78
-Data/Hora : 29/06/2026, 16:35:29
+RequestId : aeafccb4-7da0-4751-9eb1-2dc3c0591731
+Data/Hora : 29/06/2026, 16:52:34
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
 ----------------------------------------
-ticketId       : DMANUFATURA-21274
-titulo         : facilitar adicionar ggf em apontamento de ordem
-descricao      : na tela de apontamento , tem o botão de  editar MOB/GGF , ao clicar nele e chegar nessa outra tela, onde tem tabelas com os reportes de ggf  e outra para mob, ao clicar em adicionar ggf, nessa tela de adicionar ggf, já deve vir preenchido no input de horas Reportadas , a quantidade de tempo do hora inicio produção.
+ticketId       : DMANUFATURA-21257
+titulo         : Problema de visualizacao de botao na hora de informar motivos de refugo
+descricao      : Analise bruno, na tela de informar motivos, parece que temos um botao com p-kind secondary, o que deixa ele inivisel quase, precisamos mudar para primary.
+
+ 
+
+Outro problema, ao criar uma ordem de producao pelo 'criar rapida', quero que ja venha como default o valor 100 no campo de quantidade
 prioridade     : Média
 tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: (vazio)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21274_1782761729654.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782762754444.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -219,56 +223,6 @@ Backend — dúvidas sobre Progress OpenEdge (.p):
 
 ---
 
-## Editar MOB/GGF (ligado ao Apontamento)
-Descrição: Botão presente na tela de reporte de produção (datasul-report-v2) que leva o usuário
-para a tela de listagem/edição de horas de mão de obra indireta (MOB/GGF) da ordem em questão.
-Arquivos suspeitos:
-- src\app\report-process\datasul\datasul-report-v2\datasul-report-v2.page.html
-- src\app\report-process\datasul\datasul-report-v2\datasul-report-v2.page.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.html
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.scss
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.html
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.scss
-
-Contexto: analisar em conjunto com datasul-report-v2 e Reporte de GGF/MOB.
-
----
-
-> [EXPANSÍVEL] — Adicione novas funcionalidades aqui conforme o app crescer.
-> Formato:
->
-> ## Nome da funcionalidade
-> Descrição: o que essa funcionalidade faz
-> Arquivos suspeitos:
-> - src\caminho\do\arquivo.ts
-> - src\caminho\do\arquivo.html
-
-## Reporte de GGF/MOB (Overhead Labor Report)
-Descrição: Permite reportar horas de mão de obra indireta (GGF/MOB). O fluxo é:
-1. Usuário seleciona a ordem na tela de seleção
-2. É levado para a lista de reportes da ordem
-3. Pode adicionar um novo reporte clicando no botão de criação
-Arquivos suspeitos:
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.html
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.scss
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.module.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select-routing.module.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.html
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.scss
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.module.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list-routing.module.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.html
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.scss
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.module.ts
-- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create-routing.module.ts
-
----
-
 ## Apontamento de ordem de produção (fluxo completo)
 Descrição: Funcionalidade mais utilizada do app. O fluxo começa na seleção do formulário e
 termina no envio do apontamento ao backend. Existem duas variantes: por cronômetro e por
@@ -315,11 +269,51 @@ Atenção: os campos do formulário são carregados dinamicamente via field-comp
 
 ---
 
+## Motivo de refugo (ligado ao Apontamento)
+Descrição: Tela acionada dentro do fluxo de apontamento (datasul-report-v2) para registrar o
+motivo das quantidades refugadas. É uma sub-tela do reporte de produção.
+Arquivos suspeitos:
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.html
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.ts
+- src\app\report-process\datasul\datasul-report-v2\datasul-report-reason\datasul-report-reason.scss
+
+Contexto: analisar em conjunto com datasul-report-v2 (ver "Apontamento de ordem de produção").
 
 ---
-TICKET_ID      : DMANUFATURA-21274
-TITULO         : facilitar adicionar ggf em apontamento de ordem
-DESCRICAO      : na tela de apontamento , tem o botão de  editar MOB/GGF , ao clicar nele e chegar nessa outra tela, onde tem tabelas com os reportes de ggf  e outra para mob, ao clicar em adicionar ggf, nessa tela de adicionar ggf, já deve vir preenchido no input de horas Reportadas , a quantidade de tempo do hora inicio produção.
+
+## Reporte de GGF/MOB (Overhead Labor Report)
+Descrição: Permite reportar horas de mão de obra indireta (GGF/MOB). O fluxo é:
+1. Usuário seleciona a ordem na tela de seleção
+2. É levado para a lista de reportes da ordem
+3. Pode adicionar um novo reporte clicando no botão de criação
+Arquivos suspeitos:
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.html
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.component.scss
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select.module.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-order-select\datasul-overhead-labor-order-select-routing.module.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.html
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.component.scss
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list.module.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\datasul-overhead-labor-list-routing.module.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.html
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.component.scss
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create.module.ts
+- src\app\overhead-labor-report\datasul\datasul-overhead-labor-list\components\overhead-labor-create\overhead-labor-create-routing.module.ts
+
+---
+
+
+---
+TICKET_ID      : DMANUFATURA-21257
+TITULO         : Problema de visualizacao de botao na hora de informar motivos de refugo
+DESCRICAO      : Analise bruno, na tela de informar motivos, parece que temos um botao com p-kind secondary, o que deixa ele inivisel quase, precisamos mudar para primary.
+
+ 
+
+Outro problema, ao criar uma ordem de producao pelo 'criar rapida', quero que ja venha como default o valor 100 no campo de quantidade
 PRIORIDADE     : Média
 TIPO           : Spike
 RESPONSAVEL    : Bruno Scholze_
@@ -330,7 +324,8 @@ FUNCIONALIDADES:
 OBSERVACAO     : Nenhuma observação adicional
 ANEXO          : [CONTEÚDO EXTRAÍDO DO PDF]
 ISSUE:
-Facilitar adicionar ggf em apontamento de ordem
+Problema de visualizacao de botao na hora de informar
+motivos de refugo
 ● Se manutenção 01 - Erros / bugs em geral.
 Justificativa da escolha do check list: Erro
 Informe o motivo da criticidade do
@@ -344,20 +339,14 @@ Banco de dados: PROGRESS
 Base simulação: http://engjv-devdock01:8183/totvs-menu/#/
 Versão Interna: DTS 11.5.x
 SITUAÇÃO
-Pessoal, queria levantar um ponto na tela de apontamento.
-Hoje, quando a gente clica no botão de editar MOB/GGF e vai para a tela de adicionar GGF, o
-campo de horas reportadas vem vazio. Isso acaba atrapalhando bastante no dia a dia.
-O ideal seria esse campo já vir preenchido automaticamente com base no horário de início e
-fim da produção, considerando o intervalo entre eles. Inclusive, mesmo quando for no mesmo
-minuto, poderia assumir pelo menos 1 minuto.
-Isso ajudaria bastante a agilizar o processo e evitar preenchimento manual toda hora.
+O botao na tela de informar motivos de refugo, o botao de adicionar motivo, ta muito
+apagado, precisa facilitar a vizualização desse botão.
+RESULTADO ESPERADO
+Que o botoa seja ajustado para uma forma que facilite a visualizacao do usuario
+Informações para Situações não Simulada DATASUL
 
 -- 1 of 3 --
 
-RESULTADO ESPERADO
-Que ao chegar na tela de adicionar ggf, já venha como sugestão o intervalo de tempo, do
-período de producao
-Informações para Situações não Simulada DATASUL
 Para todas as situações
 Documento Arquivo
 Clientlog Tem
@@ -381,15 +370,16 @@ Sim
 Não
 <salvar no DRIVE o documento>
 Conversão
-
--- 2 of 3 --
-
 Documento Arquivo
 Log do Console de Conversão(o console
 deve estar atualizado)
 Tem
 Não tem
 <salvar no DRIVE o documento>
+
+-- 2 of 3 --
+
+Documento Arquivo
 Origem e Destino da
 atualização/conversão do cliente
 Base Origem

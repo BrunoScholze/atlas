@@ -1,1 +1,23 @@
-﻿
+﻿Sim, dá para fazer. O `po-datepicker` aceita string ISO 8601, então basta inicializar `startDate` e `endDate` no mesmo `ngOnInit`, logo antes das colunas do lookup:
+
+DIFF_START arquivo: src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts linha: 72
+```
+  ngOnInit() {
++   const today = new Date().toISOString();
++   this.newOrder.startDate = today;
++   this.newOrder.endDate = today;
+    this.siteLookupColumns = [
+      { property: "code", label: this.literals?.site},
+```
+DIFF_END
+
+Isso se soma à inicialização de `plannedQuantity = 100` já proposta — basta incluir as três linhas juntas no início do `ngOnInit`.
+
+**Obs.:** `toISOString()` retorna a data em UTC. Se o app rodar em fuso negativo (ex: BRT -03:00), o horário no componente aparece correto, mas se o PO-UI fizer parse sem ajuste de timezone pode exibir o dia anterior. Se isso ocorrer, troque por:
+
+```typescript
+const today = new Date();
+const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}T00:00:00.000Z`;
+```
+
+Para a maioria dos casos `toISOString()` já funciona sem problema.

@@ -1,0 +1,11 @@
+{
+  "ticketId": "TEST-001",
+  "titulo": "Teste",
+  "projeto": "minha-totvs-prod",
+  "funcionalidades": [],
+  "arquivosAnalisados": [],
+  "observacao": "",
+  "tempoAnalise": 120,
+  "timestamp": 1782766392525,
+  "status": "resolved"
+}
