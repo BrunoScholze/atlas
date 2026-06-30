@@ -250,7 +250,13 @@ cd dashboard && npm run dev   # → http://localhost:5173/dashboard (proxy para 
 - funcionalidades[] (extraídas do output), arquivosAnalisados[]
 - isRefinamento (bool), textoRefinamento (string|null)
 - temPdf, temObservacao, observacao (primeiros 500 chars)
-- statusFinal (done|no_subject|error|cancelled), timestamp
+- statusFinal (done|no_subject|arquivo_ausente|error|cancelled), timestamp
+- `analisouBack` (bool) — true se arquivosAnalisados contém algum `.p` ou `.iN`
+- `problemaNoBack` (bool) — true se o DIFF_START do output aponta para arquivo `.p` ou `.iN`
+- `arquivosAusentes` (string[]) — lista de caminhos marcados com `ARQUIVO_AUSENTE:` no output
+
+**Regra de feedback na tabela de execuções:**
+Feedback só é exibido se `feedback.timestamp > execucao.timestamp` — evita herdar feedback de sessões anteriores do mesmo ticket. Sem feedback = "Sem resposta" (cinza).
 
 ---
 
@@ -290,21 +296,19 @@ cd dashboard && npm run dev   # → http://localhost:5173/dashboard (proxy para 
 
 ### Por que dois scripts (PS1 e SH)?
 `powershell` não existe no Mac. O `server/index.js` detecta o SO via `process.platform === 'win32'`
-e chama o script correto. No Windows, o PS1 usa `cmd /c` para redirecionamento confiável de stdin.
-No Mac, o bash faz `claude --print < arquivo` diretamente.
+e chama o script correto.
 
-### Por que `cmd /c "claude ... < arquivo"` em vez de pipe PowerShell? (Windows)
-PowerShell 5.1 não redireciona stdin para executáveis nativos de forma confiável.
-`$prompt | & claude` gerava: `Error: Input must be provided either through stdin...`.
-A solução foi usar cmd.exe que tem redirecionamento de stdin nativo.
+### Por que pipe nativo no PS1 em vez de `cmd /c`? (Windows)
+A cadeia `node → PowerShell → cmd.exe → claude.exe` (4 processos) era derrubada pelo Windows
+com `STATUS_STACK_BUFFER_OVERRUN` (exit code `0xC0000409` / `-1073740791`). O Windows Defender
+mata a cadeia quando o Job Object do node restringe criação de subprocessos aninhados.
 
-### Por que `chcp 65001` antes de chamar o Claude? (Windows)
-O console Windows usa CP1252 por padrão. Sem `chcp 65001`, caracteres UTF-8 do Claude
-(como `á`, `ç`, `ã`) chegam corrompidos no PowerShell.
-
-### Por que strip de BOM em dois lugares (PS1 e server)? (Windows)
-O `chcp 65001` no cmd às vezes injeta um BOM (U+FEFF) no início do stdout.
-O PS1 faz o strip antes de gravar, o servidor faz o strip ao ler — defesa dupla.
+Solução atual no `run-claude.ps1`:
+```powershell
+$promptContent = [System.IO.File]::ReadAllText($PromptFile, [System.Text.Encoding]::UTF8)
+$result        = $promptContent | & claude --dangerously-skip-permissions --print
+```
+Pipe nativo do PowerShell — sem `cmd /c`, sem `chcp`, cadeia de 3 processos apenas.
 
 ### Por que `agent.log` único (sobrescrito) em vez de logs por execução?
 Simplificação: um arquivo só para não acumular logs antigos.
@@ -358,17 +362,77 @@ Análises simples: ~150-200s. Análises complexas: 5-6 minutos.
 
 ---
 
+## Fontes de back-end Progress — como copiar e mapear
+
+### Origem dos fontes
+
+| Caminho | Status |
+|---|---|
+| `C:\azure\EMS2\progress\src` | ✅ Fonte limpa — usar sempre |
+| `C:\fndlm` | ❌ Alterado localmente — não usar |
+
+Os fontes copiados ficam em `C:\azure\atlas\repos\EMS2\progress\src` para o agente ler.
+
+### Um script de cópia por funcionalidade
+
+Cada funcionalidade tem seu próprio script em `scripts/`. Assim é possível atualizar os fontes de uma funcionalidade sem afetar as demais.
+
+| Funcionalidade | Script |
+|---|---|
+| Criar OP | `scripts/copiar-fontes-criar-op.ps1` |
+| Ver anexos | `scripts/copiar-fontes-ver-anexos.ps1` |
+| Criar solicitação de serviço | `scripts/copiar-fontes-criar-solicitacao-servico.ps1` |
+
+Para rodar: `! & "C:\azure\atlas\scripts\copiar-fontes-<nome>.ps1"`
+
+### Como mapear uma nova funcionalidade de back
+
+1. Descobrir o endpoint → identifica o arquivo de fachada REST (ex: `cpp\api\v1\productionMobile.p`)
+2. Grep na fachada pela procedure que trata o endpoint
+3. Ver se ela delega via `RUN <arquivo>.p PERSISTENT SET h-handle` → identificar o próximo arquivo
+4. Grep nesse arquivo pela procedure intermediária
+5. Ver se chama um terceiro arquivo → repetir até chegar na lógica de negócio
+6. Anotar número de linha de cada procedure (o agente usa Grep + offset, economiza tokens)
+7. Criar script de cópia com todos os arquivos identificados
+8. Adicionar a funcionalidade no MD (`funcionalidades/Funcionalidades-App-minha-prod.md`) com caminhos e linhas
+
+### Estrutura típica de chamada no EMS2
+
+```
+cpp\api\v1\productionMobile.p              ← fachada REST (roteia endpoint)
+  └─ fch\fchman\fchmanproductionmobile.p   ← lógica intermediária (6000+ linhas)
+       └─ fch\fchmip\fchmipservicerequest.p ← lógica de negócio final
+```
+
+**Arquivos grandes:** `fchmanproductionmobile.p` tem 6000+ linhas — sempre Grep primeiro para achar a linha da procedure, depois Read com offset. Anotar a linha no MD.
+
+### Fluxo ARQUIVO_AUSENTE
+
+Se o agente não encontra um fonte de back, escreve no output:
+```
+ARQUIVO_AUSENTE: caminho/relativo.p — procedure esperada e por que é necessária
+```
+O servidor detecta, muda status para `arquivo_ausente`, loga `FALTOU: <arquivo>`, e o plugin abre automaticamente a caixa de refinamento pedindo o arquivo ao usuário.
+
+---
+
 ## Como atualizar a lista de funcionalidades
 
-Edite `Funcionalidades-App-minha-prod.md`. O servidor lê o arquivo a cada requisição — não precisa reiniciar.
+Edite `funcionalidades/Funcionalidades-App-minha-prod.md`. O servidor lê o arquivo a cada requisição — não precisa reiniciar.
 
 Formato de cada entrada:
 ```markdown
 ## Nome da Funcionalidade
 Descrição: o que essa funcionalidade faz
-Arquivos suspeitos:
+
+Arquivos front:
 - src\caminho\do\arquivo.html
 - src\caminho\do\arquivo.ts
+
+Arquivos back:
+- cpp\api\v1\fachada.p  — procedure `nomeProcedure` (linha N): o que faz → delega para X
+- fch\fchman\arquivo-grande.p  — 6000+ linhas; procedure `REST_POST_X` (linha N): use Grep
+- fch\modulo\arquivo-final.p  — procedure `Y` (linha N): lógica de negócio
 ```
 
 Para adicionar um novo projeto, veja `docs/COMO-ADICIONAR-PROJETO.md`.
