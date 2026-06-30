@@ -11,12 +11,13 @@ Um sistema de análise automática de chamados Jira para o app **Minha Totvs Pro
 O dev abre um ticket no Jira, clica no plugin, anexa o PDF do chamado,
 e o sistema aciona o Claude Code para investigar o código e retornar onde está o bug.
 
-**Três componentes:**
+**Quatro componentes:**
 1. **Plugin Chrome** (`plugin/`) — interface do dev no Jira
 2. **Servidor Node.js** (`server/`) — orquestra tudo, recebe o upload do PDF, chama o script
 3. **Script de execução** (`scripts/`) — executa `claude --print` e grava o resultado
    - Windows: `run-claude.ps1`
    - Mac/Linux: `run-claude.sh`
+4. **Dashboard de estatísticas** (futuro) — React app separado, a ser criado — veja seção abaixo
 
 **Arquivos de instrução e configuração (lidos pelo servidor a cada requisição):**
 - `claude.md` — instruções do agente de análise (NÃO é para desenvolvimento do plugin)
@@ -31,22 +32,32 @@ e o sistema aciona o Claude Code para investigar o código e retornar onde está
 ```
 atlas/
 ├── server/
-│   ├── index.js          ← servidor Express principal
+│   ├── index.js          ← servidor Express principal (~900 linhas)
 │   ├── .env              ← variáveis de ambiente (não comitar)
 │   └── node_modules/
 ├── plugin/
 │   ├── popup.html        ← UI da extensão
-│   ├── popup.js          ← lógica do popup
-│   ├── popup.css         ← estilos
+│   ├── popup.js          ← lógica do popup (~1150 linhas)
+│   ├── popup.css         ← estilos (~720 linhas)
 │   ├── content.js        ← extrai dados do Jira (roda na aba)
-│   └── manifest.json     ← manifesto da extensão (MV3)
+│   ├── manifest.json     ← manifesto da extensão (MV3)
+│   └── vendor/
+│       └── confetti.js   ← canvas-confetti 1.9.2 (bundled localmente)
 ├── scripts/
 │   ├── run-claude.ps1    ← executa claude --print no Windows
 │   └── run-claude.sh     ← executa claude --print no Mac/Linux
 ├── docs/
 │   ├── DEV-CONTEXT.md    ← este arquivo
 │   ├── COMO-ADICIONAR-PROJETO.md
-│   └── COMO-RODAR.md
+│   ├── COMO-RODAR.md
+│   └── superpowers/
+│       ├── specs/
+│       │   └── 2026-06-29-ux-feedback-mentions-design.md  ← spec das features de UX
+│       └── plans/
+│           └── 2026-06-29-ux-feedback-mentions.md         ← plano de implementação
+├── feedback/             ← JSONs de feedback salvos pelo servidor (gitignored)
+│   └── <projeto>/
+│       └── <ticketId>-<timestamp>.json
 ├── repos/
 │   └── app-minha-producao/  ← repositório do app clonado aqui (não comitar)
 ├── logs/
@@ -108,11 +119,10 @@ $procs = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue |
   Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ -ne 0 }
 foreach ($p in $procs) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue }
 
-Start-Process -FilePath "node" -ArgumentList "index.js" `
-  -WorkingDirectory "C:\azure\atlas\server" -WindowStyle Hidden
+Start-Process -FilePath "node" -ArgumentList "C:\azure\atlas\server\index.js" -WindowStyle Hidden
 
 Start-Sleep -Seconds 2
-curl.exe -s http://localhost:3000/health
+Invoke-RestMethod "http://localhost:3000/health"
 ```
 
 > **No dia a dia (Mac):** `cd .../atlas/server && node index.js` — deixe o terminal aberto.
@@ -122,14 +132,15 @@ curl.exe -s http://localhost:3000/health
 ## Fluxo completo de uma análise
 
 1. Dev abre o Jira, clica no plugin → `content.js` extrai dados do ticket
-2. Dev anexa o PDF do chamado (campo de observação é opcional)
+2. Dev anexa o PDF do chamado (campo de observação é opcional, suporta `@caminho/arquivo.ts`)
 3. Plugin envia `POST /analisar` (multipart com o PDF)
 4. Servidor:
    - Salva PDF em `temp/`
    - Identifica o projeto via campo `projeto` e lê o `CLAUDE.md` + `Funcionalidades-*.md` corretos
    - Filtra as funcionalidades mais relevantes para o ticket (máx. 3 de N)
    - Extrai texto do PDF
-   - Monta o prompt completo e grava em `prompt_temp.txt`
+   - Resolve `repoPath` do projeto (necessário para injeção de `@` menções)
+   - Monta o prompt completo (injetando conteúdo de arquivos referenciados com `@`) e grava em `prompt_temp.txt`
    - Grava `debug.txt` com todos os parâmetros e o prompt
    - Detecta o SO e chama o script correto via `exec()`
 5. Script de execução:
@@ -145,16 +156,78 @@ curl.exe -s http://localhost:3000/health
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/health` | Status do servidor |
+| GET | `/ping` | Alias de health |
 | GET | `/projetos` | Lista projetos ativos (do PROJETOS.md) |
-| GET | `/funcionalidades` | Lista funcionalidades (do Funcionalidades.md genérico) |
+| GET | `/funcionalidades` | Lista funcionalidades do projeto |
+| GET | `/arquivos?projeto=<slug>` | Lista arquivos do projeto para `@` menção |
 | POST | `/analisar` | Inicia análise (multipart/form-data com pdf) |
 | GET | `/analisar/status/:requestId` | Polling do status |
 | POST | `/cancelar/:requestId` | Cancela análise em andamento |
+| POST | `/refinar` | Refinamento (acompanhamento com contexto da análise anterior) |
 | POST | `/limpar` | Esvazia output.txt |
 | GET | `/log/:requestId` | Conteúdo do log da análise |
 | GET | `/log/latest` | Atalho para agent.log |
 | GET | `/download/output` | Download do output.txt |
 | GET | `/download/log/latest` | Download do agent.log |
+| **POST** | **`/feedback`** | **Salva feedback (resolved/unresolved/unresolved_refined)** |
+| **GET** | **`/feedback/stats`** | **Agrega métricas de todos os feedbacks** |
+| **GET** | **`/feedback/list`** | **Lista paginada de execuções com feedback** |
+
+---
+
+## Sistema de feedback
+
+Quando o dev clica **✓ Resolvido!** ou responde ao modal de **← Início**, o plugin
+envia `POST /feedback`. O servidor salva em `feedback/<projeto>/<ticketId>-<ts>.json`:
+
+```json
+{
+  "ticketId": "ATLAS-123",
+  "titulo": "Erro ao salvar OP",
+  "projeto": "minha-totvs-prod",
+  "funcionalidades": ["Criar OP", "Editar OP"],
+  "arquivosAnalisados": ["src/app/...ts"],
+  "observacao": "texto livre do dev",
+  "tempoAnalise": 251,
+  "timestamp": 1719600000,
+  "status": "resolved"
+}
+```
+
+**Status possíveis:** `resolved` | `unresolved` | `unresolved_refined`
+
+**Endpoints para o dashboard:**
+- `GET /feedback/stats` → `{ total, resolvidos, naoResolvidos, tempoMedio, porSemana[6], execucoes[100] }`
+- `GET /feedback/list?page=1&limit=50` → `{ total, page, limit, execucoes[] }`
+
+---
+
+## Dashboard de estatísticas (PENDENTE — próxima feature)
+
+> **Este é o próximo trabalho a ser feito em outra sessão/PC.**
+
+O dashboard será uma aplicação React separada, acessível em `http://localhost:3000/dashboard`
+(servida pelo mesmo servidor Express via `express.static`), com:
+
+- 3 cards: Total de análises / % Resolvidos / Tempo médio
+- Gráfico de barras SVG (sem Chart.js/D3) — análises por semana (últimas 6)
+- Tabela de execuções: ticketId, título, projeto, data, status (badge colorido), tempo
+
+**Os endpoints do servidor já estão prontos** — só falta criar o frontend React.
+
+**Para iniciar o desenvolvimento do dashboard:**
+
+1. Abra o Claude Code neste repositório
+2. Leia os documentos de spec e plano abaixo
+3. Execute o skill `/brainstorming` ou `/writing-plans` para criar o plano do React app
+
+**Documentos de referência:**
+- Spec (design completo das features): `docs/superpowers/specs/2026-06-29-ux-feedback-mentions-design.md`
+  - Seção "Feature 3 — Feedback + tela de estatísticas" (linha ~70) descreve o que construir
+- Plano original (Task 3 foi adiada, mas contexto está lá): `docs/superpowers/plans/2026-06-29-ux-feedback-mentions.md`
+  - Task 3 marcada como `ADIADA` com nota explicando que será React app separado
+
+**Tecnologias decididas:** React + SVG puro (sem Chart.js), estilo minimalista igual ao plugin.
 
 ---
 
@@ -165,10 +238,12 @@ curl.exe -s http://localhost:3000/health
 - **content.js** roda na aba do Jira e extrai: ticketId, titulo, descricao, prioridade,
   tipo, responsavel, comentarios, historico
 - **popup.js** tem quatro telas: `formulario`, `loading`, `resultado`, `erro`
-- Ao clicar "Limpar" (`btnNovaAnalise`), chama `POST /limpar` para zerar output.txt
-  (evita retornar resultado antigo se o Claude falhar silenciosamente)
-- Botão **Cancelar** na tela de loading: chama `POST /cancelar/:requestId` e volta ao formulário
-- `currentRequestId` é variável global em popup.js para permitir o cancelamento
+- **Botões na tela resultado (3 botões):**
+  - `← Início` — abre modal "Foi resolvido antes de sair?" → Sim/Não/Cancelar (salva feedback)
+  - `Ainda não resolveu` — abre campo de refinamento
+  - `✓ Resolvido!` — dispara confetti + salva feedback como `resolved` + reset após 2s
+- **`@` menção de arquivo** — digitar `@` em qualquer textarea abre dropdown com arquivos do projeto;
+  o servidor injeta o conteúdo do arquivo referenciado no prompt (máx 3 arquivos × 2000 chars)
 
 ---
 
@@ -178,9 +253,10 @@ curl.exe -s http://localhost:3000/health
 - `extrairSecao()` usa regex para capturar o conteúdo de cada seção
 - Seções: LOCALIZAÇÃO DO PROBLEMA, CAUSA PROVÁVEL, COMO RESOLVER, ARQUIVOS ANALISADOS, OBSERVAÇÕES
 - Cada seção é renderizada por `renderMarkdown()` (suporta bold, code, listas, diff)
+- `renderSecao()` trata também blocos `DIFF_START/DIFF_END` (formato nativo do template do agente)
 
 **Modo bruto** — fallback quando o Claude retorna markdown livre (sem separadores):
-- Exibe o texto completo renderizado como markdown
+- Exibe o texto completo renderizado via `renderSecao()` (inclui suporte a `DIFF_START/DIFF_END`)
 - Mostra aviso "O agente retornou a análise em formato livre"
 
 **Blocos de código diff** têm botão `</>` para alternar entre modo claro e escuro.
@@ -222,6 +298,15 @@ no prompt (15 arquivos, ~118K chars), o tempo subiu de 323s para 449s.
 O custo de processar um contexto de entrada muito grande supera o ganho
 de eliminar as tool calls de leitura. O comportamento atual (323s, ~19K chars) é o ideal.
 
+### Por que `repoPath` é resolvido antes de `montarPrompt()`?
+A função `injetarArquivosReferenciados` precisa de `repoPath` para ler arquivos mencionados
+com `@`. Por isso o IIFE de resolução de `repoPath` foi movido para antes de `montarPrompt()`,
+e `dados.repoPath` é populado antes da chamada. O mesmo vale em `executarRefinamento`.
+
+### Por que `canvas-confetti` é bundled localmente?
+Chrome MV3 proíbe carregar scripts de CDNs externas em runtime.
+O arquivo `plugin/vendor/confetti.js` é a build UMD do `canvas-confetti@1.9.2`.
+
 ---
 
 ## Problemas conhecidos e soluções
@@ -233,7 +318,7 @@ de eliminar as tool calls de leitura. O comportamento atual (323s, ~19K chars) �
 | BOM no início do output (Windows) | cmd + chcp 65001 injeta BOM | Strip de BOM em PS1 e no server |
 | Claude aponta bugs baseado em git diff | Git status injetado automaticamente | Aviso explícito no prompt para ignorar contexto git |
 | output.txt retorna resultado antigo | Script falhava silenciosamente | Botão "Limpar" chama `POST /limpar`; `/cancelar` mata processo |
-| PS1 path errado | `path.resolve(CONTEXT_PATH, '..', 'scripts')` | Corrigido para `path.join(CONTEXT_PATH, 'scripts')` |
+| `DIFF_START/DIFF_END` aparecia como texto solto no refinamento | modo bruto usava `renderMarkdown` em vez de `renderSecao` | Corrigido em popup.js linha 628 |
 
 ---
 
@@ -282,8 +367,11 @@ Para adicionar um novo projeto, veja `docs/COMO-ADICIONAR-PROJETO.md`.
 logs/agent.log   ← log da última execução
 debug.txt        ← todos os parâmetros + prompt completo
 output.txt       ← resultado retornado pelo Claude
+feedback/        ← JSONs de feedback por projeto/ticket
 ```
 
 Ou via servidor:
 - `http://localhost:3000/log/latest` — log em texto
 - `http://localhost:3000/download/output` — download do output
+- `http://localhost:3000/feedback/stats` — métricas agregadas
+- `http://localhost:3000/feedback/list` — lista de execuções paginada
