@@ -3,6 +3,8 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
+
+const FUNC_COLORS = ['#6366f1','#f59e0b','#14b8a6','#ec4899','#f97316','#8b5cf6','#06b6d4','#84cc16','#ef4444','#a3e635'];
 import StatusBadge from '../components/StatusBadge';
 import { fetchEfetividade } from '../api';
 
@@ -39,7 +41,7 @@ export default function Efetividade() {
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="total"     name="Total"     stroke="#111" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="total"     name="Total"     stroke="#6366f1" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="resolvidos" name="Resolvidos" stroke="#22c55e" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -50,7 +52,7 @@ export default function Efetividade() {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                <Cell fill="#111" />
+                <Cell fill="#6366f1" />
                 <Cell fill="#f59e0b" />
               </Pie>
               <Tooltip />
@@ -74,7 +76,9 @@ export default function Efetividade() {
                 <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
                 <YAxis type="category" dataKey="nome" tick={{ fontSize: 11 }} width={150} />
                 <Tooltip />
-                <Bar dataKey="total" name="Análises" fill="#111" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="total" name="Análises" radius={[0, 4, 4, 0]}>
+                    {topFuncionalidades.map((_, i) => <Cell key={i} fill={FUNC_COLORS[i % FUNC_COLORS.length]} />)}
+                  </Bar>
               </BarChart>
             </ResponsiveContainer>}
       </div>

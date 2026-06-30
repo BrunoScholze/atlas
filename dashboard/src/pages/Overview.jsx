@@ -6,7 +6,8 @@ import {
 import KPICard from '../components/KPICard';
 import { fetchOverview } from '../api';
 
-const STATUS_COLORS = { done: '#22c55e', no_subject: '#f59e0b', error: '#ef4444', cancelled: '#9ca3af' };
+const STATUS_COLORS  = { done: '#22c55e', no_subject: '#f59e0b', error: '#ef4444', cancelled: '#9ca3af' };
+const PROJ_COLORS   = ['#6366f1','#f59e0b','#14b8a6','#ec4899','#f97316','#8b5cf6','#06b6d4','#84cc16'];
 
 function fmtTempo(s) {
   if (!s) return '—';
@@ -45,7 +46,7 @@ export default function Overview() {
             <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="total"     name="Total"     stroke="#111" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="total"     name="Total"     stroke="#6366f1" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="resolvidos" name="Resolvidos" stroke="#22c55e" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
@@ -72,7 +73,9 @@ export default function Overview() {
               <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
               <YAxis type="category" dataKey="projeto" tick={{ fontSize: 11 }} width={140} />
               <Tooltip />
-              <Bar dataKey="total" fill="#111" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                {porProjeto.map((_, i) => <Cell key={i} fill={PROJ_COLORS[i % PROJ_COLORS.length]} />)}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
