@@ -943,6 +943,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         arquivosAnalisados: arquivos
           ? [...arquivos.matchAll(/\b((?:src|back)[\\/][\w.\-\\/]+\.\w+)/g)].map(m => m[1])
           : [],
+        responsavel:       body.responsavel || '',
         temPdf:            !!pdfPath,
         temObservacao:     !!(body.observacao && body.observacao.trim()),
         observacao:        (body.observacao || '').slice(0, 500),
@@ -1165,7 +1166,16 @@ app.get('/dashboard/overview', (req, res) => {
 
 app.get('/dashboard/execucoes', (req, res) => {
   const { page = '1', limit = '50', projeto, status, busca, periodo } = req.query;
-  let todos = lerTodasExecucoes();
+  const feedbacks = lerTodosFeedbacks();
+  const fbMap = {};
+  feedbacks.forEach(f => {
+    const key = f.ticketId;
+    if (!fbMap[key] || f.timestamp > fbMap[key].timestamp) fbMap[key] = f;
+  });
+  let todos = lerTodasExecucoes().map(e => ({
+    ...e,
+    feedbackStatus: fbMap[e.ticketId]?.status || null
+  }));
 
   if (projeto) todos = todos.filter(e => e.projeto === projeto);
   if (status)  todos = todos.filter(e => e.statusFinal === status);
