@@ -59,6 +59,13 @@ $arquivos = @(
     "cdp\utils.i"
 )
 
+# Arquivos com origem diferente (C:\fndlm em vez de $Origem)
+$arquivosFndlm = @(
+    "cpp\api\v1\productionMobile.p",
+    "fch\fchman\fchmanproductionmobile.p"
+)
+$OrigemFndlm = "C:\fndlm"
+
 $copiados  = 0
 $naoEncontrados = @()
 
@@ -68,6 +75,25 @@ foreach ($rel in $arquivos) {
 
     if (-not (Test-Path $src)) {
         $naoEncontrados += $rel
+        continue
+    }
+
+    $dir = Split-Path $dst -Parent
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+
+    Copy-Item -Path $src -Destination $dst -Force
+    Write-Host "OK  $rel"
+    $copiados++
+}
+
+foreach ($rel in $arquivosFndlm) {
+    $src = Join-Path $OrigemFndlm $rel
+    $dst = Join-Path $Destino     $rel
+
+    if (-not (Test-Path $src)) {
+        $naoEncontrados += "$rel (origem: $OrigemFndlm)"
         continue
     }
 

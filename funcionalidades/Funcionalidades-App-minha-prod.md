@@ -224,6 +224,23 @@ Contexto: analisar em conjunto com datasul-report-v2 e Reporte de GGF/MOB.
 
 ---
 
+## Ver anexos
+Descrição: Tela de listagem de anexos (imagens, PDFs, vídeos) vinculados a uma ordem de produção ou a uma operação específica. Acessada a partir da consulta de OP. O tipo de listagem é controlado pelo parâmetro `attachmentListType` (1=ordem, 2=item, 3=operação da OP, 4=operação da engenharia).
+
+Arquivos front:
+- src\app\production-query\datasul\components\attachment-list\attachment-list.component.html
+- src\app\production-query\datasul\components\attachment-list\attachment-list.component.ts
+- src\app\production-query\datasul\components\attachment-list\attachment-list.component.scss
+- src\app\production-query\datasul\components\attachment-list\attachment-list.module.ts
+- src\app\production-query\datasul\components\attachment-list\attachment-list-routing.module.ts
+- src\app\shared\services\production-query\datasul-attachment-list.service.ts
+
+Arquivos back:
+- cpp\api\v1\productionMobile.p        — fachada REST; procedure `buscaListaAnexos` (POST /buscaListaAnexos~*/~*) mapeia o payload e chama `REST_POST_buscaListaAnexos` em fchmanproductionmobile.p
+- fch\fchman\fchmanproductionmobile.p  — arquivo grande (6000+ linhas); leia SOMENTE a procedure `REST_POST_buscaListaAnexos` (linha 2124): recebe tipo do documento e delega para piListaDetalhesOrdem (tipo 1), piListaAnexosItem (tipo 2), piListaAnexosOperacao (tipos 3 e 4) — use Grep para localizar a linha exata antes de ler
+
+---
+
 > [EXPANSÍVEL] — Adicione novas funcionalidades aqui conforme o app crescer.
 > Formato:
 >
