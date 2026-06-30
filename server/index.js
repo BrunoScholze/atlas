@@ -1209,10 +1209,14 @@ app.get('/dashboard/efetividade', (req, res) => {
     const ini = agora - (8 - i) * 7 * 24 * 3600 * 1000;
     const fim = agora - (7 - i) * 7 * 24 * 3600 * 1000;
     const label = new Date(fim).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const execSem = todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length;
+    const fbSem   = feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim);
     return {
       semana:     label,
-      total:      todos.filter(e => e.timestamp >= ini && e.timestamp < fim).length,
-      resolvidos: feedbacks.filter(f => f.timestamp >= ini && f.timestamp < fim && f.status === 'resolved').length
+      total:      execSem > 0 ? execSem : fbSem.length,
+      resolvidos: execSem > 0
+        ? todos.filter(e => e.timestamp >= ini && e.timestamp < fim && e.statusFinal === 'done').length
+        : fbSem.filter(f => f.status === 'resolved').length
     };
   });
 
