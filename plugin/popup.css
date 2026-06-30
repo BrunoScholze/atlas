@@ -691,3 +691,26 @@ details.sanfona > summary:hover { background: var(--border); }
   cursor: pointer; transition: background .15s, color .15s;
 }
 .btn-danger-sm:hover { background: #dc2626; color: #fff; }
+
+/* ============================================================ @MENÇÃO */
+.mencao-dropdown {
+  position: absolute; left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  z-index: 100;
+  max-height: 200px; overflow-y: auto;
+}
+.mencao-item {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 7px 12px; cursor: pointer;
+  transition: background .1s;
+}
+.mencao-item:hover { background: var(--accent-lo); }
+.mencao-nome { font-size: 12px; font-weight: 600; color: var(--text); }
+.mencao-path { font-size: 10px; color: var(--muted2); }
+
+/* Wrapper dos textareas precisa ser position:relative para o dropdown */
+.refinamento-wrap { position: relative; }

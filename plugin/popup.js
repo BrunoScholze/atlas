@@ -58,6 +58,7 @@ function irParaFormulario() {
   if (!state.projetoSelecionado) return;
   document.getElementById('s2ProjectName').textContent = state.projetoNome || state.projetoSelecionado;
   mostrarTela('formulario');
+  carregarArquivosProjeto();
 }
 
 function voltarParaSelecao() {
@@ -315,6 +316,16 @@ function configurarEventos() {
       chrome.tabs.create({ url: link.dataset.url });
     }
   });
+
+  // @menção nos dois textareas
+  configurarMencaoArquivo(
+    document.getElementById('descricaoTextarea'),
+    document.getElementById('mencaoDropdownDetalhes')
+  );
+  configurarMencaoArquivo(
+    document.getElementById('refinamentoTexto'),
+    document.getElementById('mencaoDropdownRefinamento')
+  );
 }
 
 // ============================================================ ANÁLISE
@@ -1073,4 +1084,71 @@ function dispararConfetti() {
     if (Date.now() < end) requestAnimationFrame(frame);
   };
   frame();
+}
+
+// ============================================================ @MENÇÃO DE ARQUIVO
+
+let _arquivosProjeto = [];
+
+async function carregarArquivosProjeto() {
+  if (!state.projetoSelecionado) return;
+  try {
+    const res  = await fetch(`${SERVER_URL}/arquivos?projeto=${encodeURIComponent(state.projetoSelecionado)}`);
+    const data = await res.json();
+    _arquivosProjeto = data.arquivos || [];
+  } catch { _arquivosProjeto = []; }
+}
+
+function configurarMencaoArquivo(textarea, dropdownEl) {
+  textarea.addEventListener('input', () => {
+    const val = textarea.value;
+    const cur = textarea.selectionStart;
+    const atIdx = val.lastIndexOf('@', cur - 1);
+
+    if (atIdx === -1) { dropdownEl.style.display = 'none'; return; }
+
+    const entre = val.slice(atIdx + 1, cur);
+    if (entre.includes(' ') || entre.includes('\n')) { dropdownEl.style.display = 'none'; return; }
+
+    const query = entre.toLowerCase();
+    const filtrados = _arquivosProjeto
+      .filter(f => f.toLowerCase().includes(query))
+      .slice(0, 8);
+
+    if (!filtrados.length) { dropdownEl.style.display = 'none'; return; }
+
+    dropdownEl.innerHTML = filtrados.map(f =>
+      `<div class="mencao-item" data-path="${escaparHtml(f)}">
+         <span class="mencao-nome">${escaparHtml(f.split('/').pop())}</span>
+         <span class="mencao-path">${escaparHtml(f)}</span>
+       </div>`
+    ).join('');
+    dropdownEl.style.display = 'block';
+  });
+
+  dropdownEl.addEventListener('mousedown', e => {
+    const item = e.target.closest('.mencao-item');
+    if (!item) return;
+    e.preventDefault();
+
+    const val    = textarea.value;
+    const cur    = textarea.selectionStart;
+    const atIdx  = val.lastIndexOf('@', cur - 1);
+    const caminho = item.dataset.path;
+
+    textarea.value = val.slice(0, atIdx) + '@' + caminho + val.slice(cur);
+    const pos = atIdx + caminho.length + 1;
+    textarea.setSelectionRange(pos, pos);
+    dropdownEl.style.display = 'none';
+    textarea.focus();
+  });
+
+  textarea.addEventListener('blur', () => {
+    setTimeout(() => { dropdownEl.style.display = 'none'; }, 150);
+  });
+
+  textarea.addEventListener('keydown', e => {
+    if (dropdownEl.style.display === 'none') return;
+    if (e.key === 'Escape') { dropdownEl.style.display = 'none'; e.preventDefault(); }
+  });
 }

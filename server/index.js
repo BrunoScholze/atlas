@@ -165,6 +165,28 @@ function filtrarFuncionalidadesRelevantes(funcMd, ticket) {
   return cabecalho + relevantes.join('');
 }
 
+// Detecta @caminho/arquivo.ext no texto e injeta conteúdo (máx 3 arquivos, 2000 chars cada)
+function injetarArquivosReferenciados(texto, repoPath) {
+  if (!texto || !repoPath) return '';
+  const MAX_ARQUIVOS = 3;
+  const MAX_CHARS    = 2000;
+  const matches = [...texto.matchAll(/@([\w.\-/]+\.(?:ts|html|scss|p|js|css|json|kt|java|xml))/g)];
+  if (!matches.length) return '';
+
+  const vistos = new Set();
+  const secoes = [];
+  for (const m of matches) {
+    const rel = m[1];
+    if (vistos.has(rel) || vistos.size >= MAX_ARQUIVOS) continue;
+    vistos.add(rel);
+    try {
+      const conteudo = fs.readFileSync(path.join(repoPath, rel), 'utf8').slice(0, MAX_CHARS);
+      secoes.push(`=== ARQUIVO REFERENCIADO: ${rel} ===\n${conteudo}\n${'='.repeat(42)}`);
+    } catch { /* arquivo não existe — ignora */ }
+  }
+  return secoes.length ? '\n\n' + secoes.join('\n\n') : '';
+}
+
 // -------------------------------------------------------
 // Monta o prompt completo
 // -------------------------------------------------------
@@ -186,7 +208,7 @@ COMENTARIOS    : ${truncar(dados.comentarios, 3000) || ''}
 HISTORICO      : ${truncar(dados.historico, 1500) || ''}
 PROJETO        : ${dados.projeto || ''}
 FUNCIONALIDADES:
-OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}
+OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}${injetarArquivosReferenciados(dados.observacao, dados.repoPath || '')}
 ANEXO          : ${dados.pdfTexto
   ? '[CONTEÚDO EXTRAÍDO DO PDF]\n' + dados.pdfTexto
   : (dados.pdfPath || 'Nenhum PDF')}
@@ -271,6 +293,33 @@ app.get('/funcionalidades', (req, res) => {
     res.json({ funcionalidades });
   } catch (err) {
     res.status(500).json({ sucesso: false, erro: 'Erro ao ler Funcionalidades.md: ' + err.message });
+  }
+});
+
+// -------------------------------------------------------
+// GET /arquivos?projeto=<slug> — lista arquivos do projeto para @menção
+// -------------------------------------------------------
+app.get('/arquivos', (req, res) => {
+  const projetoSlug = req.query.projeto || '';
+  let funcFile = 'Funcionalidades.md';
+
+  if (projetoSlug) {
+    try {
+      const projetosMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+      const proj = parseProjetos(projetosMd).find(p => p.slug === projetoSlug);
+      if (proj && proj.funcionalidades) funcFile = proj.funcionalidades;
+    } catch { /* usa default */ }
+  }
+
+  try {
+    const funcMd = fs.readFileSync(path.join(process.env.CONTEXT_PATH, funcFile), 'utf8');
+    const arquivos = [...new Set(
+      [...funcMd.matchAll(/\b((?:src|back)\/[\w.\-/]+\.(?:ts|html|scss|p|js|css|json|kt|java|xml))\b/g)]
+        .map(m => m[1])
+    )].sort();
+    res.json({ arquivos });
+  } catch (e) {
+    res.status(500).json({ sucesso: false, erro: e.message });
   }
 });
 
@@ -630,6 +679,19 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
     }
 
+    // Resolve repoPath antes de montar o prompt (necessário para injeção de @menções)
+    const repoPath = (() => {
+      if (projetoSlug) {
+        try {
+          const projetosMdTmp = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+          const projTmp = parseProjetos(projetosMdTmp).find(p => p.slug === projetoSlug);
+          if (projTmp && projTmp.repositorio) return path.join(process.env.CONTEXT_PATH, projTmp.repositorio);
+        } catch { /* usa default */ }
+      }
+      return process.env.REPO_PATH;
+    })();
+    dados.repoPath = repoPath;
+
     // Monta prompt
     log.info('Montando prompt...');
     addLog(requestId, 'Montando contexto completo do chamado...');
@@ -678,18 +740,6 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     log.info(`prompt_temp.txt gravado: ${promptPath}`);
 
     const outputPath = process.env.OUTPUT_PATH;
-    const repoPath = (() => {
-      if (projetoSlug) {
-        try {
-          const projetosMd2 = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
-          const proj2 = parseProjetos(projetosMd2).find(p => p.slug === projetoSlug);
-          if (proj2 && proj2.repositorio) {
-            return path.join(process.env.CONTEXT_PATH, proj2.repositorio);
-          }
-        } catch (e) { /* fallback abaixo */ }
-      }
-      return process.env.REPO_PATH;
-    })();
     const isWin   = process.platform === 'win32';
     const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');
     const shPath  = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.sh');
