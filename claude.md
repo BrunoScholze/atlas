@@ -38,7 +38,26 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Se OBSERVACAO estiver preenchida, priorize
 - Anote: o que o usuário faz → o que acontece de errado → o que deveria acontecer
 
-### Passo 2 — Identifique as funcionalidades e monte os arquivos suspeitos
+### Passo 2 — Classifique o problema (faça ANTES de abrir qualquer arquivo)
+
+Com base em TITULO, DESCRICAO, OBSERVACAO e PDF, classifique o problema:
+
+**FRONT** — problema claramente de interface:
+Exemplos: cor, label, placeholder, layout, campo visível/oculto, máscara,
+navegação entre telas, texto de botão, ícone, ordenação visual.
+→ Leia apenas "Arquivos front". **Não abra nenhum arquivo de back.**
+
+**BACK** — problema claramente de dados ou regra de negócio:
+Exemplos: valor calculado errado, registro não salva, filtro com resultado
+incorreto, integração com ERP falha, campo salva valor errado.
+→ Leia front e back.
+
+**MISTO** — sintoma visível no front, origem incerta:
+Exemplos: campo exibe valor inesperado, lista vazia inesperadamente, erro ao
+salvar que pode ser validação do back, campo preenchido com default errado.
+→ Leia front primeiro. Se o front não revelar o bug, leia os arquivos de back.
+
+### Passo 2b — Identifique as funcionalidades e monte os arquivos suspeitos
 - O arquivo de funcionalidades que você recebeu é **exclusivo deste projeto** —
   cada projeto tem o seu próprio arquivo. Leia apenas ele. Não existe um arquivo
   global de funcionalidades; o servidor já entregou o correto.
@@ -48,9 +67,19 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 - Escolha as funcionalidades que fazem sentido com o contexto; se houver
   dúvida entre duas, inclua ambas
 - Para cada funcionalidade identificada, colete os arquivos listados
+- **Arquivos de back** estão em `REPOS_BACK` (campo no prompt). Caminhos listados
+  na seção "Arquivos back" das funcionalidades são relativos a essa raiz.
+  Só abra arquivos de back se a classificação do Passo 2 for BACK ou MISTO.
+- **Navegação no back — leia da fachada para o interior, parando no mínimo necessário:**
+  1. Leia o arquivo de fachada (roteamento REST) para identificar qual procedure trata o endpoint
+  2. Leia essa procedure — verifique o que ela faz com os dados recebidos
+  3. Se ela delegar para includes (.iN): o comentário ao lado de cada include diz o que ele contém
+     — abra apenas o include da procedure suspeita, não os demais
+  4. Pare quando encontrar o código que explica o comportamento do bug
+  5. Só desça para RUNs externos (outros módulos) se o bug claramente não estiver nos arquivos principais
 - Regra de expansão: ao abrir um arquivo, verifique se ele referencia outros
-  componentes (tags <app-xyz>, imports no .ts, serviços injetados). Se sim,
-  leia esses também. Só encerra quando rastreou todos os elos da cadeia.
+  componentes (tags <app-xyz>, imports no .ts, serviços injetados, RUN no .p).
+  Se sim, leia esses também. Só encerra quando rastreou todos os elos da cadeia.
 - Regra .ts/.html: para cada arquivo `.ts` Angular listado, leia o `.html` do
   mesmo componente (mesmo diretório, mesmo nome base) **antes** de ler o `.ts`.
   Enquanto lê o `.html`, mapeie todos os bindings de campos interativos:
@@ -63,7 +92,9 @@ ANEXO          : <caminho do PDF — contém prints, passos, evidências. Leia i
 ### Passo 3 — Investigue o fluxo de ponta a ponta
 1. Template (.html) — qual campo ou ação está relacionada ao problema?
 2. Componente (.ts) — o payload montado usa o campo certo?
-3. Backend (.p) — o parâmetro recebido é usado ou recalculado internamente?
+3. Backend (.p) — **somente se classificação for BACK ou MISTO** — o parâmetro
+   recebido é usado ou recalculado internamente? Leia a fachada da API primeiro,
+   depois desça para as procedures chamadas via `RUN`. Base: `REPOS_BACK`.
 4. Confirme com o PDF — seu achado explica o comportamento nos prints?
 
 ---
@@ -154,6 +185,14 @@ OBSERVAÇÕES
 12. PARIDADE .ts/.html: nunca proponha diff em um arquivo `.ts` Angular sem ter
     lido e compreendido o `.html` do mesmo componente. O `.html` é lido primeiro,
     sempre — sem exceção.
+13. ARQUIVO DE BACK NÃO ENCONTRADO: se ao tentar ler um arquivo de back (Read) você receber
+    erro de arquivo não encontrado:
+    - PARE imediatamente — não continue sem ele, não invente conteúdo.
+    - Em COMO RESOLVER escreva apenas: "Arquivo necessário não disponível no repositório."
+    - Em OBSERVAÇÕES inclua obrigatoriamente (um bullet por arquivo faltante):
+      - ARQUIVO_AUSENTE: <caminho relativo ao REPOS_BACK> — <procedure/conteúdo esperado e por que é necessário>
+    - O servidor detecta esse marcador e abre automaticamente a caixa de envio
+      para o usuário fornecer o arquivo.
 
 ---
 
