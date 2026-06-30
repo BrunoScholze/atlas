@@ -191,17 +191,7 @@ Arquivos back:
 - cpp\api\v1\productionOrder.p  — fachada REST: roteia GET→apiProductionOrder.p, POST/PUT→apiProductionOrderV2.p
 - cpp\apiProductionOrder.p      — pi-get-v1 (busca OP por ID), pi-query-v1 (listagem)
 - cpp\apiProductionOrderV2.p    — pi-create-v1→pi-store-v1 (criação/edição + mapeamento payload→tt-ord-prod), pi-query-v2 (listagem com campos extras), pi-get-order-default-data-v1 (defaults ao selecionar item), pi-get-order-data-by-site-v1 (defaults ao informar site/quantidade), pi-calculate-end-date (cálculo da data de término)
-- cpp\cpapi301.p                — entrada da API de persistência; delega para includes .iN (cada include tem comentário indicando a procedure que contém)
-- cpp\cpapi301.i21              — pi-valida-ord-prod (validações de negócio antes de persistir)
-- cpp\cpapi301.i5               — pi-processa-ordens (fluxo principal de criação na tabela ord-prod)
-- cpp\cpapi301.i6               — pi-dados-default (preenchimento de valores padrão)
-- cpp\cpapi301.i14              — pi-gera-operacoes (geração das operações da OP)
-- cpp\cpapi301.i15              — pi-gera-reservas (geração das reservas de material)
-- cpp\cpapi301.i20              — f-gera-numero-op, f-gera-numero-op-manual (geração do número da OP)
-- cpp\cpapi301.i                — TEMP-TABLE tt-ord-prod (campos e tipos usados na persistência)
-- cpp\apiProductionOrderV2.i    — TEMP-TABLE ProductionOrder v2 (campos extras e serialize-names do JSON)
-- cpp\apiProductionOrderV1.i    — TEMP-TABLE ProductionOrder v1 (campos base e serialize-names)
-- cdp\utils.i                   — functions buildWhere, buildBy (montagem dinâmica de queries)
+- cpp\cpapi301.p                — entrada da API de persistência; contém no cabeçalho um mapa comentado de todas as includes .iN e as procedures que cada uma contém — leia este arquivo primeiro e navegue para o include específico da procedure suspeita
 
 ---
 

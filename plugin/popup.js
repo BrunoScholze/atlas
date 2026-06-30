@@ -532,6 +532,22 @@ async function consultarStatus(requestId, inicio) {
       await chrome.storage.local.set({ resultado: json.analise });
       renderizarResultado(json.analise);
       mostrarTela('resultado');
+    } else if (json.status === 'arquivo_ausente') {
+      pararPolling();
+      await chrome.storage.local.remove(['requestId', 'inicio', 'terminalLog']);
+      if (json.analise) {
+        await chrome.storage.local.set({ resultado: json.analise });
+        renderizarResultado(json.analise);
+      }
+      mostrarTela('resultado');
+      // Abre refinamento pré-preenchido pedindo os arquivos faltantes
+      const wrap = document.getElementById('refinamentoWrap');
+      wrap.style.display = 'block';
+      const textarea = document.getElementById('refinamentoTexto');
+      const lista = (json.arquivosAusentes || []).map(a => `📎 ${a}`).join('\n');
+      textarea.value = `O agente precisa dos seguintes arquivos para concluir a análise:\n${lista || '(arquivo não especificado)'}\n\nCole aqui o conteúdo completo do(s) arquivo(s) acima:`;
+      textarea.focus();
+      textarea.scrollIntoView({ behavior: 'smooth' });
     } else if (json.status === 'no_subject') {
       pararPolling();
       await chrome.storage.local.remove(['requestId', 'inicio']);

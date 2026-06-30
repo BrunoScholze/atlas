@@ -917,13 +917,26 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
 
       const temTemplate      = analise.trim().startsWith('========');
       const temFuncionalidade = funcIds.trim().length > 0;
-      const statusFinal      = (temTemplate && temFuncionalidade) ? 'done' : 'no_subject';
+
+      // Detecta arquivos ausentes sinalizados pelo agente
+      const ausenteMatches = [...analise.matchAll(/ARQUIVO_AUSENTE:\s*([^\r\n—–-][^\r\n]*)/gi)];
+      const arquivosAusentes = ausenteMatches.map(m => m[1].trim()).filter(Boolean);
+
+      const statusFinal = arquivosAusentes.length > 0
+        ? 'arquivo_ausente'
+        : (temTemplate && temFuncionalidade) ? 'done' : 'no_subject';
 
       if (statusFinal === 'no_subject') {
         log.warn('Nenhuma funcionalidade identificada — retornando no_subject');
       }
+      if (arquivosAusentes.length > 0) {
+        log.sep();
+        log.warn('=== ARQUIVOS AUSENTES DETECTADOS ===');
+        arquivosAusentes.forEach(a => log.warn(`  FALTOU: ${a}`));
+        log.sep();
+      }
 
-      analises[requestId] = { status: statusFinal, analise, inicio, logPath: logFile };
+      analises[requestId] = { status: statusFinal, analise, inicio, logPath: logFile, arquivosAusentes };
 
       // Salva registro da execução para o dashboard
       // Nota: funcIds e arquivos já foram extraídos nas linhas anteriores do mesmo callback
@@ -948,6 +961,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
           : [],
         analisouBack:      /\w+\.(?:p|i\d*)\b/i.test(arquivos || ''),
         problemaNoBack:    /^DIFF_START arquivo:[^\n]+\.(?:p|i\d*)\b/im.test(analise || ''),
+        arquivosAusentes:  arquivosAusentes,
         responsavel:       body.responsavel || '',
         temPdf:            !!pdfPath,
         temObservacao:     !!(body.observacao && body.observacao.trim()),

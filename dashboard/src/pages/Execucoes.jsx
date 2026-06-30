@@ -71,6 +71,16 @@ function DetalheDrawer({ requestId, onClose }) {
               ))}
             </div>
 
+            {/* Arquivos ausentes */}
+            {(exec.arquivosAusentes || []).length > 0 && (
+              <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8, padding: '12px 16px' }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: '#92400e', marginBottom: 8, fontWeight: 700 }}>⚠ Arquivos ausentes durante a análise</div>
+                {(exec.arquivosAusentes || []).map(a => (
+                  <div key={a} style={{ fontFamily: 'monospace', fontSize: 12, color: '#78350f', marginTop: 4 }}>📎 {a}</div>
+                ))}
+              </div>
+            )}
+
             {/* Funcionalidades */}
             {(exec.funcionalidades || []).length > 0 && (
               <div>
