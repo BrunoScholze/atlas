@@ -1189,15 +1189,13 @@ app.get('/dashboard/overview', (req, res) => {
 app.get('/dashboard/execucoes', (req, res) => {
   const { page = '1', limit = '50', projeto, status, busca, periodo } = req.query;
   const feedbacks = lerTodosFeedbacks();
-  const fbMap = {};
-  feedbacks.forEach(f => {
-    const key = f.ticketId;
-    if (!fbMap[key] || f.timestamp > fbMap[key].timestamp) fbMap[key] = f;
+  let todos = lerTodasExecucoes().map(e => {
+    // Só considera feedback criado APÓS o término da execução
+    const fb = feedbacks
+      .filter(f => f.ticketId === e.ticketId && f.timestamp > e.timestamp)
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+    return { ...e, feedbackStatus: fb?.status || null };
   });
-  let todos = lerTodasExecucoes().map(e => ({
-    ...e,
-    feedbackStatus: fbMap[e.ticketId]?.status || null
-  }));
 
   if (projeto) todos = todos.filter(e => e.projeto === projeto);
   if (status)  todos = todos.filter(e => e.statusFinal === status);
