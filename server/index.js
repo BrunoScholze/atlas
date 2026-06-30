@@ -946,8 +946,11 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         temPdf:            !!pdfPath,
         temObservacao:     !!(body.observacao && body.observacao.trim()),
         observacao:        (body.observacao || '').slice(0, 500),
+        descricao:         (body.descricao || '').slice(0, 2000),
+        comentarios:       (body.comentarios || '').slice(0, 1000),
         isRefinamento:     false,
         textoRefinamento:  null,
+        analise:           analise.slice(0, 30000),
         statusFinal,
         timestamp:         Date.now()
       });
@@ -1185,6 +1188,12 @@ app.get('/dashboard/execucoes', (req, res) => {
   const lim    = Math.min(200, Math.max(1, parseInt(limit)));
   const inicio = (pg - 1) * lim;
   res.json({ total, page: pg, limit: lim, execucoes: todos.slice(inicio, inicio + lim) });
+});
+
+app.get('/dashboard/execucoes/:requestId', (req, res) => {
+  const exec = lerTodasExecucoes().find(e => e.requestId === req.params.requestId);
+  if (!exec) return res.status(404).json({ erro: 'Não encontrado' });
+  res.json(exec);
 });
 
 app.get('/dashboard/efetividade', (req, res) => {

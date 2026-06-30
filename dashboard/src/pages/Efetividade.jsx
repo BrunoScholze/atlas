@@ -19,7 +19,7 @@ export default function Efetividade() {
 
   if (!data) return <div style={{ color: 'var(--muted2)', padding: 40 }}>Carregando...</div>;
 
-  const { taxaPorSemana, refinamentoStats, topFuncionalidades, topArquivos, refinamentos } = data;
+  const { taxaPorSemana, refinamentoStats, topFuncionalidades, refinamentos } = data;
   const totalRef = (refinamentoStats.comRefinamento || 0) + (refinamentoStats.semRefinamento || 0);
   const pieData  = [
     { name: 'Sem refinamento', value: refinamentoStats.semRefinamento || 0 },
@@ -65,34 +65,18 @@ export default function Efetividade() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 16 }}>Top funcionalidades analisadas</div>
-          {topFuncionalidades.length === 0
-            ? <div style={{ color: 'var(--muted2)', fontSize: 12 }}>Sem dados ainda</div>
-            : <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={topFuncionalidades} layout="vertical">
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="nome" tick={{ fontSize: 11 }} width={150} />
-                  <Tooltip />
-                  <Bar dataKey="total" name="Análises" fill="#111" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>}
-        </div>
-
-        <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 16 }}>Top arquivos mais analisados</div>
-          {topArquivos.length === 0
-            ? <div style={{ color: 'var(--muted2)', fontSize: 12 }}>Sem dados ainda</div>
-            : <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={topArquivos} layout="vertical">
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis type="category" dataKey="arquivo" tick={{ fontSize: 11 }} width={180} />
-                  <Tooltip />
-                  <Bar dataKey="total" name="Aparições" fill="#22c55e" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>}
-        </div>
+      <div style={card}>
+        <div style={{ fontWeight: 600, marginBottom: 16 }}>Top funcionalidades analisadas</div>
+        {topFuncionalidades.length === 0
+          ? <div style={{ color: 'var(--muted2)', fontSize: 12 }}>Sem dados ainda</div>
+          : <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={topFuncionalidades} layout="vertical">
+                <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                <YAxis type="category" dataKey="nome" tick={{ fontSize: 11 }} width={150} />
+                <Tooltip />
+                <Bar dataKey="total" name="Análises" fill="#111" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>}
       </div>
 
       {refinamentos.length > 0 && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import StatusBadge from '../components/StatusBadge';
-import { fetchExecucoes } from '../api';
+import { fetchExecucoes, fetchExecucaoDetalhe } from '../api';
 
 const STATUS_OPTS  = ['done', 'no_subject', 'error', 'cancelled'];
 const PERIODO_OPTS = [
@@ -20,10 +20,104 @@ const filterStyle = {
   fontSize: 12, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)'
 };
 
+function DetalheDrawer({ requestId, onClose }) {
+  const [exec, setExec] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchExecucaoDetalhe(requestId)
+      .then(d => { setExec(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [requestId]);
+
+  return (
+    <>
+      <div onClick={onClose} style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 100
+      }} />
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 660,
+        background: 'var(--surface)', borderLeft: '1px solid var(--border)',
+        zIndex: 101, display: 'flex', flexDirection: 'column', overflow: 'hidden'
+      }}>
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          {exec && <StatusBadge status={exec.statusFinal} />}
+          <span style={{ fontWeight: 700, fontSize: 15, fontFamily: 'monospace' }}>{exec?.ticketId || requestId}</span>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--muted2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exec?.titulo}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--muted2)', lineHeight: 1 }}>✕</button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {loading && <div style={{ color: 'var(--muted2)' }}>Carregando...</div>}
+          {!loading && !exec && <div style={{ color: 'var(--muted2)' }}>Execução não encontrada.</div>}
+          {exec && <>
+            {/* Metadados */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {[
+                ['Projeto',    exec.projeto],
+                ['Data',       fmtData(exec.timestamp)],
+                ['Tempo',      exec.tempoAnalise ? fmtTempo(exec.tempoAnalise) : '—'],
+                ['Tokens',     exec.tokensTotal ? exec.tokensTotal.toLocaleString('pt-BR') : '—'],
+                ['Prioridade', exec.prioridade || '—'],
+                ['Tipo',       exec.tipo || '—'],
+                ['PDF',        exec.temPdf ? 'Sim' : 'Não'],
+                ['Refinamento', exec.isRefinamento ? 'Sim' : 'Não'],
+              ].map(([k, v]) => (
+                <div key={k} style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 14px' }}>
+                  <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 3 }}>{k}</div>
+                  <div style={{ fontSize: 13, fontWeight: 500 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Funcionalidades */}
+            {(exec.funcionalidades || []).length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 8, fontWeight: 600 }}>Funcionalidades</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {exec.funcionalidades.map(f => (
+                    <span key={f} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '3px 10px', fontSize: 12 }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Observação do dev */}
+            {exec.observacao && (
+              <div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 8, fontWeight: 600 }}>Observação do dev</div>
+                <pre style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{exec.observacao}</pre>
+              </div>
+            )}
+
+            {/* Texto do refinamento */}
+            {exec.isRefinamento && exec.textoRefinamento && (
+              <div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 8, fontWeight: 600 }}>Pergunta de refinamento</div>
+                <pre style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{exec.textoRefinamento}</pre>
+              </div>
+            )}
+
+            {/* Análise completa */}
+            {exec.analise && (
+              <div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', marginBottom: 8, fontWeight: 600 }}>Análise do agente</div>
+                <pre style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 500, overflowY: 'auto', lineHeight: 1.6 }}>{exec.analise}</pre>
+              </div>
+            )}
+          </>}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function Execucoes() {
   const [data, setData]       = useState({ total: 0, execucoes: [] });
   const [projetos, setProjetos] = useState([]);
   const [filters, setFilters] = useState({ page: 1, limit: 50, projeto: '', status: '', busca: '', periodo: 'tudo' });
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     const params = Object.fromEntries(
@@ -90,7 +184,8 @@ export default function Execucoes() {
             )}
             {data.execucoes.map((e, i) => (
               <tr key={e.requestId || i}
-                style={{ borderBottom: '1px solid var(--border)' }}
+                onClick={() => setSelectedId(e.requestId)}
+                style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
                 onMouseEnter={ev => ev.currentTarget.style.background = 'var(--bg)'}
                 onMouseLeave={ev => ev.currentTarget.style.background = ''}>
                 <td style={{ padding: '10px 14px', fontWeight: 600, fontFamily: 'monospace', fontSize: 11 }}>{e.ticketId || '—'}</td>
@@ -125,6 +220,8 @@ export default function Execucoes() {
             disabled={filters.page === totalPages} style={filterStyle}>→</button>
         </div>
       )}
+
+      {selectedId && <DetalheDrawer requestId={selectedId} onClose={() => setSelectedId(null)} />}
     </div>
   );
 }
