@@ -187,14 +187,40 @@ Arquivos front:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.scss
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
 
-Arquivos back (ler só se: valor/campo salvo errado, validação falha, ordem não cria, erro do servidor):
-- cpp\api\v1\productionOrder.p   ← fachada REST v1 (roteamento, chama apiProductionOrder.p e apiProductionOrderV2.p)
-- cpp\apiProductionOrder.p       ← lógica de query/busca (pi-get-v1, pi-query-v1)
-- cpp\apiProductionOrderV1.i     ← definição da TEMP-TABLE ProductionOrder v1 (campos e serialize-names)
-- cpp\apiProductionOrderV2.p     ← lógica de criação/edição/v2 (pi-create-v1, pi-store-v1, pi-query-v2) — leia se bug for de criação ou dados da OP
-- cpp\apiProductionOrderV2.i     ← definição da TEMP-TABLE ProductionOrder v2 (campos extras: desc-item, qt-saldo, etc.)
-- cpp\cpapi301.p                 ← persistência real da OP (chamado por pi-store-v1) — leia se a ordem não salva ou salva errado
-- cdp\utils.i                    ← funções buildWhere / buildBy usadas nas queries
+⚠️ BACK — NÃO LEIA se o problema for de layout, cor, label, campo visível/oculto, navegação ou texto.
+Só abra arquivos de back se o sintoma indicar dado errado, falha ao salvar, validação do servidor ou regra de negócio.
+
+Guia de leitura — leia APENAS os arquivos do grupo correspondente ao sintoma. Não leia os demais.
+
+SINTOMA: "Ordem não cria" / "Erro ao salvar" / "Botão não avança"
+  1. cpp\apiProductionOrderV2.p  → procedure pi-store-v1: veja como os campos do payload são mapeados para tt-ord-prod
+  2. cpp\cpapi301.i21            → procedure pi-valida-ord-prod: validações que bloqueiam a criação (erros de negócio)
+  3. cpp\cpapi301.i5             → procedure pi-processa-ordens: fluxo principal de persistência na tabela ord-prod
+
+SINTOMA: "Campo salvo com valor errado" (quantidade, datas, tipo, depósito, etc.)
+  1. cpp\apiProductionOrderV2.p  → procedure pi-store-v1: linha com fn-get-*-from-payload do campo suspeito
+  2. cpp\apiProductionOrderV2.i  → TEMP-TABLE ProductionOrder v2: confirme o serialize-name do campo no JSON
+  3. cpp\cpapi301.i              → TEMP-TABLE tt-ord-prod: definição do campo na tabela de persistência
+
+SINTOMA: "Dados default errados ao selecionar item ou ao informar quantidade/site"
+  1. cpp\apiProductionOrderV2.p  → procedure pi-get-order-default-data-v1 (defaults do item) ou pi-get-order-data-by-site-v1 (defaults por site/quantidade)
+  2. cpp\cpapi301.i6             → procedure pi-dados-default: como os defaults são preenchidos internamente
+
+SINTOMA: "Data de término calculada errada"
+  1. cpp\apiProductionOrderV2.p  → procedure pi-calculate-end-date: lógica de cálculo por período e tempo de ressuprimento
+
+SINTOMA: "Número da OP gerado errado ou duplicado"
+  1. cpp\cpapi301.i20            → functions f-gera-numero-op e f-gera-numero-op-manual
+
+SINTOMA: "OP criada mas operações ou reservas de material não aparecem"
+  1. cpp\cpapi301.i14            → procedure pi-gera-operacoes: geração das operações da OP
+  2. cpp\cpapi301.i15            → procedure pi-gera-reservas: geração das reservas de material
+
+Referência de campos (consulte quando precisar confirmar nome de campo ou serialize-name):
+- cpp\apiProductionOrderV2.i  → campos v2: desc-item, qt-saldo, desc-estado, log-possui-anexo, desc-linha, desc-estabel, dt-ultimo-reporte, qt-ultimo-reporte
+- cpp\apiProductionOrderV1.i  → campos v1: nr-ord-produ, it-codigo, dt-inicio, dt-termino, estado, qt-ordem, tipo, un
+- cpp\cpapi301.i              → TEMP-TABLE tt-ord-prod usada na persistência
+- cdp\utils.i                 → functions buildWhere / buildBy (queries de busca)
 
 ---
 
