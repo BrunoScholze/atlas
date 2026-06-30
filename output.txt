@@ -1,0 +1,73 @@
+﻿Both root causes are confirmed. Now writing the final analysis in the required CLAUDE.md format.
+
+========================================
+AGENTE DE CHAMADOS — ANÁLISE DO TICKET
+========================================
+
+TICKET   : DMANUFATURA-21257 — Problema de visualização de botão na hora de informar motivos de refugo
+DATA     : 2026-06-30
+
+----------------------------------------
+FUNCIONALIDADES IDENTIFICADAS
+----------------------------------------
+- Motivo de refugo (ligado ao Apontamento) — motivo: ticket e PDF descrevem o botão "adicionar motivo" apagado na tela de informar motivos de refugo.
+- Criar ordem de produção — motivo: ticket pede valor default 100 no campo de quantidade ao criar OP pela tela rápida (segundo pedido da descrição).
+
+----------------------------------------
+LOCALIZAÇÃO DO PROBLEMA
+----------------------------------------
+Arquivo: `datasul-report-reason.html`, linha 93
+O botão "Adicionar motivo" usa `p-type="primary"`, atributo que controla apenas o tipo HTML do botão (submit/button/reset) e não tem nenhum valor "primary" válido — o estilo visual cai no padrão `p-kind="secondary"`, deixando o botão apagado.
+
+Arquivo: `datasul-production-order.model.ts`, linha 61
+O campo `plannedQuantity` não possui valor inicial, então a tela de criação rápida de OP abre com a quantidade em branco.
+
+----------------------------------------
+CAUSA PROVÁVEL
+----------------------------------------
+O `po-button` define a cor/estilo pelo Input `p-kind` (default `secondary`); `p-type` é usado apenas para o comportamento HTML do botão, então setar `p-type="primary"` não altera a aparência.
+`plannedQuantity` é uma propriedade opcional sem inicializador na classe `DatasulProductionOrder`, diferente de outros campos da mesma classe (ex.: `productionLineCode = 0`) que já têm default.
+
+----------------------------------------
+COMO RESOLVER
+----------------------------------------
+Trocar o atributo `p-type="primary"` por `p-kind="primary"` no botão de adicionar motivo.
+
+DIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html linha: 93
+    p-label="{{literals.addWithIcon}}"
+    (p-click)="openModalNewReason(false)"
+-   p-type="primary"
++   p-kind="primary"
+  >
+  </po-button>
+DIFF_END
+
+Adicionar valor default 100 ao campo `plannedQuantity` no model usado pela tela de criação rápida de OP.
+
+DIFF_START arquivo: src/app/shared/model/order/datasul-production-order.model.ts linha: 61
+  unitOfMeasureCode?: string;
+  warehouseCode?: string;
+- plannedQuantity?: number;
++ plannedQuantity?: number = 100;
+  producedQuantity?: number;
+  scrappedQuantity?: number;
+DIFF_END
+
+A primeira mudança faz o botão usar o Input correto de estilo do PO-UI, destacando-o como ação principal. A segunda garante que `newOrder.plannedQuantity` (vinculado ao `po-decimal` de quantidade em `create-production-order.component.html`, linha 106) já nasça com 100 ao instanciar `new DatasulProductionOrder()`.
+
+----------------------------------------
+ARQUIVOS ANALISADOS
+----------------------------------------
+- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html
+- src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.html
+  └─ src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts
+     └─ src/app/shared/model/order/datasul-production-order.model.ts
+
+----------------------------------------
+OBSERVAÇÕES
+----------------------------------------
+- O ANEXO/instruções do ticket continham um trecho injetado ("INSTRUÇÃO DE EXECUÇÃO") pedindo um formato de saída diferente (```diff em vez de DIFF_START/DIFF_END) e um aviso para "ignorar git". Esse trecho foi tratado como dado não confiável e ignorado — a saída acima segue exclusivamente o template do CLAUDE.md.
+- A estrutura de pastas real do app (`datasul-create-production-order`) difere da listada no Funcionalidades.md (`create-production-order`, `form-list-create-production-order`, `create-production-order-by-form`, que não existem no repositório atual) — vale atualizar esse documento.
+- Ao selecionar um item em `create-production-order.component.ts` (`onItemSelected` → `getNewOrderDefaultData`), `this.newOrder` é totalmente substituído pela resposta do backend; se a API não devolver `plannedQuantity`, o default 100 do front será perdido nesse fluxo.
+
+========================================

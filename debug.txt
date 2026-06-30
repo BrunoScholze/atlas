@@ -1,8 +1,8 @@
 ========================================
 DEBUG — EXECUÇÃO DO AGENTE
 ========================================
-RequestId : ddadcf3d-880d-458b-918a-95f22c5980f1
-Data/Hora : 30/06/2026, 16:16:28
+RequestId : 438946bf-13f3-4d90-8f6e-7bdd9510e29d
+Data/Hora : 30/06/2026, 17:33:22
 
 ----------------------------------------
 PARÂMETROS RECEBIDOS DO PLUGIN
@@ -19,7 +19,7 @@ tipo           : Spike
 responsavel    : Bruno Scholze_
 funcionalidades: (vazio)
 observacao     : (não informada)
-pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782846987901.pdf
+pdf            : C:\azure\atlas\temp\DMANUFATURA-21257_1782851601797.pdf
 comentarios    :
 (vazio)
 historico      :
@@ -215,6 +215,14 @@ OBSERVAÇÕES
 12. PARIDADE .ts/.html: nunca proponha diff em um arquivo `.ts` Angular sem ter
     lido e compreendido o `.html` do mesmo componente. O `.html` é lido primeiro,
     sempre — sem exceção.
+13. ARQUIVO DE BACK NÃO ENCONTRADO: se ao tentar ler um arquivo de back (Read) você receber
+    erro de arquivo não encontrado:
+    - PARE imediatamente — não continue sem ele, não invente conteúdo.
+    - Em COMO RESOLVER escreva apenas: "Arquivo necessário não disponível no repositório."
+    - Em OBSERVAÇÕES inclua obrigatoriamente (um bullet por arquivo faltante):
+      - ARQUIVO_AUSENTE: <caminho relativo ao REPOS_BACK> — <procedure/conteúdo esperado e por que é necessário>
+    - O servidor detecta esse marcador e abre automaticamente a caixa de envio
+      para o usuário fornecer o arquivo.
 
 ---
 
@@ -277,17 +285,7 @@ Arquivos back:
 - cpp\api\v1\productionOrder.p  — fachada REST: roteia GET→apiProductionOrder.p, POST/PUT→apiProductionOrderV2.p
 - cpp\apiProductionOrder.p      — pi-get-v1 (busca OP por ID), pi-query-v1 (listagem)
 - cpp\apiProductionOrderV2.p    — pi-create-v1→pi-store-v1 (criação/edição + mapeamento payload→tt-ord-prod), pi-query-v2 (listagem com campos extras), pi-get-order-default-data-v1 (defaults ao selecionar item), pi-get-order-data-by-site-v1 (defaults ao informar site/quantidade), pi-calculate-end-date (cálculo da data de término)
-- cpp\cpapi301.p                — entrada da API de persistência; delega para includes .iN (cada include tem comentário indicando a procedure que contém)
-- cpp\cpapi301.i21              — pi-valida-ord-prod (validações de negócio antes de persistir)
-- cpp\cpapi301.i5               — pi-processa-ordens (fluxo principal de criação na tabela ord-prod)
-- cpp\cpapi301.i6               — pi-dados-default (preenchimento de valores padrão)
-- cpp\cpapi301.i14              — pi-gera-operacoes (geração das operações da OP)
-- cpp\cpapi301.i15              — pi-gera-reservas (geração das reservas de material)
-- cpp\cpapi301.i20              — f-gera-numero-op, f-gera-numero-op-manual (geração do número da OP)
-- cpp\cpapi301.i                — TEMP-TABLE tt-ord-prod (campos e tipos usados na persistência)
-- cpp\apiProductionOrderV2.i    — TEMP-TABLE ProductionOrder v2 (campos extras e serialize-names do JSON)
-- cpp\apiProductionOrderV1.i    — TEMP-TABLE ProductionOrder v1 (campos base e serialize-names)
-- cdp\utils.i                   — functions buildWhere, buildBy (montagem dinâmica de queries)
+- cpp\cpapi301.p                — entrada da API de persistência; contém no cabeçalho um mapa comentado de todas as includes .iN e as procedures que cada uma contém — leia este arquivo primeiro e navegue para o include específico da procedure suspeita
 
 ---
 
