@@ -187,40 +187,21 @@ Arquivos front:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.scss
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
 
-⚠️ BACK — NÃO LEIA se o problema for de layout, cor, label, campo visível/oculto, navegação ou texto.
-Só abra arquivos de back se o sintoma indicar dado errado, falha ao salvar, validação do servidor ou regra de negócio.
-
-Guia de leitura — leia APENAS os arquivos do grupo correspondente ao sintoma. Não leia os demais.
-
-SINTOMA: "Ordem não cria" / "Erro ao salvar" / "Botão não avança"
-  1. cpp\apiProductionOrderV2.p  → procedure pi-store-v1: veja como os campos do payload são mapeados para tt-ord-prod
-  2. cpp\cpapi301.i21            → procedure pi-valida-ord-prod: validações que bloqueiam a criação (erros de negócio)
-  3. cpp\cpapi301.i5             → procedure pi-processa-ordens: fluxo principal de persistência na tabela ord-prod
-
-SINTOMA: "Campo salvo com valor errado" (quantidade, datas, tipo, depósito, etc.)
-  1. cpp\apiProductionOrderV2.p  → procedure pi-store-v1: linha com fn-get-*-from-payload do campo suspeito
-  2. cpp\apiProductionOrderV2.i  → TEMP-TABLE ProductionOrder v2: confirme o serialize-name do campo no JSON
-  3. cpp\cpapi301.i              → TEMP-TABLE tt-ord-prod: definição do campo na tabela de persistência
-
-SINTOMA: "Dados default errados ao selecionar item ou ao informar quantidade/site"
-  1. cpp\apiProductionOrderV2.p  → procedure pi-get-order-default-data-v1 (defaults do item) ou pi-get-order-data-by-site-v1 (defaults por site/quantidade)
-  2. cpp\cpapi301.i6             → procedure pi-dados-default: como os defaults são preenchidos internamente
-
-SINTOMA: "Data de término calculada errada"
-  1. cpp\apiProductionOrderV2.p  → procedure pi-calculate-end-date: lógica de cálculo por período e tempo de ressuprimento
-
-SINTOMA: "Número da OP gerado errado ou duplicado"
-  1. cpp\cpapi301.i20            → functions f-gera-numero-op e f-gera-numero-op-manual
-
-SINTOMA: "OP criada mas operações ou reservas de material não aparecem"
-  1. cpp\cpapi301.i14            → procedure pi-gera-operacoes: geração das operações da OP
-  2. cpp\cpapi301.i15            → procedure pi-gera-reservas: geração das reservas de material
-
-Referência de campos (consulte quando precisar confirmar nome de campo ou serialize-name):
-- cpp\apiProductionOrderV2.i  → campos v2: desc-item, qt-saldo, desc-estado, log-possui-anexo, desc-linha, desc-estabel, dt-ultimo-reporte, qt-ultimo-reporte
-- cpp\apiProductionOrderV1.i  → campos v1: nr-ord-produ, it-codigo, dt-inicio, dt-termino, estado, qt-ordem, tipo, un
-- cpp\cpapi301.i              → TEMP-TABLE tt-ord-prod usada na persistência
-- cdp\utils.i                 → functions buildWhere / buildBy (queries de busca)
+Arquivos back:
+- cpp\api\v1\productionOrder.p  — fachada REST: roteia GET→apiProductionOrder.p, POST/PUT→apiProductionOrderV2.p
+- cpp\apiProductionOrder.p      — pi-get-v1 (busca OP por ID), pi-query-v1 (listagem)
+- cpp\apiProductionOrderV2.p    — pi-create-v1→pi-store-v1 (criação/edição + mapeamento payload→tt-ord-prod), pi-query-v2 (listagem com campos extras), pi-get-order-default-data-v1 (defaults ao selecionar item), pi-get-order-data-by-site-v1 (defaults ao informar site/quantidade), pi-calculate-end-date (cálculo da data de término)
+- cpp\cpapi301.p                — entrada da API de persistência; delega para includes .iN (cada include tem comentário indicando a procedure que contém)
+- cpp\cpapi301.i21              — pi-valida-ord-prod (validações de negócio antes de persistir)
+- cpp\cpapi301.i5               — pi-processa-ordens (fluxo principal de criação na tabela ord-prod)
+- cpp\cpapi301.i6               — pi-dados-default (preenchimento de valores padrão)
+- cpp\cpapi301.i14              — pi-gera-operacoes (geração das operações da OP)
+- cpp\cpapi301.i15              — pi-gera-reservas (geração das reservas de material)
+- cpp\cpapi301.i20              — f-gera-numero-op, f-gera-numero-op-manual (geração do número da OP)
+- cpp\cpapi301.i                — TEMP-TABLE tt-ord-prod (campos e tipos usados na persistência)
+- cpp\apiProductionOrderV2.i    — TEMP-TABLE ProductionOrder v2 (campos extras e serialize-names do JSON)
+- cpp\apiProductionOrderV1.i    — TEMP-TABLE ProductionOrder v1 (campos base e serialize-names)
+- cdp\utils.i                   — functions buildWhere, buildBy (montagem dinâmica de queries)
 
 ---
 
