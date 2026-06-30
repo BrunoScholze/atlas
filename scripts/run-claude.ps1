@@ -68,12 +68,13 @@ Log "INFO" "Flags: --dangerously-skip-permissions --print"
 LogSep
 
 # -------------------------------------------------------
-# Executa o Claude Code — cmd /c com chcp 65001 garante UTF-8
+# Executa o Claude Code — pipe nativo do PowerShell (evita cmd /c)
 # -------------------------------------------------------
 $startTime = Get-Date
 try {
-    $result   = cmd /c "chcp 65001 > nul 2>&1 & claude --dangerously-skip-permissions --print < `"$PromptFile`""
-    $exitCode = $LASTEXITCODE
+    $promptContent = [System.IO.File]::ReadAllText($PromptFile, [System.Text.Encoding]::UTF8)
+    $result        = $promptContent | & claude --dangerously-skip-permissions --print
+    $exitCode      = $LASTEXITCODE
 } catch {
     Log "ERROR" "Excecao ao chamar claude: $_"
     exit 1
