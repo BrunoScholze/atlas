@@ -170,8 +170,10 @@ Arquivos suspeitos:
 
 ## Criar ordem de produção
 Descrição: Fluxo para criação de uma nova ordem de produção. Composto por uma tela de seleção
-de formulário e uma tela de preenchimento dos dados da ordem.
-Arquivos suspeitos:
+de formulário e uma tela de preenchimento dos dados da ordem. O back-end recebe os dados via
+API REST (Progress OpenEdge) e persiste na tabela ord-prod.
+
+Arquivos front:
 - src\app\production-order\datasul\form-list-create-production-order\form-list-create-production-order.page.html
 - src\app\production-order\datasul\form-list-create-production-order\form-list-create-production-order.page.ts
 - src\app\production-order\datasul\form-list-create-production-order\form-list-create-production-order.page.scss
@@ -184,6 +186,12 @@ Arquivos suspeitos:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.ts
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.page.scss
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
+
+Arquivos back (ler só se: valor/campo salvo errado, validação falha, ordem não cria, erro do servidor):
+- cpp\api\v1\productionOrder.p  ← fachada REST v1 (roteamento GET — leia primeiro)
+- cpp\apiProductionOrder.p      ← lógica de query/busca (pi-get-v1, pi-query-v1)
+- cpp\apiProductionOrderV1.i    ← definição da TEMP-TABLE ProductionOrder (campos e serialize-names)
+- cdp\utils.i                   ← funções buildWhere / buildBy usadas nas queries
 
 ---
 

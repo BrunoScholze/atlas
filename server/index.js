@@ -151,6 +151,7 @@ function parseProjetos(conteudo) {
       claude: meta.claude || 'CLAUDE.md',
       funcionalidades: meta.funcionalidades || 'Funcionalidades.md',
       repositorio: meta.repositorio || '',
+      reposback:   meta.reposback  || '',
       azure: meta.azure || ''
     });
   }
@@ -247,6 +248,7 @@ RESPONSAVEL    : ${dados.responsavel || ''}
 COMENTARIOS    : ${truncar(dados.comentarios, 3000) || ''}
 HISTORICO      : ${truncar(dados.historico, 1500) || ''}
 PROJETO        : ${dados.projeto || ''}
+REPOS_BACK     : ${dados.reposBack || '(não configurado)'}
 FUNCIONALIDADES:
 OBSERVACAO     : ${truncar(dados.observacao, 1000) || 'Nenhuma observação adicional'}${injetarArquivosReferenciados(dados.observacao, dados.repoPath || '')}
 ANEXO          : ${dados.pdfTexto
@@ -719,18 +721,19 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
       }
     }
 
-    // Resolve repoPath antes de montar o prompt (necessário para injeção de @menções)
-    const repoPath = (() => {
-      if (projetoSlug) {
-        try {
-          const projetosMdTmp = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
-          const projTmp = parseProjetos(projetosMdTmp).find(p => p.slug === projetoSlug);
-          if (projTmp && projTmp.repositorio) return path.join(process.env.CONTEXT_PATH, projTmp.repositorio);
-        } catch { /* usa default */ }
-      }
-      return process.env.REPO_PATH;
-    })();
-    dados.repoPath = repoPath;
+    // Resolve repoPath (front) e reposBack (back Progress) antes de montar o prompt
+    let repoPath  = process.env.REPO_PATH;
+    let reposBack = '';
+    if (projetoSlug) {
+      try {
+        const projetosMdTmp = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'PROJETOS.md'), 'utf8');
+        const projTmp = parseProjetos(projetosMdTmp).find(p => p.slug === projetoSlug);
+        if (projTmp && projTmp.repositorio) repoPath  = path.join(process.env.CONTEXT_PATH, projTmp.repositorio);
+        if (projTmp && projTmp.reposback)   reposBack = path.join(process.env.CONTEXT_PATH, projTmp.reposback);
+      } catch { /* usa default */ }
+    }
+    dados.repoPath  = repoPath;
+    dados.reposBack = reposBack;
 
     // Monta prompt
     log.info('Montando prompt...');
