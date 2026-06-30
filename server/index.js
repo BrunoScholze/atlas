@@ -946,6 +946,8 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         arquivosAnalisados: arquivos
           ? [...arquivos.matchAll(/\b((?:src|back)[\\/][\w.\-\\/]+\.\w+)/g)].map(m => m[1])
           : [],
+        analisouBack:      /\w+\.(?:p|i\d*)\b/i.test(arquivos || ''),
+        problemaNoBack:    /^DIFF_START arquivo:[^\n]+\.(?:p|i\d*)\b/im.test(analise || ''),
         responsavel:       body.responsavel || '',
         temPdf:            !!pdfPath,
         temObservacao:     !!(body.observacao && body.observacao.trim()),
@@ -1106,6 +1108,8 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, ticketId
       arquivosAnalisados: arqRaw
         ? [...arqRaw.matchAll(/\b((?:src|back)[\\/][\w.\-\\/]+\.\w+)/g)].map(m => m[1])
         : [],
+      analisouBack:      /\w+\.(?:p|i\d*)\b/i.test(arqRaw || ''),
+      problemaNoBack:    /^DIFF_START arquivo:[^\n]+\.(?:p|i\d*)\b/im.test(analise || ''),
       temPdf:            false,
       temObservacao:     false,
       observacao:        '',

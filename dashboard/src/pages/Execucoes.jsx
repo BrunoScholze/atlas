@@ -206,14 +206,14 @@ export default function Execucoes() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
-              {['Ticket', 'Título', 'Responsável', 'Projeto', 'Tempo', 'Tokens', 'Funcionalidades', 'Ref.', 'Status', 'Feedback', 'Data'].map(h => (
+              {['Ticket', 'Título', 'Responsável', 'Projeto', 'Tempo', 'Tokens', 'Funcionalidades', 'Ref.', 'Back?', 'Prob.Back', 'Status', 'Feedback', 'Data'].map(h => (
                 <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--muted2)', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {data.execucoes.length === 0 && (
-              <tr><td colSpan={11} style={{ padding: 32, textAlign: 'center', color: 'var(--muted2)' }}>Nenhuma execução encontrada</td></tr>
+              <tr><td colSpan={13} style={{ padding: 32, textAlign: 'center', color: 'var(--muted2)' }}>Nenhuma execução encontrada</td></tr>
             )}
             {data.execucoes.map((e, i) => (
               <tr key={e.requestId || i}
@@ -237,13 +237,23 @@ export default function Execucoes() {
                     ? <span title={e.textoRefinamento || ''} style={{ cursor: 'help', color: '#d97706', fontWeight: 600 }}>Sim</span>
                     : <span style={{ color: 'var(--muted)' }}>—</span>}
                 </td>
+                <td style={{ padding: '10px 14px' }}>
+                  {e.analisouBack
+                    ? <span style={{ background: '#ede9fe', color: '#6d28d9', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>Sim</span>
+                    : <span style={{ color: 'var(--muted2)', fontSize: 11 }}>—</span>}
+                </td>
+                <td style={{ padding: '10px 14px' }}>
+                  {e.problemaNoBack
+                    ? <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>Back</span>
+                    : <span style={{ color: 'var(--muted2)', fontSize: 11 }}>—</span>}
+                </td>
                 <td style={{ padding: '10px 14px' }}><StatusBadge status={e.statusFinal} /></td>
                 <td style={{ padding: '10px 14px' }}>
                   {e.feedbackStatus === 'resolved'
                     ? <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>Resolvido</span>
                     : e.feedbackStatus === 'unresolved' || e.feedbackStatus === 'unresolved_refined'
                     ? <span style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>Não resolveu</span>
-                    : <span style={{ color: 'var(--muted2)', fontSize: 11 }}>Sem feedback</span>}
+                    : <span style={{ color: 'var(--muted2)', fontSize: 11 }}>Sem resposta</span>}
                 </td>
                 <td style={{ padding: '10px 14px', color: 'var(--muted2)', whiteSpace: 'nowrap' }}>{fmtData(e.timestamp)}</td>
               </tr>

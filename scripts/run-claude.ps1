@@ -68,37 +68,16 @@ Log "INFO" "Flags: --dangerously-skip-permissions --print"
 LogSep
 
 # -------------------------------------------------------
-# Heartbeat em background
-# -------------------------------------------------------
-$startTime  = Get-Date
-$logFileRef = $LogFile
-$heartbeat  = Start-Job -ScriptBlock {
-    param($lf, $st)
-    while ($true) {
-        Start-Sleep -Seconds 5
-        $elapsed = [int]((Get-Date) - $st).TotalSeconds
-        $ts   = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
-        $line = "[$ts] [WAIT] Claude processando... ${elapsed}s decorridos"
-        Write-Output $line
-        if ($lf) { Add-Content -Path $lf -Value $line -Encoding UTF8 }
-    }
-} -ArgumentList $logFileRef, $startTime
-
-# -------------------------------------------------------
 # Executa o Claude Code — cmd /c com chcp 65001 garante UTF-8
 # -------------------------------------------------------
+$startTime = Get-Date
 try {
     $result   = cmd /c "chcp 65001 > nul 2>&1 & claude --dangerously-skip-permissions --print < `"$PromptFile`""
     $exitCode = $LASTEXITCODE
 } catch {
     Log "ERROR" "Excecao ao chamar claude: $_"
-    Stop-Job  $heartbeat -ErrorAction SilentlyContinue
-    Remove-Job $heartbeat -ErrorAction SilentlyContinue
     exit 1
 }
-
-Stop-Job  $heartbeat -ErrorAction SilentlyContinue
-Remove-Job $heartbeat -ErrorAction SilentlyContinue
 
 $elapsed = [int]((Get-Date) - $startTime).TotalSeconds
 LogSep

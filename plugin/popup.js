@@ -270,9 +270,9 @@ function configurarEventos() {
 
   // Botões de resultado / erro / loading
   document.getElementById('btnCancelar').addEventListener('click', cancelarAnalise);
-  document.getElementById('btnInicioConfirm').addEventListener('click', abrirModalResolucao);
+  document.getElementById('btnInicioConfirm').addEventListener('click', voltarParaSelecao);
   document.getElementById('btnAindaNaoResolveu').addEventListener('click', toggleRefinamento);
-  document.getElementById('btnResolvido').addEventListener('click', () => resolverChamado('resolved'));
+  document.getElementById('btnResolvido').addEventListener('click', abrirModalResolucao);
   document.getElementById('modalSim').addEventListener('click', () => resolverChamado('resolved', true));
   document.getElementById('modalNao').addEventListener('click', () => resolverChamado('unresolved', true));
   document.getElementById('modalCancelar').addEventListener('click', fecharModal);
