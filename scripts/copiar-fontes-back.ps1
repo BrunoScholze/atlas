@@ -56,11 +56,7 @@ $arquivos = @(
     "cpp\cpapi301.i37",
 
     # --- Utilitários de query ---
-    "cdp\utils.i",
-
-    # --- Ver anexos ---
-    "cpp\api\v1\productionMobile.p",
-    "fch\fchman\fchmanproductionmobile.p"
+    "cdp\utils.i"
 )
 
 $copiados  = 0
