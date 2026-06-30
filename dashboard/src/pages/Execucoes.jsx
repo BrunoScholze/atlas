@@ -12,7 +12,7 @@ const PERIODO_OPTS = [
 
 function fmtTempo(s) { return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`; }
 function fmtData(ts) {
-  return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 const filterStyle = {
@@ -27,7 +27,7 @@ export default function Execucoes() {
 
   useEffect(() => {
     const params = Object.fromEntries(
-      Object.entries(filters).filter(([k, v]) => v !== '' && v !== 'tudo' && k !== 'page' || k === 'page' || k === 'limit')
+      Object.entries(filters).filter(([k, v]) => k === 'page' || k === 'limit' || (v !== '' && v !== 'tudo'))
     );
     fetchExecucoes(params)
       .then(d => {
