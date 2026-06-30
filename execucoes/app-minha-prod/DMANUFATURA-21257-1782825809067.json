@@ -1,0 +1,35 @@
+{
+  "requestId": "acf6e554-0b68-4170-a060-f9e4c82047b7",
+  "ticketId": "DMANUFATURA-21257",
+  "titulo": "Problema de visualizacao de botao na hora de informar motivos de refugo",
+  "projeto": "app-minha-prod",
+  "prioridade": "Média",
+  "tipo": "Spike",
+  "tempoAnalise": 266,
+  "tokensEntrada": 4615,
+  "tokensSaida": 914,
+  "tokensTotal": 5529,
+  "funcionalidades": [
+    "Motivo de refugo (ligado ao Apontamento)",
+    "Criar Ordem de Produção (criar rápida)"
+  ],
+  "arquivosAnalisados": [
+    "src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html",
+    "src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts",
+    "src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html",
+    "src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts",
+    "src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.html",
+    "src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts",
+    "src/app/shared/model/order/datasul-production-order.model.ts"
+  ],
+  "temPdf": true,
+  "temObservacao": false,
+  "observacao": "",
+  "descricao": "Analise bruno, na tela de informar motivos, parece que temos um botao com p-kind secondary, o que deixa ele inivisel quase, precisamos mudar para primary.\r\n\r\n \r\n\r\nOutro problema, ao criar uma ordem de producao pelo 'criar rapida', quero que ja venha como default o valor 100 no campo de quantidade",
+  "comentarios": "",
+  "isRefinamento": false,
+  "textoRefinamento": null,
+  "analise": "========================================\r\nAGENTE DE CHAMADOS — ANÁLISE DO TICKET\r\n========================================\r\n\r\nTICKET   : DMANUFATURA-21257 — Problema de visualizacao de botao na hora de informar motivos de refugo\r\nDATA     : 2026-06-30\r\n\r\n----------------------------------------\r\nFUNCIONALIDADES IDENTIFICADAS\r\n----------------------------------------\r\n- Motivo de refugo (ligado ao Apontamento) — motivo: ticket descreve botão quase invisível na tela de informar motivos de refugo; arquivo datasul-report-reason.html contém o botão afetado\r\n- Criar Ordem de Produção (criar rápida) — motivo: ticket solicita valor padrão 100 no campo de quantidade ao abrir o formulário de criação rápida de ordem; componente create-production-order foi identificado via busca no código\r\n\r\n----------------------------------------\r\nLOCALIZAÇÃO DO PROBLEMA\r\n----------------------------------------\r\nArquivo: `datasul-report-reason.html`, linha 93\r\nO botão \"adicionar motivo\" usa `p-type=\"primary\"` em vez de `p-kind=\"primary\"`, fazendo-o renderizar com aparência \"secondary\" (quase invisível).\r\n\r\nArquivo: `create-production-order.component.ts`, linha 99\r\nO campo `plannedQuantity` não recebe valor padrão na inicialização do componente, então o campo de quantidade abre vazio ao criar uma nova ordem.\r\n\r\n----------------------------------------\r\nCAUSA PROVÁVEL\r\n----------------------------------------\r\nNo PO-UI, `p-type` controla o tipo HTML do botão (button/submit/reset), não o estilo visual — o estilo visual é `p-kind`; sem ele, o default é \"secondary\". Para o segundo problema, `getLabels()` inicializa `productionOrderType` e `appointmentType`, mas não inicializa `plannedQuantity`, deixando-o `undefined`.\r\n\r\n----------------------------------------\r\nCOMO RESOLVER\r\n----------------------------------------\r\nSubstituir `p-type` por `p-kind` no botão de adicionar motivo:\r\n\r\nDIFF_START arquivo: src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html linha: 93\r\n          p-label=\"{{literals.addWithIcon}}\"\r\n          (p-click)=\"openModalNewReason(false)\"\r\n-         p-type=\"primary\"\r\n+         p-kind=\"primary\"\r\n      >\r\n      </po-button>\r\nDIFF_END\r\n\r\nAdicionar valor padrão 100 a `plannedQuantity` em `getLabels()`:\r\n\r\nDIFF_START arquivo: src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts linha: 100\r\n    this.newOrder.productionOrderType = this.orderTypes[0].value;\r\n    this.newOrder.appointmentType = this.reportOptions[0].value;\r\n+   this.newOrder.plannedQuantity = 100;\r\n  }\r\nDIFF_END\r\n\r\nO primeiro diff faz o botão renderizar com estilo \"primary\" (preenchido/visível). O segundo segue o mesmo padrão de inicialização já existente para os outros campos do formulário.\r\n\r\n----------------------------------------\r\nARQUIVOS ANALISADOS\r\n----------------------------------------\r\n- src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.html\r\n  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-reason/datasul-report-reason.ts (componente)\r\n- src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.html\r\n  └─ src/app/report-process/datasul/datasul-report-v2/datasul-report-v2.page.ts (componente pai)\r\n- src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.html\r\n  └─ src/app/production-order/datasul/datasul-create-production-order/create-production-order.component.ts (componente)\r\n     └─ src/app/shared/model/order/datasul-production-order.model.ts (modelo DatasulProductionOrder)\r\n\r\n========================================",
+  "statusFinal": "done",
+  "timestamp": 1782825809067
+}
