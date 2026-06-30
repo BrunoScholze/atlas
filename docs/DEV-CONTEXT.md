@@ -17,7 +17,7 @@ e o sistema aciona o Claude Code para investigar o código e retornar onde está
 3. **Script de execução** (`scripts/`) — executa `claude --print` e grava o resultado
    - Windows: `run-claude.ps1`
    - Mac/Linux: `run-claude.sh`
-4. **Dashboard de estatísticas** (futuro) — React app separado, a ser criado — veja seção abaixo
+4. **Dashboard de estatísticas** (`dashboard/`) — React app em `http://localhost:3000/dashboard`
 
 **Arquivos de instrução e configuração (lidos pelo servidor a cada requisição):**
 - `claude.md` — instruções do agente de análise (NÃO é para desenvolvimento do plugin)
@@ -32,7 +32,7 @@ e o sistema aciona o Claude Code para investigar o código e retornar onde está
 ```
 atlas/
 ├── server/
-│   ├── index.js          ← servidor Express principal (~900 linhas)
+│   ├── index.js          ← servidor Express principal (~1250 linhas)
 │   ├── .env              ← variáveis de ambiente (não comitar)
 │   └── node_modules/
 ├── plugin/
@@ -43,18 +43,34 @@ atlas/
 │   ├── manifest.json     ← manifesto da extensão (MV3)
 │   └── vendor/
 │       └── confetti.js   ← canvas-confetti 1.9.2 (bundled localmente)
+├── dashboard/            ← React app da Mesa de Controle (Vite + Recharts)
+│   ├── src/
+│   │   ├── App.jsx       ← Router + layout com Sidebar
+│   │   ├── api.js        ← fetchOverview / fetchExecucoes / fetchEfetividade
+│   │   ├── index.css     ← CSS vars: --bg, --surface, --text, --border, --success
+│   │   ├── components/   ← Sidebar, KPICard, StatusBadge
+│   │   └── pages/        ← Overview, Execucoes, Efetividade
+│   ├── dist/             ← build gerado (commitado — Express serve daqui)
+│   ├── package.json
+│   └── vite.config.js    ← base '/dashboard/', proxy → localhost:3000
 ├── scripts/
 │   ├── run-claude.ps1    ← executa claude --print no Windows
-│   └── run-claude.sh     ← executa claude --print no Mac/Linux
+│   └── run-claude.sh     ← executa claude --print no Mac/Linux (suporta modo --continue)
 ├── docs/
 │   ├── DEV-CONTEXT.md    ← este arquivo
 │   ├── COMO-ADICIONAR-PROJETO.md
 │   ├── COMO-RODAR.md
 │   └── superpowers/
 │       ├── specs/
-│       │   └── 2026-06-29-ux-feedback-mentions-design.md  ← spec das features de UX
+│       │   ├── 2026-06-29-ux-feedback-mentions-design.md
+│       │   ├── 2026-06-28-refinamento-design.md
+│       │   └── 2026-06-30-dashboard-design.md
 │       └── plans/
-│           └── 2026-06-29-ux-feedback-mentions.md         ← plano de implementação
+│           ├── 2026-06-29-ux-feedback-mentions.md
+│           └── 2026-06-30-dashboard.md
+├── execucoes/            ← JSONs de execução salvos automaticamente (gitignored)
+│   └── <projeto>/
+│       └── <ticketId>-<timestamp>.json
 ├── feedback/             ← JSONs de feedback salvos pelo servidor (gitignored)
 │   └── <projeto>/
 │       └── <ticketId>-<timestamp>.json
@@ -172,6 +188,10 @@ Invoke-RestMethod "http://localhost:3000/health"
 | **POST** | **`/feedback`** | **Salva feedback (resolved/unresolved/unresolved_refined)** |
 | **GET** | **`/feedback/stats`** | **Agrega métricas de todos os feedbacks** |
 | **GET** | **`/feedback/list`** | **Lista paginada de execuções com feedback** |
+| **GET** | **`/dashboard/overview`** | **KPIs + gráficos para a página Overview** |
+| **GET** | **`/dashboard/execucoes`** | **Lista paginada e filtrada de execuções** |
+| **GET** | **`/dashboard/efetividade`** | **Métricas de resolução, refinamento, top funcionalidades/arquivos** |
+| **GET** | **`/dashboard/*`** | **Serve o build React da Mesa de Controle** |
 
 ---
 
@@ -202,32 +222,35 @@ envia `POST /feedback`. O servidor salva em `feedback/<projeto>/<ticketId>-<ts>.
 
 ---
 
-## Dashboard de estatísticas (PENDENTE — próxima feature)
+## Dashboard — Mesa de Controle (CONCLUÍDO)
 
-> **Este é o próximo trabalho a ser feito em outra sessão/PC.**
+Acessível em `http://localhost:3000/dashboard` — servido pelo Express via `express.static('dashboard/dist')`.
 
-O dashboard será uma aplicação React separada, acessível em `http://localhost:3000/dashboard`
-(servida pelo mesmo servidor Express via `express.static`), com:
+**3 páginas:**
+- `/dashboard/overview` — KPI cards (total, taxa de resolução, tempo médio, tokens) + line chart 28 dias + donut de status + bar chart por projeto
+- `/dashboard/execucoes` — tabela filtrada (busca, projeto, status, período) com paginação de 50/página
+- `/dashboard/efetividade` — taxa de resolução por semana + donut de refinamento + top 10 funcionalidades/arquivos + tabela de refinamentos
 
-- 3 cards: Total de análises / % Resolvidos / Tempo médio
-- Gráfico de barras SVG (sem Chart.js/D3) — análises por semana (últimas 6)
-- Tabela de execuções: ticketId, título, projeto, data, status (badge colorido), tempo
+**Como atualizar o build após mudanças:**
+```bash
+cd /Users/brunoscholze/Documents/GitHub/atlas/dashboard
+npm run build
+git add -f dist/
+git commit -m "chore: rebuild dashboard"
+```
 
-**Os endpoints do servidor já estão prontos** — só falta criar o frontend React.
+**Como desenvolver com hot reload:**
+```bash
+cd dashboard && npm run dev   # → http://localhost:5173/dashboard (proxy para localhost:3000)
+```
 
-**Para iniciar o desenvolvimento do dashboard:**
-
-1. Abra o Claude Code neste repositório
-2. Leia os documentos de spec e plano abaixo
-3. Execute o skill `/brainstorming` ou `/writing-plans` para criar o plano do React app
-
-**Documentos de referência:**
-- Spec (design completo das features): `docs/superpowers/specs/2026-06-29-ux-feedback-mentions-design.md`
-  - Seção "Feature 3 — Feedback + tela de estatísticas" (linha ~70) descreve o que construir
-- Plano original (Task 3 foi adiada, mas contexto está lá): `docs/superpowers/plans/2026-06-29-ux-feedback-mentions.md`
-  - Task 3 marcada como `ADIADA` com nota explicando que será React app separado
-
-**Tecnologias decididas:** React + SVG puro (sem Chart.js), estilo minimalista igual ao plugin.
+**Dados capturados por execução** (salvos em `execucoes/<projeto>/<ticketId>-<ts>.json`):
+- requestId, ticketId, titulo, projeto, prioridade, tipo
+- tempoAnalise (segundos), tokensEntrada, tokensSaida, tokensTotal (estimativa chars/4)
+- funcionalidades[] (extraídas do output), arquivosAnalisados[]
+- isRefinamento (bool), textoRefinamento (string|null)
+- temPdf, temObservacao, observacao (primeiros 500 chars)
+- statusFinal (done|no_subject|error|cancelled), timestamp
 
 ---
 
@@ -375,3 +398,4 @@ Ou via servidor:
 - `http://localhost:3000/download/output` — download do output
 - `http://localhost:3000/feedback/stats` — métricas agregadas
 - `http://localhost:3000/feedback/list` — lista de execuções paginada
+- `http://localhost:3000/dashboard` — Mesa de Controle (React app)
