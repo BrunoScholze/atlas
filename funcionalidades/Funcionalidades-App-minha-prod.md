@@ -139,10 +139,16 @@ Arquivos suspeitos:
 
 ## Solicitação de serviço
 Descrição: Tela para criar ou visualizar solicitações de serviço.
-Arquivos suspeitos:
+
+Arquivos front:
 - src\app\service-request\datasul\datasul-service-request\service-request.page.html
 - src\app\service-request\datasul\datasul-service-request\service-request.page.ts
 - src\app\service-request\datasul\datasul-service-request\service-request.page.scss
+
+Arquivos back:
+- cpp\api\v1\productionMobile.p         — fachada REST; procedure `criaSolicitacaoServico` (linha 1034): mapeia payload → chama `REST_POST_criaSolicitacaoServico IN h-api`; use Grep para localizar
+- fch\fchman\fchmanproductionmobile.p   — arquivo grande (6000+ linhas); procedure `REST_POST_criaSolicitacaoServico` (linha 3332): recebe tt-solic-serv-html → RUN fch/fchmip/fchmipservicerequest.p PERSISTENT SET h-fachadaMI → chama REST_POST_createServiceRequest; use Grep para localizar
+- fch\fchmip\fchmipservicerequest.p     — arquivo menor (861 linhas); procedure `REST_POST_createServiceRequest` (linha 78): lógica de criação da solicitação de serviço
 
 ---
 
