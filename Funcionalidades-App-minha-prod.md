@@ -188,10 +188,13 @@ Arquivos front:
 - src\app\production-order\datasul\create-production-order-by-form\create-production-order-by-form.module.ts
 
 Arquivos back (ler só se: valor/campo salvo errado, validação falha, ordem não cria, erro do servidor):
-- cpp\api\v1\productionOrder.p  ← fachada REST v1 (roteamento GET — leia primeiro)
-- cpp\apiProductionOrder.p      ← lógica de query/busca (pi-get-v1, pi-query-v1)
-- cpp\apiProductionOrderV1.i    ← definição da TEMP-TABLE ProductionOrder (campos e serialize-names)
-- cdp\utils.i                   ← funções buildWhere / buildBy usadas nas queries
+- cpp\api\v1\productionOrder.p   ← fachada REST v1 (roteamento, chama apiProductionOrder.p e apiProductionOrderV2.p)
+- cpp\apiProductionOrder.p       ← lógica de query/busca (pi-get-v1, pi-query-v1)
+- cpp\apiProductionOrderV1.i     ← definição da TEMP-TABLE ProductionOrder v1 (campos e serialize-names)
+- cpp\apiProductionOrderV2.p     ← lógica de criação/edição/v2 (pi-create-v1, pi-store-v1, pi-query-v2) — leia se bug for de criação ou dados da OP
+- cpp\apiProductionOrderV2.i     ← definição da TEMP-TABLE ProductionOrder v2 (campos extras: desc-item, qt-saldo, etc.)
+- cpp\cpapi301.p                 ← persistência real da OP (chamado por pi-store-v1) — leia se a ordem não salva ou salva errado
+- cdp\utils.i                    ← funções buildWhere / buildBy usadas nas queries
 
 ---
 
