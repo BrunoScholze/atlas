@@ -922,14 +922,6 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, 
     analiseAnterior = analiseAnterior.trim();
   } catch (e) { /* sem contexto anterior */ }
 
-  const promptRefinamento = analiseAnterior
-    ? `Você é o agente de chamados que acabou de gerar a análise abaixo.\nO desenvolvedor tem uma pergunta de acompanhamento sobre a mesma análise.\n\nRegras:\n- Use o contexto da análise anterior para responder diretamente\n- Só leia arquivos do repositório se for estritamente necessário para a nova pergunta\n- Se atualizar a análise, mantenha o mesmo formato de output com separadores ---\n- Se a resposta for simples, responda em texto livre objetivo\n\n=== ANÁLISE ANTERIOR ===\n${analiseAnterior}\n\n=== PERGUNTA DO DESENVOLVEDOR ===\n${refinamento}`
-    : refinamento;
-
-  const refinamentoPath = path.join(process.env.CONTEXT_PATH, 'refinamento_temp.txt');
-  fs.writeFileSync(refinamentoPath, promptRefinamento, 'utf8');
-  log.info(`Prompt de acompanhamento: ${promptRefinamento.length} chars`);
-
   let repoPath = process.env.REPO_PATH;
   if (projetoSlug) {
     try {
@@ -938,6 +930,14 @@ async function executarRefinamento(requestId, refinamento, projetoSlug, inicio, 
       if (proj && proj.repositorio) repoPath = path.join(process.env.CONTEXT_PATH, proj.repositorio);
     } catch (e) { /* usa default */ }
   }
+
+  const promptRefinamento = analiseAnterior
+    ? `Você é o agente de chamados que acabou de gerar a análise abaixo.\nO desenvolvedor tem uma pergunta de acompanhamento sobre a mesma análise.\n\nRegras:\n- Use o contexto da análise anterior para responder diretamente\n- Só leia arquivos do repositório se for estritamente necessário para a nova pergunta\n- Se atualizar a análise, mantenha o mesmo formato de output com separadores ---\n- Se a resposta for simples, responda em texto livre objetivo\n\n=== ANÁLISE ANTERIOR ===\n${analiseAnterior}\n\n=== PERGUNTA DO DESENVOLVEDOR ===\n${refinamento}${injetarArquivosReferenciados(refinamento, repoPath)}`
+    : refinamento + injetarArquivosReferenciados(refinamento, repoPath);
+
+  const refinamentoPath = path.join(process.env.CONTEXT_PATH, 'refinamento_temp.txt');
+  fs.writeFileSync(refinamentoPath, promptRefinamento, 'utf8');
+  log.info(`Prompt de acompanhamento: ${promptRefinamento.length} chars`);
 
   const isWin  = process.platform === 'win32';
   const ps1Path = path.join(process.env.CONTEXT_PATH, 'scripts', 'run-claude.ps1');

@@ -1053,7 +1053,6 @@ async function resolverChamado(status, viaModal = false) {
 }
 
 async function salvarFeedback(status) {
-  // Stub — implementado de verdade na Task 2
   try {
     const stored = await chrome.storage.local.get(['inicio', 'resultado']);
     const tempoAnalise = stored.inicio ? Math.round((Date.now() - stored.inicio) / 1000) : 0;
@@ -1118,7 +1117,7 @@ function configurarMencaoArquivo(textarea, dropdownEl) {
     if (!filtrados.length) { dropdownEl.style.display = 'none'; return; }
 
     dropdownEl.innerHTML = filtrados.map(f =>
-      `<div class="mencao-item" data-path="${escaparHtml(f)}">
+      `<div class="mencao-item" data-path="${escapeHtml(f)}">
          <span class="mencao-nome">${escaparHtml(f.split('/').pop())}</span>
          <span class="mencao-path">${escaparHtml(f)}</span>
        </div>`
