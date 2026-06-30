@@ -177,6 +177,7 @@ function injetarArquivosReferenciados(texto, repoPath) {
   const secoes = [];
   for (const m of matches) {
     const rel = m[1];
+    if (rel.includes('..') || rel.startsWith('/')) continue;
     if (vistos.has(rel) || vistos.size >= MAX_ARQUIVOS) continue;
     vistos.add(rel);
     try {
