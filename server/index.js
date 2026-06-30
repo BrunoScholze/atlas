@@ -149,7 +149,7 @@ function parseProjetos(conteudo) {
       descricao: meta['descrição'] || meta.descricao || '',
       status: meta.status || 'ativo',
       claude: meta.claude || 'CLAUDE.md',
-      funcionalidades: meta.funcionalidades || 'Funcionalidades.md',
+      funcionalidades: meta.funcionalidades || 'funcionalidades/Funcionalidades.md',
       repositorio: meta.repositorio || '',
       reposback:   meta.reposback  || '',
       azure: meta.azure || ''
@@ -326,7 +326,7 @@ app.get('/projetos', (req, res) => {
 // -------------------------------------------------------
 app.get('/funcionalidades', (req, res) => {
   try {
-    const conteudo = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'Funcionalidades.md'), 'utf8');
+    const conteudo = fs.readFileSync(path.join(process.env.CONTEXT_PATH, 'funcionalidades/Funcionalidades.md'), 'utf8');
     const funcionalidades = conteudo
       .split('\n')
       .filter(l => l.startsWith('## '))
@@ -343,7 +343,7 @@ app.get('/funcionalidades', (req, res) => {
 // -------------------------------------------------------
 app.get('/arquivos', (req, res) => {
   const projetoSlug = req.query.projeto || '';
-  let funcFile = 'Funcionalidades.md';
+  let funcFile = 'funcionalidades/Funcionalidades.md';
 
   if (projetoSlug) {
     try {
@@ -664,7 +664,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
     // Lê arquivos de contexto — resolve projeto e carrega arquivos corretos
     const projetoSlug = body.projeto || '';
     let claudeFile = 'CLAUDE.md';
-    let funcFile   = 'Funcionalidades.md';
+    let funcFile   = 'funcionalidades/Funcionalidades.md';
 
     if (projetoSlug) {
       try {
@@ -672,7 +672,7 @@ async function executarAnalise(requestId, body, pdfPath, inicio, logFile) {
         const proj = parseProjetos(projetosMd).find(p => p.slug === projetoSlug);
         if (proj) {
           claudeFile = proj.claude           || 'CLAUDE.md';
-          funcFile   = proj.funcionalidades  || 'Funcionalidades.md';
+          funcFile   = proj.funcionalidades  || 'funcionalidades/Funcionalidades.md';
           log.info(`Projeto: ${projetoSlug} → CLAUDE: ${claudeFile} | Funcionalidades: ${funcFile}`);
           addLog(requestId, `Projeto identificado: ${proj.nome}`);
         } else {
