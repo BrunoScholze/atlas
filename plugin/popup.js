@@ -991,7 +991,12 @@ async function reenviarAnalise() {
     const res = await fetch(`${SERVER_URL}/refinar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refinamento: texto, projeto: state.projetoSelecionado || '' })
+      body: JSON.stringify({
+        refinamento: texto,
+        projeto:     state.projetoSelecionado || '',
+        ticketId:    state.dadosTicket?.ticketId || '',
+        titulo:      state.dadosTicket?.titulo   || ''
+      })
     });
     const json = await res.json();
     if (!json.sucesso) { mostrarErro(json.erro || 'Erro ao iniciar refinamento.'); return; }
